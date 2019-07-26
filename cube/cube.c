@@ -1618,6 +1618,17 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
             fprintf(stderr, "Error loading texture: %s\n", filename);
         }
 
+        if (!(demo->memory_properties.memoryTypes[tex_obj->mem_alloc.memoryTypeIndex].propertyFlags &
+              VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+            VkMappedMemoryRange memory_range = {
+                .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+                .pNext = NULL,
+                .memory = tex_obj->mem,
+                .offset = 0,
+                .size = VK_WHOLE_SIZE,
+            };
+            vkFlushMappedMemoryRanges(demo->device, 1, &memory_range);
+        }
         vkUnmapMemory(demo->device, tex_obj->mem);
     }
 
@@ -1644,7 +1655,7 @@ static void demo_prepare_textures(struct demo *demo) {
         if ((props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !demo->use_staging_buffer) {
             /* Device can texture using linear textures */
             demo_prepare_texture_image(demo, tex_files[i], &demo->textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
             // Nothing in the pipeline needs to be complete to start, and don't allow fragment
             // shader to run until layout transition completes
             demo_set_image_layout(demo, demo->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,

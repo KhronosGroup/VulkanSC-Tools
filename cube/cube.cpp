@@ -2122,6 +2122,10 @@ void Demo::prepare_texture_image(const char *filename, texture_object *tex_obj, 
             fprintf(stderr, "Error loading texture: %s\n", filename);
         }
 
+        if (!(memory_properties.memoryTypes[tex_obj->mem_alloc.memoryTypeIndex].propertyFlags &
+              vk::MemoryPropertyFlagBits::eHostCoherent)) {
+            device.flushMappedMemoryRanges({vk::MappedMemoryRange(tex_obj->mem, 0, VK_WHOLE_SIZE)});
+        }
         device.unmapMemory(tex_obj->mem);
     }
 
@@ -2137,7 +2141,7 @@ void Demo::prepare_textures() {
         if ((props.linearTilingFeatures & vk::FormatFeatureFlagBits::eSampledImage) && !use_staging_buffer) {
             /* Device can texture using linear textures */
             prepare_texture_image(tex_files[i], &textures[i], vk::ImageTiling::eLinear, vk::ImageUsageFlagBits::eSampled,
-                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+                                  vk::MemoryPropertyFlagBits::eHostVisible);
             // Nothing in the pipeline needs to be complete to start, and don't allow fragment
             // shader to run until layout transition completes
             set_image_layout(textures[i].image, vk::ImageAspectFlagBits::eColor, vk::ImageLayout::ePreinitialized,
