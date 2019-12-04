@@ -342,6 +342,7 @@ struct demo {
     bool use_staging_buffer;
     bool separate_present_queue;
     bool is_minimized;
+    bool surface_mapped;
 
     bool VK_KHR_incremental_present_enabled;
 
@@ -1011,6 +1012,10 @@ void DemoUpdateTargetIPD(struct demo *demo) {
 }
 
 static void demo_draw(struct demo *demo) {
+#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+    if (!demo->surface_mapped)
+        return;
+#endif
     VkResult U_ASSERT_ONLY err;
 
     // Ensure no more than FRAME_LAG renderings are outstanding
@@ -2621,6 +2626,9 @@ static void demo_handle_xlib_event(struct demo *demo, const XEvent *event) {
                 demo_resize(demo);
             }
             break;
+        case MapNotify:
+            demo->surface_mapped = true;
+            break;
         default:
             break;
     }
@@ -2640,7 +2648,8 @@ static void demo_run_xlib(struct demo *demo) {
         }
 
         demo_draw(demo);
-        demo->curFrame++;
+        if (demo->surface_mapped)
+            demo->curFrame++;
         if (demo->frameCount != INT32_MAX && demo->curFrame == demo->frameCount) demo->quit = true;
     }
 }
@@ -2682,6 +2691,9 @@ static void demo_handle_xcb_event(struct demo *demo, const xcb_generic_event_t *
                 demo_resize(demo);
             }
         } break;
+        case XCB_MAP_NOTIFY: {
+            demo->surface_mapped = true;
+        } break;
         default:
             break;
     }
@@ -2705,7 +2717,8 @@ static void demo_run_xcb(struct demo *demo) {
         }
 
         demo_draw(demo);
-        demo->curFrame++;
+        if (demo->surface_mapped)
+            demo->curFrame++;
         if (demo->frameCount != INT32_MAX && demo->curFrame == demo->frameCount) demo->quit = true;
     }
 }
@@ -3405,6 +3418,8 @@ static void demo_create_device(struct demo *demo) {
 
 static void demo_create_surface(struct demo *demo) {
     VkResult U_ASSERT_ONLY err;
+
+    demo->surface_mapped = false;
 
 // Create a WSI surface for the window:
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
