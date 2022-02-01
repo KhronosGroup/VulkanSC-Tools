@@ -397,6 +397,7 @@ struct demo {
     PFN_vkQueuePresentKHR fpQueuePresentKHR;
     PFN_vkGetRefreshCycleDurationGOOGLE fpGetRefreshCycleDurationGOOGLE;
     PFN_vkGetPastPresentationTimingGOOGLE fpGetPastPresentationTimingGOOGLE;
+    PFN_vkCmdPushDescriptorSetKHR fpCmdPushDescriptorSetKHR;
     uint32_t swapchainImageCount;
     VkSwapchainKHR swapchain;
     SwapchainImageResources *swapchain_image_resources;
@@ -420,11 +421,11 @@ struct demo {
     struct texture_object staging_texture;
 
     VkCommandBuffer cmd;  // Buffer for initialization commands
-    VkPipelineLayout pipeline_layout;
-    VkDescriptorSetLayout desc_layout;
+    VkPipelineLayout pipeline_layout[2];
+    VkDescriptorSetLayout desc_layout[2];
     VkPipelineCache pipelineCache;
     VkRenderPass render_pass;
-    VkPipeline pipeline;
+    VkPipeline pipeline[2];
 
     mat4x4 projection_matrix;
     mat4x4 view_matrix;
@@ -605,6 +606,7 @@ bool CanPresentEarlier(uint64_t earliest, uint64_t actual, uint64_t margin, uint
 // Forward declarations:
 static void demo_resize(struct demo *demo);
 static void demo_create_surface(struct demo *demo);
+static void demo_push_descriptors(struct demo *demo, VkCommandBuffer cmd);
 
 static bool memory_type_from_properties(struct demo *demo, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
     // Search memtypes to find first index with those properties
@@ -779,8 +781,11 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
         demo->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
-    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline);
-    vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline_layout, 0, 1,
+    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline[1]);
+    demo_push_descriptors(demo, cmd_buf);
+
+    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline[0]);
+    vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline_layout[0], 0, 1,
                             &demo->swapchain_image_resources[demo->current_buffer].descriptor_set, 0, NULL);
     VkViewport viewport;
     memset(&viewport, 0, sizeof(viewport));
@@ -818,6 +823,7 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
     }
 
     vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+
     if (demo->validate) {
         demo->CmdEndDebugUtilsLabelEXT(cmd_buf);
     }
@@ -1853,26 +1859,39 @@ static void demo_prepare_descriptor_layout(struct demo *demo) {
                 .pImmutableSamplers = NULL,
             },
     };
-    const VkDescriptorSetLayoutCreateInfo descriptor_layout = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = NULL,
-        .bindingCount = 2,
-        .pBindings = layout_bindings,
+    const VkDescriptorSetLayoutCreateInfo descriptor_layout[2] = {
+        [0] =
+            {
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                .pNext = NULL,
+                .bindingCount = 2,
+                .pBindings = layout_bindings,
+            },
+        [1] =
+            {
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                .pNext = NULL,
+                .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
+                .bindingCount = 2,
+                .pBindings = layout_bindings,
+            },
     };
-    VkResult U_ASSERT_ONLY err;
 
-    err = vkCreateDescriptorSetLayout(demo->device, &descriptor_layout, NULL, &demo->desc_layout);
-    assert(!err);
+    for (unsigned int i = 0; i < 2; i++) {
+        VkResult U_ASSERT_ONLY err;
+        err = vkCreateDescriptorSetLayout(demo->device, &descriptor_layout[i], NULL, &demo->desc_layout[i]);
+        assert(!err);
 
-    const VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext = NULL,
-        .setLayoutCount = 1,
-        .pSetLayouts = &demo->desc_layout,
-    };
+        const VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .pNext = NULL,
+            .setLayoutCount = 1,
+            .pSetLayouts = &demo->desc_layout[i],
+        };
 
-    err = vkCreatePipelineLayout(demo->device, &pPipelineLayoutCreateInfo, NULL, &demo->pipeline_layout);
-    assert(!err);
+        err = vkCreatePipelineLayout(demo->device, &pPipelineLayoutCreateInfo, NULL, &demo->pipeline_layout[i]);
+        assert(!err);
+    }
 }
 
 static void demo_prepare_render_pass(struct demo *demo) {
@@ -2027,7 +2046,7 @@ static void demo_prepare_pipeline(struct demo *demo) {
 
     memset(&pipeline, 0, sizeof(pipeline));
     pipeline.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipeline.layout = demo->pipeline_layout;
+    pipeline.layout = demo->pipeline_layout[0];
 
     memset(&vi, 0, sizeof(vi));
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -2116,7 +2135,12 @@ static void demo_prepare_pipeline(struct demo *demo) {
 
     pipeline.renderPass = demo->render_pass;
 
-    err = vkCreateGraphicsPipelines(demo->device, demo->pipelineCache, 1, &pipeline, NULL, &demo->pipeline);
+    err = vkCreateGraphicsPipelines(demo->device, demo->pipelineCache, 1, &pipeline, NULL, &demo->pipeline[0]);
+    assert(!err);
+
+    pipeline.layout = demo->pipeline_layout[1];
+
+    err = vkCreateGraphicsPipelines(demo->device, demo->pipelineCache, 1, &pipeline, NULL, &demo->pipeline[1]);
     assert(!err);
 
     vkDestroyShaderModule(demo->device, demo->frag_shader_module, NULL);
@@ -2158,7 +2182,7 @@ static void demo_prepare_descriptor_set(struct demo *demo) {
                                               .pNext = NULL,
                                               .descriptorPool = demo->desc_pool,
                                               .descriptorSetCount = 1,
-                                              .pSetLayouts = &demo->desc_layout};
+                                              .pSetLayouts = &demo->desc_layout[0]};
 
     VkDescriptorBufferInfo buffer_info;
     buffer_info.offset = 0;
@@ -2192,6 +2216,38 @@ static void demo_prepare_descriptor_set(struct demo *demo) {
         writes[1].dstSet = demo->swapchain_image_resources[i].descriptor_set;
         vkUpdateDescriptorSets(demo->device, 2, writes, 0, NULL);
     }
+}
+
+static void demo_push_descriptors(struct demo *demo, VkCommandBuffer cmd) {
+    VkDescriptorImageInfo tex_descs[DEMO_TEXTURE_COUNT];
+    VkWriteDescriptorSet writes[2];
+
+    VkDescriptorBufferInfo buffer_info;
+    buffer_info.buffer = demo->swapchain_image_resources[demo->current_buffer].uniform_buffer;
+    buffer_info.offset = 0;
+    buffer_info.range = sizeof(struct vktexcube_vs_uniform);
+
+    memset(&tex_descs, 0, sizeof(tex_descs));
+    for (unsigned int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
+        tex_descs[i].sampler = demo->textures[i].sampler;
+        tex_descs[i].imageView = demo->textures[i].view;
+        tex_descs[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+    memset(&writes, 0, sizeof(writes));
+
+    writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[0].descriptorCount = 1;
+    writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writes[0].pBufferInfo = &buffer_info;
+
+    writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[1].dstBinding = 1;
+    writes[1].descriptorCount = DEMO_TEXTURE_COUNT;
+    writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writes[1].pImageInfo = tex_descs;
+
+    demo->fpCmdPushDescriptorSetKHR(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline_layout[1], 0, 2, writes);
 }
 
 static void demo_prepare_framebuffers(struct demo *demo) {
@@ -2340,11 +2396,14 @@ static void demo_cleanup(struct demo *demo) {
         }
         vkDestroyDescriptorPool(demo->device, demo->desc_pool, NULL);
 
-        vkDestroyPipeline(demo->device, demo->pipeline, NULL);
+        vkDestroyPipeline(demo->device, demo->pipeline[0], NULL);
+        vkDestroyPipeline(demo->device, demo->pipeline[1], NULL);
         vkDestroyPipelineCache(demo->device, demo->pipelineCache, NULL);
         vkDestroyRenderPass(demo->device, demo->render_pass, NULL);
-        vkDestroyPipelineLayout(demo->device, demo->pipeline_layout, NULL);
-        vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout, NULL);
+        vkDestroyPipelineLayout(demo->device, demo->pipeline_layout[0], NULL);
+        vkDestroyPipelineLayout(demo->device, demo->pipeline_layout[1], NULL);
+        vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout[0], NULL);
+        vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout[1], NULL);
 
         for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
             vkDestroyImageView(demo->device, demo->textures[i].view, NULL);
@@ -2433,11 +2492,14 @@ static void demo_resize(struct demo *demo) {
     }
     vkDestroyDescriptorPool(demo->device, demo->desc_pool, NULL);
 
-    vkDestroyPipeline(demo->device, demo->pipeline, NULL);
+    vkDestroyPipeline(demo->device, demo->pipeline[0], NULL);
+    vkDestroyPipeline(demo->device, demo->pipeline[1], NULL);
     vkDestroyPipelineCache(demo->device, demo->pipelineCache, NULL);
     vkDestroyRenderPass(demo->device, demo->render_pass, NULL);
-    vkDestroyPipelineLayout(demo->device, demo->pipeline_layout, NULL);
-    vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout, NULL);
+    vkDestroyPipelineLayout(demo->device, demo->pipeline_layout[0], NULL);
+    vkDestroyPipelineLayout(demo->device, demo->pipeline_layout[1], NULL);
+    vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout[0], NULL);
+    vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout[1], NULL);
 
     for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         vkDestroyImageView(demo->device, demo->textures[i].view, NULL);
@@ -3446,6 +3508,9 @@ static void demo_init_vk(struct demo *demo) {
             if (!strcmp("VK_KHR_portability_subset", device_extensions[i].extensionName)) {
                 demo->extension_names[demo->enabled_extension_count++] = "VK_KHR_portability_subset";
             }
+            if (!strcmp(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, device_extensions[i].extensionName)) {
+                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME;
+            }
             assert(demo->enabled_extension_count < 64);
         }
 
@@ -3740,6 +3805,7 @@ static void demo_init_vk_swapchain(struct demo *demo) {
         GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
         GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
     }
+    GET_DEVICE_PROC_ADDR(demo->device, CmdPushDescriptorSetKHR);
 
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
 
