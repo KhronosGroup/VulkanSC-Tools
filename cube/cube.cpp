@@ -889,11 +889,11 @@ void Demo::init(int argc, char **argv) {
             i++;
             continue;
         }
-        if (strcmp(argv[i], "--width") == 0 && i < argc - 1 && sscanf(argv[i + 1], "%" SCNu32, &width) == 1) {
+        if (strcmp(argv[i], "--width") == 0 && i < argc - 1 && sscanf(argv[i + 1], "%" SCNu32, &width) == 1 && width > 0) {
             i++;
             continue;
         }
-        if (strcmp(argv[i], "--height") == 0 && i < argc - 1 && sscanf(argv[i + 1], "%" SCNu32, &height) == 1) {
+        if (strcmp(argv[i], "--height") == 0 && i < argc - 1 && sscanf(argv[i + 1], "%" SCNu32, &height) == 1 && height > 0) {
             i++;
             continue;
         }
