@@ -1,4 +1,4 @@
-# Vulkan Ecosystem Components
+# Vulkan SC Ecosystem Components
 
 This project provides Khronos official Vulkan Tools and Utilities for Windows, Linux, Android, and MacOS.
 
@@ -14,7 +14,7 @@ git remote set-head origin -a
 ```
 
 ## CI Build Status
-[![Build Status](https://github.com/KhronosGroup/Vulkan-Tools/workflows/CI%20Build/badge.svg?branch=main)](https://github.com/KhronosGroup/Vulkan-Tools/actions)
+[![Build Status](https://github.com/KhronosGroup/VulkanSC-Tools/workflows/CI%20Build/badge.svg?branch=main)](https://github.com/KhronosGroup/VulkanSC-Tools/actions)
 
 ## Introduction
 

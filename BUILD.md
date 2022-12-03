@@ -48,7 +48,7 @@ some other suitable source if you intend to run Vulkan applications.
 
 To create your local git repository:
 
-    git clone https://github.com/KhronosGroup/Vulkan-Tools.git
+    git clone https://github.com/KhronosGroup/VulkanSC-Tools.git
 
 ### Repository Dependencies
 
@@ -118,8 +118,8 @@ as a quick-start tool for common use cases and default configurations.
 
 For all platforms, start with:
 
-    git clone git@github.com:KhronosGroup/Vulkan-Tools.git
-    cd Vulkan-Tools
+    git clone git@github.com:KhronosGroup/VulkanSC-Tools.git
+    cd VulkanSC-Tools
     mkdir build
     cd build
 
