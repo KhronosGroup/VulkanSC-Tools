@@ -1,6 +1,7 @@
 # ~~~
 # Copyright (c) 2014-2018 Valve Corporation
 # Copyright (c) 2014-2018 LunarG, Inc.
+# Copyright (c) 2023-2023 RasterGrid Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ~~~
+
+set(API_TYPE "vulkan")
+set(MOCK_ICD_NAME mock_icd)
+set(GENERATED generated)
+
+if(VULKANSC)
+    set(API_TYPE "vulkansc")
+    set(MOCK_ICD_NAME mock_icd_vksc)
+    set(GENERATED generated-vksc)
+endif()
 
 if(WIN32)
     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DVK_USE_PLATFORM_WIN32_KHX -DWIN32_LEAN_AND_MEAN)
@@ -37,8 +48,19 @@ else()
     message(FATAL_ERROR "Unsupported Platform!")
 endif()
 
+if(VULKANSC)
+    # Avoid exposing platform specific definitions in case of Vulkan SC
+    remove_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DVK_USE_PLATFORM_WIN32_KHX)
+    remove_definitions(-DVK_USE_PLATFORM_ANDROID_KHR -DVK_USE_PLATFORM_ANDROID_KHX)
+    remove_definitions(-DVK_USE_PLATFORM_XCB_KHR -DVK_USE_PLATFORM_XCB_KHX)
+    remove_definitions(-DVK_USE_PLATFORM_XLIB_KHR -DVK_USE_PLATFORM_XLIB_KHX -DVK_USE_PLATFORM_XLIB_XRANDR_EXT)
+    remove_definitions(-DVK_USE_PLATFORM_WAYLAND_KHR -DVK_USE_PLATFORM_WAYLAND_KHX)
+    remove_definitions(-DVK_USE_PLATFORM_MACOS_MVK)
+endif()
+
 # Copy or link the JSON files to the binary directory for ease of use in the build tree.
-set(ICD_JSON_FILES VkICD_mock_icd)
+set(ICD_JSON_FILES VkICD_${MOCK_ICD_NAME})
+
 if(WIN32)
     # extra setup for out-of-tree builds
     if(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR))
@@ -154,7 +176,7 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpointer-arith -Wno-unused-function -Wno-sign-compare")
 endif()
 
-add_vk_icd(mock_icd generated/mock_icd.cpp generated/mock_icd.h)
+add_vk_icd(${MOCK_ICD_NAME} ${GENERATED}/mock_icd.cpp ${GENERATED}/mock_icd.h)
 
 # JSON file(s) install targets. For Linux, need to remove the "./" from the library path before installing to system directories.
 if((UNIX AND NOT APPLE) AND INSTALL_ICD) # i.e. Linux
@@ -167,7 +189,7 @@ if((UNIX AND NOT APPLE) AND INSTALL_ICD) # i.e. Linux
                           VERBATIM
                           DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/linux/${config_file}.json)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/staging-json/${config_file}.json
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/vulkan/icd.d)
+                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${API_TYPE}/icd.d)
     endforeach(config_file)
 endif()
 

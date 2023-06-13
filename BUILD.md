@@ -11,6 +11,7 @@ Instructions for building this repository on Linux, Windows, Android, and MacOS.
 1. [Linux Build](#building-on-linux)
 1. [Android Build](#building-on-android)
 1. [MacOS build](#building-on-macos)
+1. [Vulkan SC Build](#building-vulkan-sc-tools)
 
 ## Contributing to the Repository
 
@@ -27,6 +28,8 @@ This repository contains the source code necessary to build the following compon
 - vkcube and vkcubepp demos
 - mock ICD
 
+Currently only the mock ICD is available for Vulkan SC.
+
 ### Installed Files
 
 The `install` target installs the following files under the directory
@@ -40,15 +43,15 @@ indicated by *install_dir*:
 
 ### Display Drivers
 
-This repository does not contain a Vulkan-capable driver. You will need to
-obtain and install a Vulkan driver from your graphics hardware vendor or from
-some other suitable source if you intend to run Vulkan applications.
+This repository does not contain a Vulkan- or VulkanSC-capable driver. You will need to
+obtain and install an appropriate driver from your graphics hardware vendor or from
+some other suitable source if you intend to run Vulkan or Vulkan SC applications.
 
 ### Download the Repository
 
 To create your local git repository:
 
-    git clone https://github.com/KhronosGroup/Vulkan-Tools.git
+    git clone https://github.com/KhronosGroup/VulkanSC-Tools.git
 
 ### Repository Dependencies
 
@@ -64,13 +67,13 @@ resolved with the "install directory" override and are listed below. The
 "install directory" override can also be used to force the use of a specific
 version of that dependency.
 
-#### Vulkan-Headers
+#### VulkanSC-Headers
 
 This repository has a required dependency on the
-[Vulkan Headers repository](https://github.com/KhronosGroup/Vulkan-Headers).
+[Vulkan SC Headers repository](https://github.com/KhronosGroup/VulkanSC-Headers).
 You must clone the headers repository and build its `install` target before
-building this repository. The Vulkan-Headers repository is required because it
-contains the Vulkan API definition files (registry) that are required to build
+building this repository. The VulkanSC-Headers repository is required because it
+contains the Vulkan SC API definition files (registry) that are required to build
 the mock ICD. You must also take note of the headers install directory and
 pass it on the CMake command line for building this repository, as described
 below.
@@ -118,8 +121,8 @@ as a quick-start tool for common use cases and default configurations.
 
 For all platforms, start with:
 
-    git clone git@github.com:KhronosGroup/Vulkan-Tools.git
-    cd Vulkan-Tools
+    git clone git@github.com:KhronosGroup/VulkanSC-Tools.git
+    cd VulkanSC-Tools
     mkdir build
     cd build
 
@@ -141,6 +144,12 @@ For 32-bit Windows, continue with:
     cmake -A Win32 -C helper.cmake ..
     cmake --build .
 
+To update the dependencies for Vulkan SC, the `--api vulkansc` option must be
+passed to the `update_deps.py` command.
+
+To build for Vulkan SC, the `-DVULKANSC=ON` option must be specified when
+running `cmake -C`.
+
 Please see the more detailed build information later in this file if you have
 specific requirements for configuring and building these components.
 
@@ -152,7 +161,7 @@ specific requirements for configuring and building these components.
   the current directory when it is invoked. In this case, they are built in
   the `build` directory.
 - The `build` directory is also being used to build this
-  (Vulkan-Tools) repository. But there shouldn't be any conflicts
+  (VulkanSC-Tools) repository. But there shouldn't be any conflicts
   inside the `build` directory between the dependent repositories and the
   build files for this repository.
 - The `--dir` option for `update_deps.py` can be used to relocate the
@@ -195,6 +204,7 @@ on/off options currently supported by this repository:
 
 | Option | Platform | Default | Description |
 | ------ | -------- | ------- | ----------- |
+| VULKANSC | All | `OFF` | Controls whether the tools are built for Vulkan (`OFF`, the default), or for Vulkan SC (`ON`). |
 | BUILD_CUBE | All | `ON` | Controls whether or not the vkcube demo is built. |
 | BUILD_VULKANINFO | All | `ON` | Controls whether or not the vulkaninfo utility is built. |
 | BUILD_ICD | All | `ON` | Controls whether or not the mock ICD is built. |
@@ -282,7 +292,7 @@ work with the solution interactively.
 
 #### Windows Quick Start
 
-    cd Vulkan-Tools
+    cd VulkanSC-Tools
     mkdir build
     cd build
     cmake -A x64 -DVULKAN_HEADERS_INSTALL_DIR=absolute_path_to_install_dir
@@ -300,7 +310,7 @@ See below for the details.
 Change your current directory to the top of the cloned repository directory,
 create a build directory and generate the Visual Studio project files:
 
-    cd Vulkan-Tools
+    cd VulkanSC-Tools
     mkdir build
     cd build
     cmake -A x64 -DVULKAN_HEADERS_INSTALL_DIR=absolute_path_to_install_dir
@@ -320,12 +330,12 @@ specify it for Visual Studio 2015, for example, with:
 See this [list](#cmake-visual-studio-generators) of other possible generators
 for Visual Studio.
 
-When generating the project files, the absolute path to a Vulkan-Headers
+When generating the project files, the absolute path to a VulkanSC-Headers
 install directory must be provided. This can be done by setting the
 `VULKAN_HEADERS_INSTALL_DIR` environment variable or by setting the
 `VULKAN_HEADERS_INSTALL_DIR` CMake variable with the `-D` CMake option. In
 either case, the variable should point to the installation directory of a
-Vulkan-Headers repository built with the install target.
+VulkanSC-Headers repository built with the install target.
 
 The above steps create a Windows solution file named
 `Vulkan-Tools.sln` in the build directory.
@@ -354,7 +364,7 @@ Solution menu item.
 
 #### Using a Loader Built from a Repository
 
-If you do need to build and use your own loader, build the Vulkan-Loader
+If you do need to build and use your own loader, build the VulkanSC-Loader
 repository with the install target and modify your CMake invocation to add the
 location of the loader's install directory:
 
@@ -408,7 +418,7 @@ CMake with the `--build` option or `make` to build from the command line.
 
 #### Linux Quick Start
 
-    cd Vulkan-Tools
+    cd VulkanSC-Tools
     mkdir build
     cd build
     cmake -DVULKAN_HEADERS_INSTALL_DIR=absolute_path_to_install_dir ..
@@ -421,7 +431,7 @@ See below for the details.
 Change your current directory to the top of the cloned repository directory,
 create a build directory and generate the make files.
 
-    cd Vulkan-Tools
+    cd VulkanSC-Tools
     mkdir build
     cd build
     cmake -DCMAKE_BUILD_TYPE=Debug \
@@ -434,12 +444,12 @@ create a build directory and generate the make files.
 
 Use `-DCMAKE_BUILD_TYPE` to specify a Debug or Release build.
 
-When generating the project files, the absolute path to a Vulkan-Headers
+When generating the project files, the absolute path to a VulkanSC-Headers
 install directory must be provided. This can be done by setting the
 `VULKAN_HEADERS_INSTALL_DIR` environment variable or by setting the
 `VULKAN_HEADERS_INSTALL_DIR` CMake variable with the `-D` CMake option. In
 either case, the variable should point to the installation directory of a
-Vulkan-Headers repository built with the install target.
+VulkanSC-Headers repository built with the install target.
 
 > Note: For Linux, the default value for `CMAKE_INSTALL_PREFIX` is
 > `/usr/local`, which would be used if you do not specify
@@ -526,7 +536,7 @@ See the CMake documentation for more details on using these variables to
 further customize your installation.
 
 Also see the `LoaderAndLayerInterface` document in the `loader` folder of the
-Vulkan-Loader repository for more information about loader and layer
+VulkanSC-Loader repository for more information about loader and layer
 operation.
 
 ### Linux Tests
@@ -661,7 +671,7 @@ Setup Homebrew and components
 
 ### Clone the Repository
 
-Clone the Vulkan-Tools repository as defined above in the [Download the Repository](#download-the-repository)
+Clone the VulkanSC-Tools repository as defined above in the [Download the Repository](#download-the-repository)
 section.
 
 ### Get the External Libraries
@@ -787,3 +797,10 @@ To create and open an Xcode project:
 Within Xcode, you can select Debug or Release builds in the project's Build
 Settings. You can also select individual schemes for working with specific
 applications like `vkcube`.
+
+### Building Vulkan SC Tools
+
+Commands for building the Vulkan SC version of the tools are similar to the instructions in the sections above with a few minor differences:
+
+1) When running `update_deps.py` and/or `generate_source.py`, the option `--api vulkansc` should be specified.
+2) When running `cmake -C helper.cmake ...`, the option `-DVULKANSC=ON` should be passed in.

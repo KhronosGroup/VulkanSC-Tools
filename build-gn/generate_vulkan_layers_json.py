@@ -57,8 +57,11 @@ def main():
         os.makedirs(target_dir)
 
     # Copy the *.json files from source dir to target dir
-    if (set(glob_slash(os.path.join(source_dir, '*.json'))) != set(json_files)):
-        print(glob.glob(os.path.join(source_dir, '*.json')))
+    expected_json_files = glob_slash(os.path.join(source_dir, '*.json'))
+    # Ignore Vulkan SC *.json files
+    expected_json_files = [file for file in expected_json_files if not 'vksc' in file.lower()]
+    if (set(expected_json_files) != set(json_files)):
+        print(expected_json_files)
         print('.json list in gn file is out-of-date', file=sys.stderr)
         return 1
 
@@ -105,8 +108,10 @@ def main():
 
     # For each *.json.in template files in source dir generate actual json file
     # in target dir
-    if (set(glob_slash(os.path.join(source_dir, '*.json.in'))) !=
-            set(json_in_files)):
+    expected_json_in_files = glob_slash(os.path.join(source_dir, '*.json.in'))
+    # Ignore Vulkan SC *.json.in template files
+    expected_json_in_files = [file for file in expected_json_in_files if not 'vksc' in file.lower()]
+    if (set(expected_json_in_files) != set(json_in_files)):
         print('.json.in list in gn file is out-of-date', file=sys.stderr)
         return 1
     for json_in_name in json_in_files:

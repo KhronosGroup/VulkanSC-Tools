@@ -1,9 +1,10 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2015-2022 The Khronos Group Inc.
-# Copyright (c) 2015-2022 Valve Corporation
-# Copyright (c) 2015-2022 LunarG, Inc.
-# Copyright (c) 2015-2022 Google Inc.
+# Copyright (c) 2015-2023 The Khronos Group Inc.
+# Copyright (c) 2015-2023 Valve Corporation
+# Copyright (c) 2015-2023 LunarG, Inc.
+# Copyright (c) 2015-2023 Google Inc.
+# Copyright (c) 2023-2023 RasterGrid Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1317,6 +1318,189 @@ CUSTOM_C_INTERCEPTS = {
 ''',
 }
 
+CUSTOM_VKSC_INTERCEPT_RENAMES = {
+# Rename KHR intercept overrides to core ones where KHR variant doesn't exist in Vulkan SC
+'vkEnumeratePhysicalDeviceGroupsKHR': 'vkEnumeratePhysicalDeviceGroups',
+'vkGetImageMemoryRequirements2KHR': 'vkGetImageMemoryRequirements2',
+'vkGetBufferMemoryRequirements2KHR': 'vkGetBufferMemoryRequirements2',
+'vkGetPhysicalDeviceFormatProperties2KHR': 'vkGetPhysicalDeviceFormatProperties2',
+'vkGetPhysicalDeviceImageFormatProperties2KHR': 'vkGetPhysicalDeviceImageFormatProperties2',
+'vkGetPhysicalDeviceQueueFamilyProperties2KHR': 'vkGetPhysicalDeviceQueueFamilyProperties2',
+'vkGetPhysicalDeviceMemoryProperties2KHR': 'vkGetPhysicalDeviceMemoryProperties2',
+}
+
+CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
+# Replace device features query
+'vkGetPhysicalDeviceFeatures': '''
+    uint32_t num_bools = sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32);
+    VkBool32 *bool_array = &pFeatures->robustBufferAccess;
+    SetBoolArrayTrue(bool_array, num_bools);
+    pFeatures->shaderResourceResidency = VK_FALSE;
+    pFeatures->sparseBinding = VK_FALSE;
+    pFeatures->sparseResidencyBuffer = VK_FALSE;
+    pFeatures->sparseResidencyImage2D = VK_FALSE;
+    pFeatures->sparseResidencyImage3D = VK_FALSE;
+    pFeatures->sparseResidency2Samples = VK_FALSE;
+    pFeatures->sparseResidency4Samples = VK_FALSE;
+    pFeatures->sparseResidency8Samples = VK_FALSE;
+    pFeatures->sparseResidency16Samples = VK_FALSE;
+    pFeatures->sparseResidencyAliased = VK_FALSE;
+''',
+'vkGetPhysicalDeviceFeatures2KHR': None,
+'vkGetPhysicalDeviceFeatures2': '''
+    GetPhysicalDeviceFeatures(physicalDevice, &pFeatures->features);
+
+    auto *features_sc10 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkanSC10Features>(pFeatures->pNext);
+    if (features_sc10) {
+        features_sc10->shaderAtomicInstructions = VK_TRUE;
+    }
+
+    auto *ycbr_conv_features = lvl_find_mod_in_chain<VkPhysicalDeviceSamplerYcbcrConversionFeatures>(pFeatures->pNext);
+    if (ycbr_conv_features) {
+        ycbr_conv_features->samplerYcbcrConversion = VK_TRUE;
+    }
+''',
+# Replace device properties query
+'vkGetPhysicalDeviceProperties2KHR': None,
+'vkGetPhysicalDeviceProperties2': '''
+    GetPhysicalDeviceProperties(physicalDevice, &pProperties->properties);
+
+    auto *props_sc10 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkanSC10Properties>(pProperties->pNext);
+    if (props_sc10) {
+        props_sc10->deviceNoDynamicHostAllocations = VK_TRUE;
+        props_sc10->deviceDestroyFreesMemory = VK_TRUE;
+        props_sc10->commandPoolMultipleCommandBuffersRecording = VK_FALSE;
+        props_sc10->commandPoolResetCommandBuffer = VK_FALSE;
+        props_sc10->commandBufferSimultaneousUse = VK_FALSE;
+        props_sc10->secondaryCommandBufferNullOrImagelessFramebuffer = VK_TRUE;
+        props_sc10->recycleDescriptorSetMemory = VK_FALSE;
+        props_sc10->recyclePipelineMemory = VK_FALSE;
+        props_sc10->maxRenderPassSubpasses = 16;
+        props_sc10->maxRenderPassDependencies = 64;
+        props_sc10->maxSubpassInputAttachments = 16;
+        props_sc10->maxSubpassPreserveAttachments = 8;
+        props_sc10->maxFramebufferAttachments = 16;
+        props_sc10->maxDescriptorSetLayoutBindings = 8;
+        props_sc10->maxQueryFaultCount = 8;
+        props_sc10->maxCallbackFaultCount = 8;
+        props_sc10->maxCommandPoolCommandBuffers = 64;
+        props_sc10->maxCommandBufferSize = 1024 * 1024 * 1024;
+    }
+
+    auto *props_11 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan11Properties>(pProperties->pNext);
+    if (props_11) {
+        props_11->protectedNoFault = VK_FALSE;
+        props_11->subgroupSize = 16;
+        props_11->subgroupSupportedStages = VK_SHADER_STAGE_COMPUTE_BIT;
+        props_11->subgroupSupportedOperations = VK_SUBGROUP_FEATURE_BASIC_BIT;
+    }
+
+    auto *props_12 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan12Properties>(pProperties->pNext);
+    if (props_12) {
+        props_12->denormBehaviorIndependence = VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL;
+        props_12->roundingModeIndependence = VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL;
+
+        // The following have to be at least their non-UpdateAfterBind equivalents
+        props_12->maxPerStageDescriptorUpdateAfterBindSamplers =
+            pProperties->properties.limits.maxPerStageDescriptorSamplers;
+        props_12->maxPerStageDescriptorUpdateAfterBindUniformBuffers =
+            pProperties->properties.limits.maxPerStageDescriptorUniformBuffers;
+        props_12->maxPerStageDescriptorUpdateAfterBindStorageBuffers =
+            pProperties->properties.limits.maxPerStageDescriptorStorageBuffers;
+        props_12->maxPerStageDescriptorUpdateAfterBindSampledImages =
+            pProperties->properties.limits.maxPerStageDescriptorSampledImages;
+        props_12->maxPerStageDescriptorUpdateAfterBindStorageImages =
+            pProperties->properties.limits.maxPerStageDescriptorStorageImages;
+        props_12->maxPerStageDescriptorUpdateAfterBindInputAttachments =
+            pProperties->properties.limits.maxPerStageDescriptorInputAttachments;
+        props_12->maxPerStageUpdateAfterBindResources =
+            pProperties->properties.limits.maxPerStageResources;
+        props_12->maxDescriptorSetUpdateAfterBindSamplers =
+            pProperties->properties.limits.maxDescriptorSetSamplers;
+        props_12->maxDescriptorSetUpdateAfterBindUniformBuffers =
+            pProperties->properties.limits.maxDescriptorSetUniformBuffers;
+        props_12->maxDescriptorSetUpdateAfterBindUniformBuffersDynamic =
+            pProperties->properties.limits.maxDescriptorSetUniformBuffersDynamic;
+        props_12->maxDescriptorSetUpdateAfterBindStorageBuffers =
+            pProperties->properties.limits.maxDescriptorSetStorageBuffers;
+        props_12->maxDescriptorSetUpdateAfterBindStorageBuffersDynamic =
+            pProperties->properties.limits.maxDescriptorSetStorageBuffersDynamic;
+        props_12->maxDescriptorSetUpdateAfterBindSampledImages =
+            pProperties->properties.limits.maxDescriptorSetSampledImages;
+        props_12->maxDescriptorSetUpdateAfterBindStorageImages =
+            pProperties->properties.limits.maxDescriptorSetStorageImages;
+        props_12->maxDescriptorSetUpdateAfterBindInputAttachments =
+            pProperties->properties.limits.maxDescriptorSetInputAttachments;
+    }
+
+    auto *props_13 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan13Properties>(pProperties->pNext);
+    if (props_13) {
+        props_13->storageTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
+        props_13->uniformTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
+        props_13->storageTexelBufferOffsetAlignmentBytes = 16;
+        props_13->uniformTexelBufferOffsetAlignmentBytes = 16;
+    }
+
+    auto *protected_memory_props = lvl_find_mod_in_chain<VkPhysicalDeviceProtectedMemoryProperties>(pProperties->pNext);
+    if (protected_memory_props) {
+        protected_memory_props->protectedNoFault = VK_FALSE;
+    }
+
+    auto *subgroup_props = lvl_find_mod_in_chain<VkPhysicalDeviceSubgroupProperties>(pProperties->pNext);
+    if (subgroup_props) {
+        subgroup_props->subgroupSize = 16;
+        subgroup_props->supportedStages = VK_SHADER_STAGE_COMPUTE_BIT;
+        subgroup_props->supportedOperations = VK_SUBGROUP_FEATURE_BASIC_BIT;
+    }
+
+    auto *discard_rectangle_props = lvl_find_mod_in_chain<VkPhysicalDeviceDiscardRectanglePropertiesEXT>(pProperties->pNext);
+    if (discard_rectangle_props) {
+        discard_rectangle_props->maxDiscardRectangles = 4;
+    }
+
+    auto *sample_locations_props = lvl_find_mod_in_chain<VkPhysicalDeviceSampleLocationsPropertiesEXT>(pProperties->pNext);
+    if (sample_locations_props) {
+        sample_locations_props->sampleLocationSampleCounts = VK_SAMPLE_COUNT_4_BIT;
+        sample_locations_props->maxSampleLocationGridSize = {1, 1};
+        sample_locations_props->sampleLocationCoordinateRange[0] = 0.f;
+        sample_locations_props->sampleLocationCoordinateRange[1] = 0.9375f;
+        sample_locations_props->sampleLocationSubPixelBits = 4;
+        sample_locations_props->variableSampleLocations = VK_FALSE;
+    }
+
+    auto *blend_op_advanced_props = lvl_find_mod_in_chain<VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT>(pProperties->pNext);
+    if (blend_op_advanced_props) {
+        blend_op_advanced_props->advancedBlendMaxColorAttachments = 1;
+        blend_op_advanced_props->advancedBlendIndependentBlend = VK_FALSE;
+        blend_op_advanced_props->advancedBlendNonPremultipliedSrcColor = VK_FALSE;
+        blend_op_advanced_props->advancedBlendNonPremultipliedDstColor = VK_FALSE;
+        blend_op_advanced_props->advancedBlendCorrelatedOverlap = VK_FALSE;
+        blend_op_advanced_props->advancedBlendAllOperations = VK_FALSE;
+    }
+
+    auto *vertex_attrib_div_props = lvl_find_mod_in_chain<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT>(pProperties->pNext);
+    if (vertex_attrib_div_props) {
+        vertex_attrib_div_props->maxVertexAttribDivisor = 65535;
+    }
+
+    auto *conservative_raster_props = lvl_find_mod_in_chain<VkPhysicalDeviceConservativeRasterizationPropertiesEXT>(pProperties->pNext);
+    if (conservative_raster_props) {
+        conservative_raster_props->primitiveOverestimationSize = 0.00195313f;
+        conservative_raster_props->conservativePointAndLineRasterization = VK_TRUE;
+        conservative_raster_props->degenerateTrianglesRasterized = VK_TRUE;
+        conservative_raster_props->degenerateLinesRasterized = VK_TRUE;
+    }
+
+    auto *texel_buffer_props = lvl_find_mod_in_chain<VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT>(pProperties->pNext);
+    if (texel_buffer_props) {
+        texel_buffer_props->storageTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
+        texel_buffer_props->uniformTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
+        texel_buffer_props->storageTexelBufferOffsetAlignmentBytes = 16;
+        texel_buffer_props->uniformTexelBufferOffsetAlignmentBytes = 16;
+    }
+''',
+}
+
 # MockICDGeneratorOptions - subclass of GeneratorOptions.
 #
 # Adds options used by MockICDOutputGenerator objects during Mock
@@ -1467,8 +1651,40 @@ class MockICDOutputGenerator(OutputGenerator):
         else:
             return False
 
+    # Apply API-specific overrides, if necessary
+    def applyOverrides(self, genOpts):
+        if genOpts.apiname == 'vulkansc':
+            for name in CUSTOM_VKSC_INTERCEPT_RENAMES:
+                if name in CUSTOM_C_INTERCEPTS:
+                    if not CUSTOM_VKSC_INTERCEPT_RENAMES[name] in CUSTOM_C_INTERCEPTS:
+                        intercept = CUSTOM_C_INTERCEPTS[name]
+                        del CUSTOM_C_INTERCEPTS[name] 
+                        CUSTOM_C_INTERCEPTS[CUSTOM_VKSC_INTERCEPT_RENAMES[name]] = intercept
+                    else:
+                        print("Error: Cannot rename custom override '{0}' as '{1}' is already defined\n"
+                              .format(name, CUSTOM_VKSC_INTERCEPT_RENAMES[name]))
+                        sys.exit(1)
+                else:
+                    print("Error: Cannot rename non-existing custom override '{0}'\n".format(name))
+                    sys.exit(1)
+
+            for name in CUSTOM_VKSC_INTERCEPT_OVERRIDES:
+                if CUSTOM_VKSC_INTERCEPT_OVERRIDES[name] is None:
+                    if name in CUSTOM_C_INTERCEPTS:
+                        del CUSTOM_C_INTERCEPTS[name]
+                    else:
+                        print("Error: Cannot remove non-existing custom override for '{0}'\n".format(name))
+                        sys.exit(1)
+                else:
+                    CUSTOM_C_INTERCEPTS[name] = CUSTOM_VKSC_INTERCEPT_OVERRIDES[name]
+
+    # Check that the target API is in the supported list for the extension
+    def checkExtensionAPISupport(self, supported):
+        return self.genOpts.apiname in supported.split(',')
+
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
+        self.applyOverrides(genOpts)
         # C-specific
         #
         # Multiple inclusion protection & C++ namespace.
@@ -1508,7 +1724,7 @@ class MockICDOutputGenerator(OutputGenerator):
             # Ignore extensions that ICDs should not implement or are not safe to report
             ignore_exts = ['VK_EXT_validation_cache', 'VK_KHR_portability_subset']
             for ext in self.registry.tree.findall("extensions/extension"):
-                if ext.attrib['supported'] != 'disabled': # Only include enabled extensions
+                if self.checkExtensionAPISupport(ext.attrib['supported']): # Only include API-relevant extensions
                     if (ext.attrib['name'] not in ignore_exts):
                         # Search for extension version enum
                         for enum in ext.findall('require/enum'):

@@ -1,6 +1,7 @@
 # ~~~
 # Copyright (c) 2014-2023 Valve Corporation
 # Copyright (c) 2014-2023 LunarG, Inc.
+# Copyright (c) 2023-2023 RasterGrid Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,12 +32,22 @@ add_definitions(-DVK_ENABLE_BETA_EXTENSIONS)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+option(VULKANSC "Build Vulkan SC tools" OFF)
+
 option(BUILD_CUBE "Build cube" ON)
 option(BUILD_VULKANINFO "Build vulkaninfo" ON)
 option(BUILD_ICD "Build icd" ON)
 # Installing the Mock ICD to system directories is probably not desired since this ICD is not a very complete implementation.
 # Require the user to ask that it be installed if they really want it.
 option(INSTALL_ICD "Install icd" OFF)
+
+set(API_TYPE "vulkan")
+
+if(VULKANSC)
+    set(API_TYPE "vulkansc")
+    set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
+    set(BUILD_VULKANINFO OFF CACHE BOOL "vulkaninfo is not currently supported for Vulkan SC" FORCE)
+endif()
 
 if(WIN32)
     # Optional: Allow specify the exact version used in the vulkaninfo executable
@@ -145,7 +156,7 @@ endif()
 if(PYTHONINTERP_FOUND)
     add_custom_target(VulkanTools_generated_source
                       COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/generate_source.py
-                              ${VULKAN_HEADERS_REGISTRY_DIRECTORY} --incremental
+                              ${VULKAN_HEADERS_REGISTRY_DIRECTORY} --incremental --api ${API_TYPE}
                       )
 else()
     message("WARNING: VulkanTools_generated_source target requires python 3")

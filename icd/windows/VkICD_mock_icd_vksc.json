@@ -1,0 +1,7 @@
+{
+    "file_format_version": "1.0.1",
+    "ICD": {
+        "library_path": ".\\VkICD_mock_icd_vksc.dll",
+        "api_version": "1.0.12"
+    }
+}

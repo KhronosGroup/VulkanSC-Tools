@@ -2,11 +2,25 @@
   "repos" : [
     {
       "name" : "Vulkan-Headers",
+      "api": "vulkan",
       "url" : "https://github.com/KhronosGroup/Vulkan-Headers.git",
       "sub_dir" : "Vulkan-Headers",
       "build_dir" : "Vulkan-Headers/build",
       "install_dir" : "Vulkan-Headers/build/install",
       "commit": "v1.3.245"
+    },
+    {
+      "name": "Vulkan-Headers",
+      "api": "vulkansc",
+      "url": "https://github.com/KhronosGroup/VulkanSC-Headers.git",
+      "sub_dir": "Vulkan-Headers",
+      "build_dir": "Vulkan-Headers/build",
+      "install_dir": "Vulkan-Headers/build/install",
+      "cmake_options": [
+          "-DVULKANSC=TRUE",
+          "-DGEN_VULKANSC_COMBINED=TRUE"
+      ],
+      "commit": "sc_beta"
     },
     {
       "name" : "MoltenVK",
@@ -26,6 +40,7 @@
     },
     {
       "name" : "Vulkan-Loader",
+      "api": "vulkan",
       "url" : "https://github.com/KhronosGroup/Vulkan-Loader.git",
       "sub_dir" : "Vulkan-Loader",
       "build_dir" : "Vulkan-Loader/build",
@@ -38,6 +53,29 @@
         }
       ],
       "cmake_options" : [
+        "-DBUILD_TESTS=NO"
+      ],
+      "build_platforms" : [
+        "linux",
+        "darwin"
+      ]
+    },
+    {
+      "name" : "Vulkan-Loader",
+      "api": "vulkansc",
+      "url" : "https://github.com/KhronosGroup/VulkanSC-Loader.git",
+      "sub_dir" : "Vulkan-Loader",
+      "build_dir" : "Vulkan-Loader/build",
+      "install_dir" : "Vulkan-Loader/build/install",
+      "commit": "sc_beta",
+      "deps" : [
+        {
+          "var_name" : "VULKAN_HEADERS_INSTALL_DIR",
+          "repo_name" : "Vulkan-Headers"
+        }
+      ],
+      "cmake_options" : [
+        "-DVULKANSC=TRUE",
         "-DBUILD_TESTS=NO"
       ],
       "build_platforms" : [

@@ -1,0 +1,91 @@
+# Copyright (c) 2021-2023 The Khronos Group Inc.
+# Copyright (c) 2021-2023 Valve Corporation
+# Copyright (c) 2021-2023 LunarG, Inc.
+# Copyright (c) 2023-2023 RasterGrid Kft.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CI Build - Vulkan SC
+
+on:
+    push:
+    pull_request:
+        branches:
+            - sc_main
+
+jobs:
+    linux-sc:
+        runs-on: ${{matrix.os}}
+
+        strategy:
+            matrix:
+                cc: [ gcc, clang ]
+                cxx: [ g++, clang++ ]
+                config: [ Debug, Release ]
+                os: [ ubuntu-20.04, ubuntu-22.04 ]
+                exclude:
+                    - cc: gcc
+                      cxx: clang++
+                    - cc: clang
+                      cxx: g++
+
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                python-version: '3.7'
+
+            - name: Install Python dependencies
+              run: python3 -m pip install pyparsing
+
+            - name: Fetch and install headers
+              run: python scripts/update_deps.py --api vulkansc --dir external
+
+            - name: Generate build files
+              run: cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=${{matrix.config}} -DVULKANSC=ON -Cexternal/helper.cmake
+              env:
+                CC: ${{matrix.cc}}
+                CXX: ${{matrix.cxx}}
+
+            - name: Build the tools
+              run: make -C build
+
+            - name: Verify generated source files
+              run: python scripts/generate_source.py --api vulkansc --verify external/Vulkan-Headers/build/install/share/vulkan/registry
+
+    windows-sc:
+        runs-on: ${{matrix.os}}
+
+        strategy:
+            matrix:
+                arch: [ Win32, x64 ]
+                config: [ Debug, Release ]
+                os: [ windows-latest ]
+
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                python-version: '3.7'
+
+            - name: Install Python dependencies
+              run: python -m pip install pyparsing
+
+            - name: Fetch and install headers
+              run: python scripts/update_deps.py --api vulkansc --dir external
+
+            - name: Generate build files
+              run: cmake -S. -Bbuild -A${{matrix.arch}} -DVULKANSC=ON "-Cexternal/helper.cmake"
+
+            - name: Build the tools
+              run: cmake --build ./build --config ${{matrix.config}}

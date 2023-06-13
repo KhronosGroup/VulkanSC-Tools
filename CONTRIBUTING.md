@@ -5,6 +5,8 @@
 The source code for The Vulkan-Tools components is sponsored by Khronos and LunarG.
 * [Khronos Vulkan-Tools](https://github.com/KhronosGroup/Vulkan-Tools)
 
+The source code for the VulkanSC-Tools components is sponsored by Khronos.
+* [Khronos VulkanSC-Tools](https://github.com/KhronosGroup/VulkanSC-Tools)
 
 Repository Issue labels:
 
@@ -73,7 +75,7 @@ generator scripts in the `scripts` directory. All changes to these scripts _must
 corresponding generated output to keep the repository self-consistent. This requirement is enforced by both
 Travis CI and AppVeyor test configurations. Regenerate source files after modifying any of the generator
 scripts and before building and testing your changes. More details can be found in
-[BUILD.md](https://github.com/KhronosGroup/Vulkan-Tools/blob/main/BUILD.md#generated-source-code).
+[BUILD.md](https://github.com/KhronosGroup/VulkanSC-Tools/blob/main/BUILD.md#generated-source-code).
 
 #### **Testing Your Changes**
 * Run the repository components with the Vulkan Validation Layers before and after each of your commits to check for any regressions.
@@ -120,7 +122,7 @@ or other contribution to GitHub.
 
 ### **License and Copyrights**
 
-All contributions made to the Vulkan-Tools repository are Khronos branded and as such,
+All contributions made to the VulkanSC-Tools repository are Khronos branded and as such,
 any new files need to have the Khronos license (Apache 2.0 style) and copyright included.
 Please see an existing file in this repository for an example.
 
