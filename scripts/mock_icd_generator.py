@@ -72,6 +72,7 @@ struct BufferState {
 };
 static unordered_map<VkDevice, unordered_map<VkBuffer, BufferState>> buffer_map;
 static unordered_map<VkDevice, unordered_map<VkImage, VkDeviceSize>> image_memory_size_map;
+static unordered_map<VkDevice, std::unordered_set<VkCommandPool>> command_pool_map;
 static unordered_map<VkCommandPool, std::vector<VkCommandBuffer>> command_pool_buffer_map;
 
 static constexpr uint32_t icd_swapchain_image_count = 1;
@@ -476,6 +477,12 @@ CUSTOM_C_INTERCEPTS = {
         DestroyDispObjHandle((void*) pCommandBuffers[i]);
     }
 ''',
+'vkCreateCommandPool': '''
+    unique_lock_t lock(global_lock);
+    *pCommandPool = (VkCommandPool)global_unique_handle++;
+    command_pool_map[device].insert(*pCommandPool);
+    return VK_SUCCESS;
+''',
 'vkDestroyCommandPool': '''
     // destroy command buffers for this pool
     unique_lock_t lock(global_lock);
@@ -486,6 +493,7 @@ CUSTOM_C_INTERCEPTS = {
         }
         command_pool_buffer_map.erase(it);
     }
+    command_pool_map[device].erase(commandPool);
 ''',
 'vkEnumeratePhysicalDevices': '''
     VkResult result_code = VK_SUCCESS;
@@ -513,6 +521,14 @@ CUSTOM_C_INTERCEPTS = {
             DestroyDispObjHandle((void*)index_queue_pair.second);
         }
     }
+
+    for (auto& cp : command_pool_map[device]) {
+        for (auto& cb : command_pool_buffer_map[cp]) {
+            DestroyDispObjHandle((void*) cb);
+        }
+        command_pool_buffer_map.erase(cp);
+    }
+    command_pool_map[device].clear();
 
     queue_map.erase(device);
     buffer_map.erase(device);
@@ -1701,6 +1717,7 @@ class MockICDOutputGenerator(OutputGenerator):
             for s in genOpts.prefixText:
                 write(s, file=self.outFile)
         if self.header:
+            write('#include <unordered_set>', file=self.outFile)
             write('#include <unordered_map>', file=self.outFile)
             write('#include <mutex>', file=self.outFile)
             write('#include <string>', file=self.outFile)

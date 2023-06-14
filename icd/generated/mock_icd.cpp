@@ -47,6 +47,7 @@ struct BufferState {
 };
 static unordered_map<VkDevice, unordered_map<VkBuffer, BufferState>> buffer_map;
 static unordered_map<VkDevice, unordered_map<VkImage, VkDeviceSize>> image_memory_size_map;
+static unordered_map<VkDevice, std::unordered_set<VkCommandPool>> command_pool_map;
 static unordered_map<VkCommandPool, std::vector<VkCommandBuffer>> command_pool_buffer_map;
 
 static constexpr uint32_t icd_swapchain_image_count = 1;
@@ -403,6 +404,14 @@ static VKAPI_ATTR void VKAPI_CALL DestroyDevice(
             DestroyDispObjHandle((void*)index_queue_pair.second);
         }
     }
+
+    for (auto& cp : command_pool_map[device]) {
+        for (auto& cb : command_pool_buffer_map[cp]) {
+            DestroyDispObjHandle((void*) cb);
+        }
+        command_pool_buffer_map.erase(cp);
+    }
+    command_pool_map[device].clear();
 
     queue_map.erase(device);
     buffer_map.erase(device);
@@ -1279,6 +1288,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL CreateCommandPool(
 {
     unique_lock_t lock(global_lock);
     *pCommandPool = (VkCommandPool)global_unique_handle++;
+    command_pool_map[device].insert(*pCommandPool);
     return VK_SUCCESS;
 }
 
@@ -1297,6 +1307,7 @@ static VKAPI_ATTR void VKAPI_CALL DestroyCommandPool(
         }
         command_pool_buffer_map.erase(it);
     }
+    command_pool_map[device].erase(commandPool);
 }
 
 static VKAPI_ATTR VkResult VKAPI_CALL ResetCommandPool(
