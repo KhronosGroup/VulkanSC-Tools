@@ -20,7 +20,7 @@
           "-DVULKANSC=TRUE",
           "-DGEN_VULKANSC_COMBINED=TRUE"
       ],
-      "commit": "sc_beta"
+      "commit": "fece0e8e98d139ebc6eed30b430ed31c1ece2233"
     },
     {
       "name" : "MoltenVK",
