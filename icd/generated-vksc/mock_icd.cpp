@@ -1787,16 +1787,16 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2(
         props_sc10->secondaryCommandBufferNullOrImagelessFramebuffer = VK_TRUE;
         props_sc10->recycleDescriptorSetMemory = VK_FALSE;
         props_sc10->recyclePipelineMemory = VK_FALSE;
-        props_sc10->maxRenderPassSubpasses = 16;
-        props_sc10->maxRenderPassDependencies = 64;
-        props_sc10->maxSubpassInputAttachments = 16;
-        props_sc10->maxSubpassPreserveAttachments = 8;
-        props_sc10->maxFramebufferAttachments = 16;
-        props_sc10->maxDescriptorSetLayoutBindings = 8;
-        props_sc10->maxQueryFaultCount = 8;
-        props_sc10->maxCallbackFaultCount = 8;
-        props_sc10->maxCommandPoolCommandBuffers = 64;
-        props_sc10->maxCommandBufferSize = 1024 * 1024 * 1024;
+        props_sc10->maxRenderPassSubpasses = 4;
+        props_sc10->maxRenderPassDependencies = 18;
+        props_sc10->maxSubpassInputAttachments = 4;
+        props_sc10->maxSubpassPreserveAttachments = 4;
+        props_sc10->maxFramebufferAttachments = 9;
+        props_sc10->maxDescriptorSetLayoutBindings = 64;
+        props_sc10->maxQueryFaultCount = 16;
+        props_sc10->maxCallbackFaultCount = 1;
+        props_sc10->maxCommandPoolCommandBuffers = 256;
+        props_sc10->maxCommandBufferSize = 1 << 20;
     }
 
     auto *props_11 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan11Properties>(pProperties->pNext);
