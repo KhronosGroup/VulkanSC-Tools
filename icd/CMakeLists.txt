@@ -16,12 +16,10 @@
 # limitations under the License.
 # ~~~
 
-set(API_TYPE "vulkan")
 set(MOCK_ICD_NAME mock_icd)
 set(GENERATED generated)
 
 if(VULKANSC)
-    set(API_TYPE "vulkansc")
     set(MOCK_ICD_NAME mock_icd_vksc)
     set(GENERATED generated-vksc)
 endif()
