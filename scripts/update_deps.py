@@ -32,11 +32,6 @@ this home repository depend on.  It also checks out each dependent
 repository at a "known-good" commit in order to provide stability in
 the dependent repositories.
 
-Python Compatibility
---------------------
-
-This program can be used with Python 2.7 and Python 3.
-
 Known-Good JSON Database
 ------------------------
 
@@ -211,11 +206,6 @@ A list of options to pass to CMake during the generation phase.
 A list of environment variables where one must be set to "true"
 (case-insensitive) in order for this repo to be fetched and built.
 This list can be used to specify repos that should be built only in CI.
-Typically, this list might contain "TRAVIS" and/or "APPVEYOR" because
-each of these CI systems sets an environment variable with its own
-name to "true".  Note that this could also be (ab)used to control
-the processing of the repo with any environment variable.  The default
-is an empty list, which means that the repo is always processed.
 
 - build_step (optional)
 
@@ -230,6 +220,7 @@ Legal options include:
 "windows"
 "linux"
 "darwin"
+"android"
 
 Builds on all platforms by default.
 
@@ -242,8 +233,6 @@ supported.  However, the "top" directory specified with the "--dir"
 option can be a relative or absolute path.
 
 """
-
-from __future__ import print_function
 
 import argparse
 import json
@@ -274,7 +263,7 @@ DEVNULL = open(os.devnull, 'wb')
 def on_rm_error( func, path, exc_info):
     """Error handler for recursively removing a directory. The
     shutil.rmtree function can fail on Windows due to read-only files.
-    This handler will change the permissions for tha file and continue.
+    This handler will change the permissions for the file and continue.
     """
     os.chmod( path, stat.S_IWRITE )
     os.unlink( path )
@@ -353,9 +342,16 @@ class GoodRepo(object):
             self.build_dir = os.path.join(dir_top, self.build_dir)
         if self.install_dir:
             self.install_dir = os.path.join(dir_top, self.install_dir)
-	    # Check if platform is one to build on
+
+        # By default the target platform is the host platform.
+        target_platform = platform.system().lower()
+        # However, we need to account for cross-compiling.
+        for cmake_var in self._args.cmake_var:
+            if "android.toolchain.cmake" in cmake_var:
+                target_platform = 'android'
+
         self.on_build_platform = False
-        if self.build_platforms == [] or platform.system().lower() in self.build_platforms:
+        if self.build_platforms == [] or target_platform in self.build_platforms:
             self.on_build_platform = True
 
     def Clone(self, retries=10, retry_seconds=60):
@@ -436,9 +432,11 @@ class GoodRepo(object):
     def CMakeConfig(self, repos):
         """Build CMake command for the configuration phase and execute it"""
         if self._args.do_clean_build:
-            shutil.rmtree(self.build_dir)
+            if os.path.isdir(self.build_dir):
+                shutil.rmtree(self.build_dir, onerror=on_rm_error)
         if self._args.do_clean_install:
-            shutil.rmtree(self.install_dir)
+            if os.path.isdir(self.install_dir):
+                shutil.rmtree(self.install_dir, onerror=on_rm_error)
 
         # Create and change to build directory
         make_or_exist_dirs(self.build_dir)
@@ -448,6 +446,11 @@ class GoodRepo(object):
             'cmake', self.repo_dir,
             '-DCMAKE_INSTALL_PREFIX=' + self.install_dir
         ]
+
+        # Allow users to pass in arbitrary cache variables
+        for cmake_var in self._args.cmake_var:
+            pieces = cmake_var.split('=', 1)
+            cmake_cmd.append('-D{}={}'.format(pieces[0], pieces[1]))
 
         # For each repo this repo depends on, generate a CMake variable
         # definitions for "...INSTALL_DIR" that points to that dependent
@@ -463,10 +466,8 @@ class GoodRepo(object):
         for option in self.cmake_options:
             cmake_cmd.append(escape(option.format(**self.__dict__)))
 
-        # Set build config for single-configuration generators
-        if platform.system() == 'Linux' or platform.system() == 'Darwin':
-            cmake_cmd.append('-DCMAKE_BUILD_TYPE={config}'.format(
-                config=CONFIG_MAP[self._args.config]))
+        # Set build config for single-configuration generators (this is a no-op on multi-config generators)
+        cmake_cmd.append(f'-D CMAKE_BUILD_TYPE={CONFIG_MAP[self._args.config]}')
 
         # Use the CMake -A option to select the platform architecture
         # without needing a Visual Studio generator.
@@ -493,29 +494,14 @@ class GoodRepo(object):
 
     def CMakeBuild(self):
         """Build CMake command for the build phase and execute it"""
-        cmake_cmd = ['cmake', '--build', self.build_dir, '--target', 'install']
+        cmake_cmd = ['cmake', '--build', self.build_dir, '--target', 'install', '--config', CONFIG_MAP[self._args.config]]
         if self._args.do_clean:
             cmake_cmd.append('--clean-first')
 
-        if platform.system() == 'Windows':
-            cmake_cmd.append('--config')
-            cmake_cmd.append(CONFIG_MAP[self._args.config])
-
-        # Speed up the build.
-        if platform.system() == 'Linux' or platform.system() == 'Darwin':
-            cmake_cmd.append('--')
-            num_make_jobs = multiprocessing.cpu_count()
-            env_make_jobs = os.environ.get('MAKE_JOBS', None)
-            if env_make_jobs is not None:
-                try:
-                    num_make_jobs = min(num_make_jobs, int(env_make_jobs))
-                except ValueError:
-                    print('warning: environment variable MAKE_JOBS has non-numeric value "{}".  '
-                          'Using {} (CPU count) instead.'.format(env_make_jobs, num_make_jobs))
-            cmake_cmd.append('-j{}'.format(num_make_jobs))
-        if platform.system() == 'Windows' and self._args.generator != "Ninja":
-            cmake_cmd.append('--')
-            cmake_cmd.append('/maxcpucount')
+        # Ninja is parallel by default
+        if self._args.generator != "Ninja":
+            cmake_cmd.append('--parallel')
+            cmake_cmd.append(format(multiprocessing.cpu_count()))
 
         if VERBOSE:
             print("CMake command: " + " ".join(cmake_cmd))
@@ -672,7 +658,7 @@ def main():
         dest='arch',
         choices=['32', '64', 'x86', 'x64', 'win32', 'win64'],
         type=str.lower,
-        help="Set build files architecture (Windows)",
+        help="Set build files architecture (Visual Studio Generator Only)",
         default='64')
     parser.add_argument(
         '--config',
@@ -698,6 +684,13 @@ def main():
         type=lambda a: set(a.lower().split(',')),
         help="Comma-separated list of 'optional' resources that may be skipped. Only 'tests' is currently supported as 'optional'",
         default=set())
+    parser.add_argument(
+        '--cmake_var',
+        dest='cmake_var',
+        action='append',
+        metavar='VAR[=VALUE]',
+        help="Add CMake command line option -D'VAR'='VALUE' to the CMake generation command line; may be used multiple times",
+        default=[])
 
     args = parser.parse_args()
     save_cwd = os.getcwd()

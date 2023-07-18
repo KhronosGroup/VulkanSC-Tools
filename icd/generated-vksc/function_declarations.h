@@ -1,6 +1,3 @@
-#ifndef __mock_icd_h_
-#define __mock_icd_h_ 1
-
 /*
 ** Copyright (c) 2015-2018, 2023 The Khronos Group Inc.
 **
@@ -22,32 +19,15 @@
 **
 */
 
-#include <unordered_set>
-#include <unordered_map>
-#include <mutex>
+
+#pragma once
+
+#include <stdint.h>
 #include <string>
-#include <cstring>
-#include "vulkan/vk_icd.h"
+#include <unordered_map>
+#include <vulkan/vulkan.h>
+
 namespace vkmock {
-
-
-using mutex_t = std::mutex;
-using lock_guard_t = std::lock_guard<mutex_t>;
-using unique_lock_t = std::unique_lock<mutex_t>;
-
-static mutex_t global_lock;
-static uint64_t global_unique_handle = 1;
-static const uint32_t SUPPORTED_LOADER_ICD_INTERFACE_VERSION = 5;
-static uint32_t loader_interface_version = 0;
-static bool negotiate_loader_icd_interface_called = false;
-static void* CreateDispObjHandle() {
-    auto handle = new VK_LOADER_DATA;
-    set_loader_magic_value(handle);
-    return handle;
-}
-static void DestroyDispObjHandle(void* handle) {
-    delete reinterpret_cast<VK_LOADER_DATA*>(handle);
-}
 
 // Map of instance extension name to version
 static const std::unordered_map<std::string, uint32_t> instance_extension_map = {
@@ -124,6 +104,7 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_EXT_extended_dynamic_state2", 1},
     {"VK_EXT_color_write_enable", 1},
     {"VK_NV_external_sci_sync2", 1},
+    {"VK_QNX_external_memory_screen_buffer", 1},
 };
 
 
@@ -1891,6 +1872,14 @@ static VKAPI_ATTR VkResult VKAPI_CALL CreateSemaphoreSciSyncPoolNV(
     VkSemaphoreSciSyncPoolNV*                   pSemaphorePool);
 #endif /* VK_USE_PLATFORM_SCI */
 
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetScreenBufferPropertiesQNX(
+    VkDevice                                    device,
+    const struct _screen_buffer*                buffer,
+    VkScreenBufferPropertiesQNX*                pProperties);
+#endif /* VK_USE_PLATFORM_SCREEN_QNX */
+
 // Map of all APIs to be intercepted by this layer
 static const std::unordered_map<std::string, void*> name_to_funcptr_map = {
     {"vkCreateInstance", (void*)CreateInstance},
@@ -2230,9 +2219,10 @@ static const std::unordered_map<std::string, void*> name_to_funcptr_map = {
 #ifdef VK_USE_PLATFORM_SCI
     {"vkCreateSemaphoreSciSyncPoolNV", (void*)CreateSemaphoreSciSyncPoolNV},
 #endif
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+    {"vkGetScreenBufferPropertiesQNX", (void*)GetScreenBufferPropertiesQNX},
+#endif
 };
-
 
 } // namespace vkmock
 
-#endif

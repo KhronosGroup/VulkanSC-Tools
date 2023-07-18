@@ -488,6 +488,8 @@ int InitVulkan(void) {
         reinterpret_cast<PFN_vkGetDeviceImageMemoryRequirementsKHR>(dlsym(libvulkan, "vkGetDeviceImageMemoryRequirementsKHR"));
     vkGetDeviceImageSparseMemoryRequirementsKHR = reinterpret_cast<PFN_vkGetDeviceImageSparseMemoryRequirementsKHR>(
         dlsym(libvulkan, "vkGetDeviceImageSparseMemoryRequirementsKHR"));
+    vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR>(
+        dlsym(libvulkan, "vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR"));
     vkCreateAccelerationStructureKHR =
         reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(dlsym(libvulkan, "vkCreateAccelerationStructureKHR"));
     vkDestroyAccelerationStructureKHR =
@@ -579,6 +581,11 @@ int InitVulkan(void) {
 #endif
 
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR =
+        reinterpret_cast<PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR>(
+            dlsym(libvulkan, "vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR"));
+    vkGetEncodedVideoSessionParametersKHR =
+        reinterpret_cast<PFN_vkGetEncodedVideoSessionParametersKHR>(dlsym(libvulkan, "vkGetEncodedVideoSessionParametersKHR"));
     vkCmdEncodeVideoKHR = reinterpret_cast<PFN_vkCmdEncodeVideoKHR>(dlsym(libvulkan, "vkCmdEncodeVideoKHR"));
 #endif
     return 1;
@@ -925,6 +932,7 @@ PFN_vkCmdTraceRaysIndirect2KHR vkCmdTraceRaysIndirect2KHR;
 PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR;
 PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR;
 PFN_vkGetDeviceImageSparseMemoryRequirementsKHR vkGetDeviceImageSparseMemoryRequirementsKHR;
+PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
 PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
 PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
 PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
@@ -1047,6 +1055,7 @@ PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
 PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
 PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
 PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+PFN_vkCmdSetDepthBias2EXT vkCmdSetDepthBias2EXT;
 PFN_vkAcquireDrmDisplayEXT vkAcquireDrmDisplayEXT;
 PFN_vkGetDrmDisplayEXT vkGetDrmDisplayEXT;
 PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
@@ -1142,8 +1151,13 @@ PFN_vkCreateOpticalFlowSessionNV vkCreateOpticalFlowSessionNV;
 PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
 PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
 PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+PFN_vkCreateShadersEXT vkCreateShadersEXT;
+PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
+PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
+PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR;
 PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR;
 PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR;
@@ -1291,7 +1305,13 @@ PFN_vkCreateScreenSurfaceQNX vkCreateScreenSurfaceQNX;
 PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX;
 #endif
 
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX;
+#endif
+
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR;
+PFN_vkGetEncodedVideoSessionParametersKHR vkGetEncodedVideoSessionParametersKHR;
 PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
 #endif
 

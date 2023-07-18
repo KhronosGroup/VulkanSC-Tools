@@ -46,14 +46,14 @@ def main(argv):
 
     # output paths and the list of files in the path
     files_to_gen = {str(os.path.join('icd','generated')) : ['vk_typemap_helper.h',
-                                            'mock_icd.h',
-                                            'mock_icd.cpp'],
+                                            'function_definitions.h',
+                                            'function_declarations.h'],
                     str(os.path.join('vulkaninfo','generated')): ['vulkaninfo.hpp']}
 
     if args.api == 'vulkansc':
         files_to_gen = {str(os.path.join('icd','generated-vksc')) : ['vk_typemap_helper.h',
-                                                'mock_icd.h',
-                                                'mock_icd.cpp']}
+                                                'function_definitions.h',
+                                                'function_declarations.h']}
 
     #base directory for the source repository
     repo_dir = common_codegen.repo_relative('')

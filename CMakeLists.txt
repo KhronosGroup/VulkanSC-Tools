@@ -19,16 +19,19 @@ cmake_minimum_required(VERSION 3.17.2)
 
 project(Vulkan-Tools)
 
-# find_package(), include() and global project settings --------------------------------------------------------------------------
+# This variable enables downstream users to customize the target API
+# variant (e.g. Vulkan SC)
+set(API_TYPE "vulkan")
 
-find_package(PythonInterp 3 QUIET)
+if(VULKANSC)
+    set(API_TYPE "vulkansc")
+endif()
+
+add_subdirectory(scripts)
 
 # User-interface declarations ----------------------------------------------------------------------------------------------------
 # This section contains variables that affect development GUIs (e.g. CMake GUI and IDEs), such as option(), folders, and variables
 # with the CACHE property.
-
-# Enable beta Vulkan extensions
-add_definitions(-DVK_ENABLE_BETA_EXTENSIONS)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -41,12 +44,13 @@ option(BUILD_ICD "Build icd" ON)
 # Require the user to ask that it be installed if they really want it.
 option(INSTALL_ICD "Install icd" OFF)
 
-set(API_TYPE "vulkan")
-
 if(VULKANSC)
-    set(API_TYPE "vulkansc")
     set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
     set(BUILD_VULKANINFO OFF CACHE BOOL "vulkaninfo is not currently supported for Vulkan SC" FORCE)
+endif()
+
+if (UNIX AND NOT APPLE) # i.e. Linux
+    option(ENABLE_ADDRESS_SANITIZER "Use addres sanitization" OFF)
 endif()
 
 if(WIN32)
@@ -131,7 +135,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 ${COMMON_COMPILE_FLAGS}")
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_COMPILE_FLAGS} -std=c++11 -fno-rtti")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_COMPILE_FLAGS} -std=c++14 -fno-rtti")
     if(UNIX)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
@@ -152,15 +156,18 @@ elseif(MSVC)
     add_compile_options("/w34245")
 endif()
 
-# Optional codegen target
-if(PYTHONINTERP_FOUND)
-    add_custom_target(VulkanTools_generated_source
-                      COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/generate_source.py
-                              ${VULKAN_HEADERS_REGISTRY_DIRECTORY} --incremental --api ${API_TYPE}
-                      )
-else()
-    message("WARNING: VulkanTools_generated_source target requires python 3")
+option(TOOLS_CODEGEN "Enable helper codegen target")
+if (TOOLS_CODEGEN)
+    find_package(Python3 REQUIRED QUIET)
+    add_custom_target(tools_codegen
+        COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/scripts/generate_source.py
+            "${VULKAN_HEADERS_INSTALL_DIR}/${CMAKE_INSTALL_DATADIR}/vulkan/registry"
+            --incremental --api ${API_TYPE}
+    )
 endif()
+
+# Default to using the static CRT
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if(APPLE)
     include(mac_common.cmake)
@@ -176,4 +183,12 @@ endif()
 
 if(BUILD_ICD)
     add_subdirectory(icd)
+endif()
+
+add_subdirectory(windows-runtime-installer)
+
+option(BUILD_TESTS "Build the tests")
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()

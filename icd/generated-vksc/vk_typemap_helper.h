@@ -3205,6 +3205,61 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_DEVICE_SEMAPHORE_SCI_SYNC_POOL_
 };
 
 #endif // VK_USE_PLATFORM_SCI
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+// Map type VkScreenBufferPropertiesQNX to id VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX
+template <> struct LvlTypeMap<VkScreenBufferPropertiesQNX> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX> {
+    typedef VkScreenBufferPropertiesQNX Type;
+};
+
+#endif // VK_USE_PLATFORM_SCREEN_QNX
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+// Map type VkScreenBufferFormatPropertiesQNX to id VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX
+template <> struct LvlTypeMap<VkScreenBufferFormatPropertiesQNX> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX> {
+    typedef VkScreenBufferFormatPropertiesQNX Type;
+};
+
+#endif // VK_USE_PLATFORM_SCREEN_QNX
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+// Map type VkImportScreenBufferInfoQNX to id VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX
+template <> struct LvlTypeMap<VkImportScreenBufferInfoQNX> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX> {
+    typedef VkImportScreenBufferInfoQNX Type;
+};
+
+#endif // VK_USE_PLATFORM_SCREEN_QNX
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+// Map type VkExternalFormatQNX to id VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX
+template <> struct LvlTypeMap<VkExternalFormatQNX> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX> {
+    typedef VkExternalFormatQNX Type;
+};
+
+#endif // VK_USE_PLATFORM_SCREEN_QNX
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+// Map type VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX
+template <> struct LvlTypeMap<VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX> {
+    typedef VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX Type;
+};
+
+#endif // VK_USE_PLATFORM_SCREEN_QNX
 // Header "base class" for pNext chain traversal
 struct LvlGenericHeader {
    VkStructureType sType;
