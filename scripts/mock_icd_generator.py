@@ -1173,6 +1173,34 @@ CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
         custom_border_color_props->maxCustomBorderColorSamplers = 32;
     }
 ''',
+'vkGetPhysicalDeviceQueueFamilyProperties2': '''
+    if (pQueueFamilyProperties) {
+        if (*pQueueFamilyPropertyCount >= 1) {
+            auto props = &pQueueFamilyProperties[0].queueFamilyProperties;
+            props->queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_PROTECTED_BIT;
+            props->queueCount = 1;
+            props->timestampValidBits = 16;
+            props->minImageTransferGranularity = {1,1,1};
+        }
+        if (*pQueueFamilyPropertyCount > 1) {
+            *pQueueFamilyPropertyCount = 1;
+        }
+    } else {
+        *pQueueFamilyPropertyCount = 1;
+    }
+''',
+'vkGetPhysicalDeviceQueueFamilyProperties': '''
+    if (pQueueFamilyProperties) {
+        std::vector<VkQueueFamilyProperties2KHR> props2(*pQueueFamilyPropertyCount, {
+            VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2});
+        GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, props2.data());
+        for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; ++i) {
+            pQueueFamilyProperties[i] = props2[i].queueFamilyProperties;
+        }
+    } else {
+        GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, nullptr);
+    }
+''',
 }
 
 # MockICDGeneratorOptions - subclass of GeneratorOptions.
