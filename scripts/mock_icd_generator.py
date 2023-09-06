@@ -1038,22 +1038,22 @@ CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
     if (props_sc10) {
         props_sc10->deviceNoDynamicHostAllocations = VK_TRUE;
         props_sc10->deviceDestroyFreesMemory = VK_TRUE;
-        props_sc10->commandPoolMultipleCommandBuffersRecording = VK_FALSE;
-        props_sc10->commandPoolResetCommandBuffer = VK_FALSE;
-        props_sc10->commandBufferSimultaneousUse = VK_FALSE;
+        props_sc10->commandPoolMultipleCommandBuffersRecording = VK_TRUE;
+        props_sc10->commandPoolResetCommandBuffer = VK_TRUE;
+        props_sc10->commandBufferSimultaneousUse = VK_TRUE;
         props_sc10->secondaryCommandBufferNullOrImagelessFramebuffer = VK_TRUE;
-        props_sc10->recycleDescriptorSetMemory = VK_FALSE;
-        props_sc10->recyclePipelineMemory = VK_FALSE;
-        props_sc10->maxRenderPassSubpasses = 4;
-        props_sc10->maxRenderPassDependencies = 18;
-        props_sc10->maxSubpassInputAttachments = 4;
-        props_sc10->maxSubpassPreserveAttachments = 4;
-        props_sc10->maxFramebufferAttachments = 9;
-        props_sc10->maxDescriptorSetLayoutBindings = 64;
-        props_sc10->maxQueryFaultCount = 16;
-        props_sc10->maxCallbackFaultCount = 1;
+        props_sc10->recycleDescriptorSetMemory = VK_TRUE;
+        props_sc10->recyclePipelineMemory = VK_TRUE;
+        props_sc10->maxRenderPassSubpasses = 64;
+        props_sc10->maxRenderPassDependencies = 256;
+        props_sc10->maxSubpassInputAttachments = 8;
+        props_sc10->maxSubpassPreserveAttachments = 16;
+        props_sc10->maxFramebufferAttachments = 16;
+        props_sc10->maxDescriptorSetLayoutBindings = 256;
+        props_sc10->maxQueryFaultCount = 256;
+        props_sc10->maxCallbackFaultCount = 64;
         props_sc10->maxCommandPoolCommandBuffers = 256;
-        props_sc10->maxCommandBufferSize = 1 << 20;
+        props_sc10->maxCommandBufferSize = 1 << 30;
     }
 
     auto *props_11 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan11Properties>(pProperties->pNext);
@@ -1178,8 +1178,8 @@ CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
         if (*pQueueFamilyPropertyCount >= 1) {
             auto props = &pQueueFamilyProperties[0].queueFamilyProperties;
             props->queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_PROTECTED_BIT;
-            props->queueCount = 1;
-            props->timestampValidBits = 16;
+            props->queueCount = 8;
+            props->timestampValidBits = 63;
             props->minImageTransferGranularity = {1,1,1};
         }
         if (*pQueueFamilyPropertyCount > 1) {
