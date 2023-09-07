@@ -32,7 +32,7 @@ jobs:
                 cc: [ gcc, clang ]
                 cxx: [ g++, clang++ ]
                 config: [ Debug, Release ]
-                os: [ ubuntu-20.04, ubuntu-22.04 ]
+                os: [ ubuntu-22.04 ]
                 exclude:
                     - cc: gcc
                       cxx: clang++
@@ -44,24 +44,29 @@ jobs:
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
+            - uses: lukka/get-cmake@latest
+              with:
+                cmakeVersion: 3.17.2
 
-            - name: Install Python dependencies
-              run: python3 -m pip install pyparsing
-
-            - name: Fetch and install headers
-              run: python scripts/update_deps.py --api vulkansc --dir external
+            - name: Install build dependencies
+              run: |
+                python3 -m pip install jsonschema pyparsing
+                sudo apt update && sudo apt install --yes --no-install-recommends libwayland-dev libxrandr-dev
 
             - name: Generate build files
-              run: cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=${{matrix.config}} -DVULKANSC=ON -Cexternal/helper.cmake
+              run: cmake -S. -B build -G "Ninja" -DCMAKE_BUILD_TYPE=${{matrix.config}} -D UPDATE_DEPS=ON -D INSTALL_ICD=ON -D ENABLE_ADDRESS_SANITIZER=ON -D VULKANSC=ON -D BUILD_VKSC_DEVSIM=ON
               env:
                 CC: ${{matrix.cc}}
                 CXX: ${{matrix.cxx}}
 
-            - name: Build the tools
-              run: make -C build
+            - name: Build
+              run: cmake --build build
+  
+            - name: Install
+              run: cmake --install build/ --prefix build/install
 
             - name: Verify generated source files
-              run: python scripts/generate_source.py --api vulkansc --verify external/Vulkan-Headers/build/install/share/vulkan/registry
+              run: python scripts/generate_source.py --verify external/${{ matrix.config }}/Vulkan-Headers/build/install/share/vulkan/registry --api vulkansc
 
     windows-sc:
         runs-on: ${{matrix.os}}
@@ -77,15 +82,19 @@ jobs:
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
+            - uses: lukka/get-cmake@latest
+            - uses: ilammy/msvc-dev-cmd@v1
+              with:
+                arch: ${{ matrix.arch }}
 
-            - name: Install Python dependencies
-              run: python -m pip install pyparsing
-
-            - name: Fetch and install headers
-              run: python scripts/update_deps.py --api vulkansc --dir external
+            - name: Install dependencies
+              run: python -m pip install jsonschema pyparsing
 
             - name: Generate build files
-              run: cmake -S. -Bbuild -A${{matrix.arch}} -DVULKANSC=ON "-Cexternal/helper.cmake"
+              run: cmake -S. -B build  -G "Ninja" -DCMAKE_BUILD_TYPE=${{matrix.config}} -D UPDATE_DEPS=ON -D INSTALL_ICD=ON -D VULKANSC=ON -D BUILD_VKSC_DEVSIM=ON
 
-            - name: Build the tools
-              run: cmake --build ./build --config ${{matrix.config}}
+            - name: Build
+              run: cmake --build ./build
+
+            - name: Install
+              run: cmake --install build/ --prefix build/install

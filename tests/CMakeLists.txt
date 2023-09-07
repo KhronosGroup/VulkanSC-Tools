@@ -15,6 +15,11 @@
 # limitations under the License.
 # ~~~
 
+if (VULKANSC)
+    add_subdirectory(vulkansc)
+    return() # Return early
+endif()
+
 # setup binary_locations_$<CONFIG>.h.in using binary_locations.h.in as a source
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/binary_locations_$<CONFIG>.h" INPUT "${CMAKE_CURRENT_SOURCE_DIR}/binary_locations.h.in")
 
