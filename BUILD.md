@@ -214,6 +214,7 @@ on/off options currently supported by this repository:
 | Option                     | Platform | Default | Description                                                                      |
 | -------------------------- | -------- | ------- | -------------------------------------------------------------------------------- |
 | VULKANSC                   | All      | `OFF`   | Controls whether the tools are built for Vulkan (`OFF`, the default), or for Vulkan SC (`ON`). |
+| BUILD_VKSC_DEVSIM          | All      | `OFF`   | Controls whether or not the Vulkan SC device simulation layer is built (supported only if `VULKANSC` is set to `ON`). |
 | BUILD_TESTS                | All      | `OFF`   | Controls whether the tests are built.                                            |
 | BUILD_CUBE                 | All      | `ON`    | Controls whether or not the vkcube demo is built.                                |
 | BUILD_VULKANINFO           | All      | `ON`    | Controls whether or not the vulkaninfo utility is built.                         |
@@ -223,6 +224,7 @@ on/off options currently supported by this repository:
 | BUILD_WSI_XLIB_SUPPORT     | Linux    | `ON`    | Build the components with Xlib support.                                          |
 | BUILD_WSI_WAYLAND_SUPPORT  | Linux    | `ON`    | Build the components with Wayland support.                                       |
 | BUILD_WSI_DIRECTFB_SUPPORT | Linux    | `OFF`   | Build the components with DirectFB support.                                      |
+| BUILD_WSI_SCI_SUPPORT      | All      | `OFF`   | Build the copmonents with SCI support.                                           |
 
 The following is a table of all string options currently supported by this repository:
 

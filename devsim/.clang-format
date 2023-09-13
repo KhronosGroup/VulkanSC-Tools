@@ -1,0 +1,5 @@
+---
+# Disable clang-format for code ported from Vulkan-PRofiles
+DisableFormat: true
+SortIncludes: false
+...

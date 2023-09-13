@@ -36,6 +36,7 @@ add_subdirectory(scripts)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(VULKANSC "Build Vulkan SC tools" OFF)
+option(BUILD_VKSC_DEVSIM "Build Vulkan SC device simulation layer" OFF)
 
 option(BUILD_CUBE "Build cube" ON)
 option(BUILD_VULKANINFO "Build vulkaninfo" ON)
@@ -47,6 +48,8 @@ option(INSTALL_ICD "Install icd" OFF)
 if(VULKANSC)
     set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
     set(BUILD_VULKANINFO OFF CACHE BOOL "vulkaninfo is not currently supported for Vulkan SC" FORCE)
+else()
+    set(BUILD_VKSC_DEVSIM OFF CACHE BOOL "Vulkan SC device simulation layer is not supported for Vulkan" FORCE)
 endif()
 
 if (UNIX AND NOT APPLE) # i.e. Linux
@@ -183,6 +186,10 @@ endif()
 
 if(BUILD_ICD)
     add_subdirectory(icd)
+endif()
+
+if(VULKANSC AND BUILD_VKSC_DEVSIM)
+    add_subdirectory(devsim)
 endif()
 
 add_subdirectory(windows-runtime-installer)

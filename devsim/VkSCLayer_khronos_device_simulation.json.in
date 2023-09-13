@@ -1,0 +1,13 @@
+{
+    "file_format_version": "1.2.1",
+    "layer": {
+        "name": "VK_LAYER_KHRONOS_device_simulation",
+        "type": "GLOBAL",
+        "library_path": "@JSON_LIBRARY_PATH@",
+        "api_version": "@JSON_API_VERSION@",
+        "implementation_version": "1.0.0",
+        "status": "STABLE",
+        "description": "Khronos Vulkan SC device simulation layer",
+        "introduction": "The Khronos device simulation layer helps test across a wide range of hardware capabilities without requiring a physical copy of every device."
+    }
+}
