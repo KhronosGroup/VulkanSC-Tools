@@ -13,6 +13,10 @@ The following components are available in this repository:
 - [*VulkanInfo*](vulkaninfo/)
 - [*Windows Runtime*](windows-runtime-installer/)
 
+In addition, the following Vulkan SC specific components are available in this repository:
+
+- [*Vulkan SC Device Simulation Layer*](devsim/)
+
 ## Contact Information
 * [Charles Giessen](mailto:charles@lunarg.com)
 
