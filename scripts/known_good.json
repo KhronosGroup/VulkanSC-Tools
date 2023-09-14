@@ -17,8 +17,8 @@
             "build_dir": "Vulkan-Headers/build",
             "install_dir": "Vulkan-Headers/build/install",
             "cmake_options": [
-                "-DVULKANSC=TRUE",
-                "-DGEN_VULKANSC_COMBINED=TRUE"
+                "-DVULKANSC=ON",
+                "-DGEN_VULKANSC_COMBINED=ON"
             ],
             "commit": "e8febd2664a72d0e4d029585822ea3fa127f916e"
         },
@@ -65,7 +65,7 @@
             "build_dir": "Vulkan-Loader/build",
             "install_dir": "Vulkan-Loader/build/install",
             "cmake_options": [
-                "-DVULKANSC=TRUE"
+                "-DVULKANSC=ON"
             ],
             "commit": "936620a081a50d2604cd8763e0b581870f918467",
             "deps": [
