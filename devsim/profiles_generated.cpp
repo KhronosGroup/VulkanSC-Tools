@@ -47,6 +47,7 @@
 #include "profiles_util.h"
 #include "profiles_json.h"
 #include "profiles_settings.h"
+#include <algorithm>
 
 SimulateCapabilityFlags GetSimulateCapabilityFlags(const std::vector<std::string> &values) {
     SimulateCapabilityFlags result = 0;
@@ -1213,6 +1214,27 @@ static uint32_t VkStringToUint(const std::string &input_value) {
         {"VK_QUEUE_COMPUTE_BIT", static_cast<uint32_t>(VK_QUEUE_COMPUTE_BIT)},
         {"VK_QUEUE_TRANSFER_BIT", static_cast<uint32_t>(VK_QUEUE_TRANSFER_BIT)},
         {"VK_QUEUE_PROTECTED_BIT", static_cast<uint32_t>(VK_QUEUE_PROTECTED_BIT)},
+        // VkImageUsageFlagBits
+        {"VK_IMAGE_USAGE_TRANSFER_SRC_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT)},
+        {"VK_IMAGE_USAGE_TRANSFER_DST_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_TRANSFER_DST_BIT)},
+        {"VK_IMAGE_USAGE_SAMPLED_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_SAMPLED_BIT)},
+        {"VK_IMAGE_USAGE_STORAGE_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_STORAGE_BIT)},
+        {"VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", static_cast<uint32_t>(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", static_cast<uint32_t>(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)},
+        // VkBufferUsageFlagBits
+        {"VK_BUFFER_USAGE_TRANSFER_SRC_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT)},
+        {"VK_BUFFER_USAGE_TRANSFER_DST_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_TRANSFER_DST_BIT)},
+        {"VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_STORAGE_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_INDEX_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_INDEX_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", static_cast<uint32_t>(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)},
     };
     const auto it = map.find(input_value);
     if (it != map.end()) {
@@ -1498,10 +1520,6 @@ const VkLayerProperties kLayerProperties[] = {{
     "Khronos Profiles layer"         // description
 }};
 const uint32_t kLayerPropertiesCount = (sizeof(kLayerProperties) / sizeof(kLayerProperties[0]));
-
-// Instance extensions that this layer provides:
-const std::array<VkExtensionProperties, 0> kInstanceExtensionProperties = {};
-const uint32_t kInstanceExtensionPropertiesCount = static_cast<uint32_t>(kInstanceExtensionProperties.size());
 
 // Device extensions that this layer provides:
 #ifdef VULKANSC
@@ -3582,7 +3600,7 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
                 dest->global_priority_properties_.priorities[i++] = StringToVkQueueGlobalPriorityKHR(feature.asString());
             }
             dest->global_priority_properties_.priorityCount = props["priorityCount"].asUInt();
-        } else if (name == "VkVideoQueueFamilyPropertiesKHR") {
+        } else if (name == "VkQueueFamilyVideoPropertiesKHR") {
             for (const auto &feature : props["videoCodecOperations"]) {
                 dest->video_properties_.videoCodecOperations |= StringToVkVideoCodecOperationFlagsKHR(feature.asString());
             }
@@ -3653,7 +3671,7 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
                               dest->global_priority_properties_.priorityCount, priorities.c_str());
         }
         if (dest->video_properties_.videoCodecOperations > 0) {
-            message += format(", VkVideoQueueFamilyPropertiesKHR [videoCodecOperations: %s]",
+            message += format(", VkQueueFamilyVideoPropertiesKHR [videoCodecOperations: %s]",
                               string_VkVideoCodecOperationFlagsKHR(dest->video_properties_.videoCodecOperations).c_str());
         }
         if (dest->checkpoint_properties_.checkpointExecutionStageMask > 0) {
@@ -6904,7 +6922,7 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumerateInstanceLayerProperties(uint32_t *pCount
 VKAPI_ATTR VkResult VKAPI_CALL EnumerateInstanceExtensionProperties(const char *pLayerName, uint32_t *pCount,
                                                                     VkExtensionProperties *pProperties) {
     if (pLayerName && !strcmp(pLayerName, kLayerName)) {
-        return EnumerateProperties(kInstanceExtensionPropertiesCount, kInstanceExtensionProperties.data(), pCount, pProperties);
+        return EnumerateProperties(0, (VkExtensionProperties*)nullptr, pCount, pProperties);
     }
     return VK_ERROR_LAYER_NOT_PRESENT;
 }
@@ -6986,7 +7004,7 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties2KHR(VkPhysical
     PhysicalDeviceData *pdd = PhysicalDeviceData::Find(physicalDevice);
     const uint32_t src_count = (pdd) ? static_cast<uint32_t>(pdd->arrayof_queue_family_properties_.size()) : 0;
     if (src_count == 0) {
-        dt->GetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2);
+        dt->GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2);
         return;
     }
 
@@ -7114,7 +7132,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties2KHR(
     VkImageFormatProperties2KHR *pImageFormatProperties) {
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
-    dt->GetPhysicalDeviceImageFormatProperties2KHR(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    dt->GetPhysicalDeviceImageFormatProperties2(physicalDevice, pImageFormatInfo, pImageFormatProperties);
     return GetPhysicalDeviceImageFormatProperties(physicalDevice, pImageFormatInfo->format, pImageFormatInfo->type,
                                                   pImageFormatInfo->tiling, pImageFormatInfo->usage, pImageFormatInfo->flags,
                                                   &pImageFormatProperties->imageFormatProperties);
@@ -7148,7 +7166,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevi
         (*pToolCount)--;
     }
 
-    VkLayerInstanceDispatchTable *pInstanceTable = instance_dispatch_table(physicalDevice);
+    VkuInstanceDispatchTable *pInstanceTable = instance_dispatch_table(physicalDevice);
     VkResult result = pInstanceTable->GetPhysicalDeviceToolPropertiesEXT(physicalDevice, pToolCount, pToolProperties);
 
     if (original_pToolProperties != nullptr) {
@@ -7489,7 +7507,7 @@ void LoadQueueFamilyProperties(VkInstance instance, VkPhysicalDevice pd, Physica
             dt->GetPhysicalDeviceQueueFamilyProperties2(pd, &count, props.data());
         } else {
             dt->GetPhysicalDeviceQueueFamilyProperties2KHR(pd, &count, props.data());
-        } 
+        }
         for (uint32_t i = 0; i < count; ++i) {
             pdd->device_queue_family_properties_[i].properties_2 = props[i];
         }
@@ -8234,11 +8252,11 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                     }
                     dt->GetPhysicalDeviceMemoryProperties2(physical_device, &memory_chain);
                 } else {
-                    dt->GetPhysicalDeviceProperties2KHR(physical_device, &property_chain);
+                    dt->GetPhysicalDeviceProperties2(physical_device, &property_chain);
                     if (layer_settings->simulate.default_feature_values == DEFAULT_FEATURE_VALUES_DEVICE) {
-                        dt->GetPhysicalDeviceFeatures2KHR(physical_device, &feature_chain);
+                        dt->GetPhysicalDeviceFeatures2(physical_device, &feature_chain);
                     }
-                    dt->GetPhysicalDeviceMemoryProperties2KHR(physical_device, &memory_chain);
+                    dt->GetPhysicalDeviceMemoryProperties2(physical_device, &memory_chain);
                 }
 
                 pdd.physical_device_properties_ = property_chain.properties;

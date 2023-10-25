@@ -16,8 +16,21 @@
 # ~~~
 
 if (VULKANSC)
-    add_subdirectory(vulkansc)
     return() # Return early
+endif()
+
+if (ANDROID)
+
+    # Ensure ANativeActivity_onCreate is being exported from vkcube
+    find_program(GNU_NM NAMES nm)
+    if (GNU_NM)
+        add_test(NAME ANativeActivity_onCreate COMMAND ${GNU_NM} --dynamic $<TARGET_FILE:vkcube>)
+        set_tests_properties(ANativeActivity_onCreate
+            PROPERTIES PASS_REGULAR_EXPRESSION "T ANativeActivity_onCreate"
+        )
+    endif()
+
+    return()
 endif()
 
 # setup binary_locations_$<CONFIG>.h.in using binary_locations.h.in as a source
@@ -40,19 +53,34 @@ find_package(GTest REQUIRED CONFIG QUIET)
 add_executable(vulkan_tools_tests)
 target_sources(vulkan_tools_tests PRIVATE
     main.cpp
+    test_common.h
     icd/mock_icd_tests.cpp
 )
 get_target_property(TEST_SOURCES vulkan_tools_tests SOURCES)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${TEST_SOURCES})
 
-target_include_directories(vulkan_tools_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(vulkan_tools_tests GTest::gtest Vulkan::Vulkan)
+target_include_directories(vulkan_tools_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(vulkan_tools_tests GTest::gtest Vulkan::Headers Vulkan::Loader)
 add_dependencies(vulkan_tools_tests generate_binary_locations)
+if (WIN32)
+    target_compile_definitions(vulkan_tools_tests PUBLIC -DVK_USE_PLATFORM_WIN32_KHR -DWIN32_LEAN_AND_MEAN -DNOMINMAX)
+endif()
+set_target_properties(vulkan_tools_tests PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
+if (DEFINED GIT_BRANCH_NAME AND DEFINED GIT_TAG_INFO)
+    target_compile_definitions(vulkan_tools_tests PRIVATE GIT_BRANCH_NAME="${GIT_BRANCH_NAME}" GIT_TAG_INFO="${GIT_TAG_INFO}")
+endif()
 
 if (ENABLE_ADDRESS_SANITIZER)
     target_compile_options(vulkan_tools_tests PUBLIC -fsanitize=address)
     target_link_options(vulkan_tools_tests PUBLIC -fsanitize=address)
 endif ()
+
+if (WIN32)
+    # Copy the loader shared lib (if built) to the test application directory so the test app finds it.
+    add_custom_command(TARGET vulkan_tools_tests POST_BUILD
+                           COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Vulkan::Loader> $<TARGET_FILE_DIR:vulkan_tools_tests>)
+endif()
 
 include(GoogleTest)
 gtest_discover_tests(vulkan_tools_tests DISCOVERY_TIMEOUT 100)

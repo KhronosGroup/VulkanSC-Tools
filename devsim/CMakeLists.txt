@@ -64,7 +64,7 @@ find_package(VulkanHeaders REQUIRED CONFIG QUIET)
 find_package(valijson REQUIRED CONFIG)
 find_package(jsoncpp REQUIRED CONFIG)
 
-target_include_directories(Vulkan::Headers INTERFACE ${VULKAN_VALIDATIONLAYERS_INSTALL_DIR}/include/vulkan)
+target_include_directories(Vulkan::Headers INTERFACE ${VULKAN_UTILITY_LIBRARIES_INSTALL_DIR}/include/vulkan)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DVK_USE_PLATFORM_WIN32_KHX -DWIN32_LEAN_AND_MEAN -DNOMINMAX)
@@ -101,6 +101,7 @@ else()
     message(FATAL_ERROR "Unsupported Platform!")
 endif()
 
+option(BUILD_WSI_SCI_SUPPORT "Build with SCI platform headers" OFF)
 if (BUILD_WSI_SCI_SUPPORT)
     target_compile_definitions(Vulkan::Headers INTERFACE VK_USE_PLATFORM_SCI)
 endif()
@@ -114,6 +115,8 @@ else()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpointer-arith")
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpointer-arith")
 endif()
+
+add_definitions(-DVK_ENABLE_BETA_EXTENSIONS)
 
 source_group("JSON Manifest" FILES ${LAYER_NAME}.json.in)
 source_group("Export Files" FILES ${LAYER_NAME}.def ${LAYER_NAME}.map)
@@ -147,13 +150,16 @@ target_sources(DevSimLayer PRIVATE
     profiles_generated.cpp
     profiles.h
     vk_layer_table.cpp
+    vk_layer_table.h
     ${LAYER_NAME}.json.in
     ${LAYER_NAME}.def
     ${LAYER_NAME}.map
 )
 
 target_link_libraries(DevSimLayer PRIVATE
+    Vulkan::LayerSettings
     Vulkan::Headers
+    Vulkan::UtilityHeaders
     jsoncpp_static
     valijson
 )

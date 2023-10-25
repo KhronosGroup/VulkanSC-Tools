@@ -81,7 +81,8 @@ std::string to_hex_str(Printer &p, const T i) {
 
 # used in the .cpp code
 structures_to_gen = ['VkExtent3D', 'VkExtent2D', 'VkPhysicalDeviceLimits', 'VkPhysicalDeviceFeatures', 'VkPhysicalDeviceSparseProperties',
-                     'VkSurfaceCapabilitiesKHR', 'VkSurfaceFormatKHR', 'VkLayerProperties', 'VkPhysicalDeviceToolProperties', 'VkFormatProperties']
+                     'VkSurfaceCapabilitiesKHR', 'VkSurfaceFormatKHR', 'VkLayerProperties', 'VkPhysicalDeviceToolProperties', 'VkFormatProperties',
+                     'VkSurfacePresentScalingCapabilitiesEXT', 'VkSurfacePresentModeCompatibilityEXT', 'VkPhysicalDeviceHostImageCopyPropertiesEXT']
 enums_to_gen = ['VkResult', 'VkFormat', 'VkPresentModeKHR',
                 'VkPhysicalDeviceType', 'VkImageTiling']
 flags_to_gen = ['VkSurfaceTransformFlagsKHR', 'VkCompositeAlphaFlagsKHR', 'VkSurfaceCounterFlagsEXT', 'VkQueueFlags',
@@ -110,12 +111,38 @@ EXTENSION_TYPE_BOTH = 'both'
 
 # Types that need pNext Chains built. 'extends' is the xml tag used in the structextends member. 'type' can be device, instance, or both
 EXTENSION_CATEGORIES = OrderedDict((
-    ('phys_device_props2', {'extends': 'VkPhysicalDeviceProperties2', 'type': EXTENSION_TYPE_BOTH, 'holder_type': 'VkPhysicalDeviceProperties2', 'print_iterator': True}),
-    ('phys_device_mem_props2', {'extends': 'VkPhysicalDeviceMemoryProperties2', 'type': EXTENSION_TYPE_DEVICE, 'holder_type':'VkPhysicalDeviceMemoryProperties2', 'print_iterator': False}),
-    ('phys_device_features2', {'extends': 'VkPhysicalDeviceFeatures2,VkDeviceCreateInfo', 'type': EXTENSION_TYPE_DEVICE, 'holder_type': 'VkPhysicalDeviceFeatures2', 'print_iterator': True}),
-    ('surface_capabilities2', {'extends': 'VkSurfaceCapabilities2KHR', 'type': EXTENSION_TYPE_BOTH, 'holder_type': 'VkSurfaceCapabilities2KHR', 'print_iterator': True}),
-    ('format_properties2', {'extends': 'VkFormatProperties2', 'type': EXTENSION_TYPE_DEVICE, 'holder_type':'VkFormatProperties2', 'print_iterator': True}),
-    ('queue_properties2', {'extends': 'VkQueueFamilyProperties2', 'type': EXTENSION_TYPE_DEVICE, 'holder_type': 'VkQueueFamilyProperties2', 'print_iterator': True})
+    ('phys_device_props2',
+        {'extends': 'VkPhysicalDeviceProperties2',
+         'type': EXTENSION_TYPE_BOTH,
+         'holder_type': 'VkPhysicalDeviceProperties2',
+         'print_iterator': True,
+        'exclude': ['VkPhysicalDeviceHostImageCopyPropertiesEXT']}),
+    ('phys_device_mem_props2',
+        {'extends': 'VkPhysicalDeviceMemoryProperties2',
+        'type': EXTENSION_TYPE_DEVICE,
+        'holder_type':'VkPhysicalDeviceMemoryProperties2',
+        'print_iterator': False}),
+    ('phys_device_features2',
+        {'extends': 'VkPhysicalDeviceFeatures2,VkDeviceCreateInfo',
+        'type': EXTENSION_TYPE_DEVICE,
+        'holder_type': 'VkPhysicalDeviceFeatures2',
+        'print_iterator': True}),
+    ('surface_capabilities2',
+        {'extends': 'VkSurfaceCapabilities2KHR',
+        'type': EXTENSION_TYPE_BOTH,
+        'holder_type': 'VkSurfaceCapabilities2KHR',
+        'print_iterator': True,
+        'exclude': ['VkSurfacePresentScalingCapabilitiesEXT', 'VkSurfacePresentModeCompatibilityEXT']}),
+    ('format_properties2',
+        {'extends': 'VkFormatProperties2',
+        'type': EXTENSION_TYPE_DEVICE,
+        'holder_type':'VkFormatProperties2',
+        'print_iterator': True}),
+    ('queue_properties2',
+        {'extends': 'VkQueueFamilyProperties2',
+        'type': EXTENSION_TYPE_DEVICE,
+        'holder_type': 'VkQueueFamilyProperties2',
+        'print_iterator': True})
                                    ))
 class VulkanInfoGeneratorOptions(GeneratorOptions):
     def __init__(self,
@@ -243,9 +270,9 @@ class VulkanInfoGenerator(OutputGenerator):
 
         types_to_gen.update(
             GatherTypesToGen(self.all_structures, structures_to_gen))
-        for key in EXTENSION_CATEGORIES.keys():
+        for key, info in EXTENSION_CATEGORIES.items():
             types_to_gen.update(
-                GatherTypesToGen(self.all_structures, self.extension_sets[key]))
+                GatherTypesToGen(self.all_structures, self.extension_sets[key], info.get('exclude')))
         types_to_gen = sorted(types_to_gen)
 
         names_of_structures_to_gen = set()
@@ -365,10 +392,13 @@ class VulkanInfoGenerator(OutputGenerator):
 
         for key, value in EXTENSION_CATEGORIES.items():
             if str(typeinfo.elem.get('structextends')).find(value.get('extends')) != -1:
-                self.extension_sets[key].add(name)
+                if value.get('exclude') is None or name not in value.get('exclude'):
+                    self.extension_sets[key].add(name)
 
 
-def GatherTypesToGen(structure_list, structures):
+def GatherTypesToGen(structure_list, structures, exclude = []):
+    if exclude == None:
+        exclude = []
     types = set()
     for s in structures:
         types.add(s)
@@ -380,8 +410,9 @@ def GatherTypesToGen(structure_list, structures):
                 for m in s.members:
                     if m.typeID not in predefined_types and m.name not in names_to_ignore:
                         if m.typeID not in types:
-                            types.add(m.typeID)
-                            added_stuff = True
+                            if s.name not in exclude:
+                                types.add(m.typeID)
+                                added_stuff = True
     return types
 
 
@@ -567,15 +598,20 @@ def PrintStructure(struct, types_to_gen, structure_names, aliases):
                 out += f'        for (uint32_t i = 0; i < {v.arrayLength}; i++) {{ p.PrintElement(obj.{v.name}[i]); }}\n'
                 out += f"    }}\n"
             else:  # dynamic array length based on other member
-                out += f'    ArrayWrapper arr(p,"{v.name}", obj.' + v.arrayLength + ');\n'
-                out += f"    for (uint32_t i = 0; i < obj.{v.arrayLength}; i++) {{\n"
+                out += f"    {{\n"
+                out += f'        ArrayWrapper arr(p,"{v.name}", obj.' + v.arrayLength + ');\n'
+                out += f"        for (uint32_t i = 0; i < obj.{v.arrayLength}; i++) {{\n"
                 if v.typeID in types_to_gen:
-                    out += f"        if (obj.{v.name} != nullptr) {{\n"
-                    out += f"            p.SetElementIndex(i);\n"
-                    out += f'            Dump{v.typeID}(p, "{v.name}", obj.{v.name}[i]);\n'
-                    out += f"        }}\n"
+                    out += f'            if (obj.{v.name} != nullptr) {{\n'
+                    out += f'                p.SetElementIndex(i);\n'
+                    out += '                if (p.Type() == OutputType::json)\n'
+                    out += f'                    p.PrintString(std::string("VK_") + {v.typeID}String(obj.{v.name}[i]));\n'
+                    out += '                else\n'
+                    out += f'                    p.PrintString({v.typeID}String(obj.{v.name}[i]));\n'
+                    out += f'            }}\n'
                 else:
-                    out += f"        p.PrintElement(obj.{v.name}[i]);\n"
+                    out += f"            p.PrintElement(obj.{v.name}[i]);\n"
+                out += f"        }}\n"
                 out += f"    }}\n"
         elif v.typeID == "VkBool32":
             out += f'    p.PrintKeyBool("{v.name}", static_cast<bool>(obj.{v.name}));\n'
@@ -642,13 +678,13 @@ def PrintChainStruct(listName, structures, all_structures, chain_details):
         out += AddGuardHeader(s)
         if s.sTypeName is not None:
             out += f"    {s.name} {s.name[2:]}{{}};\n"
-            # Specific versions of drivers have an incorrect definition of the size of this struct.
+            # Specific versions of drivers have an incorrect definition of the size of these structs.
             # We need to artificially pad the structure it just so the driver doesn't write out of bounds and
             # into other structures that are adjacent. This bug comes from the in-development version of
             # the extension having a larger size than the final version, so older drivers try to write to
             # members which don't exist.
-            if s.sTypeName == "VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES":
-                out += "    char padding[64];\n"
+            if s.name in ['VkPhysicalDeviceShaderIntegerDotProductFeatures', 'VkPhysicalDeviceHostImageCopyFeaturesEXT']:
+                out += f"    char {s.name}_padding[64];\n"
         out += AddGuardFooter(s)
     out += f"    void initialize_chain() noexcept {{\n"
     for s in structs_to_print:

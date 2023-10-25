@@ -21,8 +21,8 @@
 #include "profiles_util.h"
 
 void WarnMissingFormatFeatures(ProfileLayerSettings *layer_settings, const char *device_name, const std::string &format_name,
-                               const std::string &features,
-                               VkFormatFeatureFlags profile_features, VkFormatFeatureFlags device_features) {
+                               const std::string &features, VkFormatFeatureFlags profile_features,
+                               VkFormatFeatureFlags device_features) {
     if (!(layer_settings->log.debug_reports & DEBUG_REPORT_WARNING_BIT)) {
         return;
     }
@@ -35,8 +35,8 @@ void WarnMissingFormatFeatures(ProfileLayerSettings *layer_settings, const char 
 }
 
 void WarnMissingFormatFeatures2(ProfileLayerSettings *layer_settings, const char *device_name, const std::string &format_name,
-                                const std::string &features,
-                                VkFormatFeatureFlags2 profile_features, VkFormatFeatureFlags2 device_features) {
+                                const std::string &features, VkFormatFeatureFlags2 profile_features,
+                                VkFormatFeatureFlags2 device_features) {
     if (!(layer_settings->log.debug_reports & DEBUG_REPORT_WARNING_BIT)) {
         return;
     }
@@ -64,6 +64,9 @@ std::string GetDebugActionsLog(DebugActionFlags flags) {
 }
 
 #if defined(__ANDROID__)
+
+#include <android/log.h>
+
 void AndroidPrintf(DebugReportBits level, const std::string &message) {
     switch (level) {
         default:

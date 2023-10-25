@@ -17,25 +17,7 @@
  *
  */
 
-#include <stdlib.h>
-
-#include <array>
-#include <iostream>
-#include <vector>
-
-#include "gtest/gtest.h"
-#include "vulkan/vulkan.h"
-
-// Location of the built binaries in this repo
-#include "binary_locations.h"
-
-#if defined(WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-int set_environment_var(const char* name, const char* value) { return SetEnvironmentVariable(name, value); }
-#else
-int set_environment_var(const char* name, const char* value) { return setenv(name, value, 1); }
-#endif
+#include "test_common.h"
 
 void setup_mock_icd_env_vars() {
     // Necessary to point the loader at the mock driver
@@ -256,7 +238,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceSurfacePresentModesKHR) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
     uint32_t count = 0;
     std::array<VkPresentModeKHR, 6> present_modes{};
     res = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &count, nullptr);
@@ -278,7 +260,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceSurfaceFormatsKHR) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
     uint32_t count = 0;
     std::array<VkSurfaceFormatKHR, 2> surface_formats{};
     res = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &count, nullptr);
@@ -298,7 +280,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceSurfaceFormats2KHR) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
     uint32_t count = 0;
     std::array<VkSurfaceFormat2KHR, 2> surface_formats2{};
     VkPhysicalDeviceSurfaceInfo2KHR surface_info{};
@@ -322,7 +304,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceSurfaceSupportKHR) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
     VkBool32 supported = false;
     res = vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, 0, surface, &supported);
     ASSERT_EQ(res, VK_SUCCESS);
@@ -335,7 +317,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceSurfaceCapabilitiesKHR) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
     VkSurfaceCapabilitiesKHR surface_capabilities{};
     res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &surface_capabilities);
     ASSERT_EQ(res, VK_SUCCESS);
@@ -354,7 +336,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceSurfaceCapabilities2KHR) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
     VkSurfaceCapabilities2KHR surface_capabilities2{};
     VkPhysicalDeviceSurfaceInfo2KHR surface_info{};
     surface_info.surface = surface;
@@ -441,6 +423,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceFormatProperties2) {
     VkFormatProperties3 format_properties3{};
     format_properties3.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3;
     VkFormatProperties2 format_properties2{};
+    format_properties2.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
     format_properties2.pNext = static_cast<void*>(&format_properties3);
     vkGetPhysicalDeviceFormatProperties2(physical_device, VK_FORMAT_R8G8B8A8_SRGB, &format_properties2);
     ASSERT_EQ(format_properties2.formatProperties.bufferFeatures, 0x00FFFDFF);
@@ -448,7 +431,7 @@ TEST_F(MockICD, vkGetPhysicalDeviceFormatProperties2) {
     ASSERT_EQ(format_properties2.formatProperties.optimalTilingFeatures, 0x00FFFDFF);
     ASSERT_EQ(format_properties3.bufferFeatures, 0x00FFFDFF);
     ASSERT_EQ(format_properties3.linearTilingFeatures, 0x00FFFDFF);
-    ASSERT_EQ(format_properties3.optimalTilingFeatures, 0x00FFFDFF);
+    ASSERT_EQ(format_properties3.optimalTilingFeatures, 0x400000FFFDFF);
 }
 
 TEST_F(MockICD, vkGetPhysicalDeviceImageFormatProperties) {
@@ -586,8 +569,12 @@ TEST_F(MockICD, vkGetPhysicalDeviceProperties2) {
     fragment_density_map2_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT;
     fragment_density_map2_properties.pNext = static_cast<void*>(&mesh_shader_properties);
 
+    VkPhysicalDeviceDriverProperties driver_properties{};
+    driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+    driver_properties.pNext = static_cast<void*>(&fragment_density_map2_properties);
+
     VkPhysicalDeviceProperties2 properties2{};
-    properties2.pNext = static_cast<void*>(&fragment_density_map2_properties);
+    properties2.pNext = static_cast<void*>(&driver_properties);
     vkGetPhysicalDeviceProperties2(physical_device, &properties2);
     ASSERT_EQ(properties2.properties.apiVersion, VK_HEADER_VERSION_COMPLETE);
     ASSERT_EQ(properties2.properties.driverVersion, 1);
@@ -641,6 +628,8 @@ TEST_F(MockICD, vkGetPhysicalDeviceProperties2) {
     ASSERT_EQ(fragment_density_map2_properties.subsampledCoarseReconstructionEarlyAccess, VK_FALSE);
     ASSERT_EQ(fragment_density_map2_properties.maxSubsampledArrayLayers, 2);
     ASSERT_EQ(fragment_density_map2_properties.maxDescriptorSetSubsampledSamplers, 1);
+    ASSERT_EQ(std::string(driver_properties.driverName), "Vulkan Mock Device");
+    ASSERT_EQ(std::string(driver_properties.driverInfo), "Branch: " GIT_BRANCH_NAME " Tag Info: " GIT_TAG_INFO);
 }
 
 TEST_F(MockICD, vkGetPhysicalDeviceExternalSemaphoreProperties) {
@@ -898,7 +887,7 @@ TEST_F(MockICD, SwapchainLifeCycle) {
     VkSurfaceKHR surface{};
     res = create_surface(instance, surface);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(surface, nullptr);
+    ASSERT_NE(surface, VK_NULL_HANDLE);
 
     VkSwapchainCreateInfoKHR swapchain_create_info{};
     swapchain_create_info.surface = surface;
@@ -906,7 +895,7 @@ TEST_F(MockICD, SwapchainLifeCycle) {
     VkSwapchainKHR swapchain{};
     res = vkCreateSwapchainKHR(device, &swapchain_create_info, nullptr, &swapchain);
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(swapchain, nullptr);
+    ASSERT_NE(swapchain, VK_NULL_HANDLE);
 
     uint32_t count = 0;
     res = vkGetSwapchainImagesKHR(device, swapchain, &count, nullptr);
@@ -915,7 +904,7 @@ TEST_F(MockICD, SwapchainLifeCycle) {
     std::array<VkImage, 1> swapchain_images;
     res = vkGetSwapchainImagesKHR(device, swapchain, &count, swapchain_images.data());
     ASSERT_EQ(res, VK_SUCCESS);
-    ASSERT_NE(swapchain_images[0], nullptr);
+    ASSERT_NE(swapchain_images[0], VK_NULL_HANDLE);
 
     uint32_t image_index = 10;  // arbitrary non zero value
     res = vkAcquireNextImageKHR(device, swapchain, 0, VK_NULL_HANDLE, VK_NULL_HANDLE, &image_index);
