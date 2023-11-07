@@ -20,6 +20,7 @@ on:
     pull_request:
         branches:
             - main
+            - sc_main
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
