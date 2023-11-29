@@ -62,7 +62,7 @@ jobs:
 
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
@@ -102,8 +102,12 @@ jobs:
               working-directory: ./build
               run: ctest --output-on-failure
 
-            - name: Verify generated source files
-              run: python scripts/generate_source.py --verify external/${{ matrix.config }}/Vulkan-Headers/build/install/share/vulkan/registry
+    codegen:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: scripts/update_deps.py --dir ext --no-build
+        - run: scripts/generate_source.py --verify ext/Vulkan-Headers/registry/
 
     windows:
         runs-on: ${{matrix.os}}
@@ -115,7 +119,7 @@ jobs:
                 os: [ windows-latest ]
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
@@ -137,13 +141,10 @@ jobs:
               working-directory: ./build
               run: ctest --output-on-failure
 
-            - name: Verify generated source files
-              run: python scripts/generate_source.py --verify external/${{matrix.config}}/Vulkan-Headers/build/install/share/vulkan/registry
-
     mac:
         runs-on: macos-latest
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
@@ -170,16 +171,13 @@ jobs:
               working-directory: ./build
               run: ctest --output-on-failure
 
-            - name: Verify generated source files
-              run: python scripts/generate_source.py --verify external/Release/Vulkan-Headers/build/install/share/vulkan/registry
-
     android:
       runs-on: ubuntu-22.04
       strategy:
         matrix:
           abi: [ armeabi-v7a, arm64-v8a ]
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         - uses: actions/setup-python@v4
           with:
             python-version: '3.8'
@@ -204,10 +202,37 @@ jobs:
         - name: Install
           run: cmake --install build --prefix /tmp
 
+    mingw:
+        runs-on: windows-latest
+        defaults:
+          run:
+            shell: bash
+        steps:
+          - uses: actions/checkout@v4
+          - name: Setup ccache
+            uses: hendrikmuhs/ccache-action@v1.2
+            with:
+              key: mingw-ccache
+          - uses: actions/setup-python@v4
+            with:
+              python-version: '3.10'
+          - uses: lukka/get-cmake@latest
+          - name: GCC Version
+            run: gcc --version # If this fails MINGW is not setup correctly
+          - name: Configure
+            run: cmake -S. -B build -D UPDATE_DEPS=ON -D CMAKE_BUILD_TYPE=Release
+            env:
+              LDFLAGS: -fuse-ld=lld # MINGW linking is very slow. Use llvm linker instead.
+              CMAKE_C_COMPILER_LAUNCHER: ccache
+              CMAKE_CXX_COMPILER_LAUNCHER: ccache
+              CMAKE_GENERATOR: Ninja
+          - run: cmake --build build
+          - run: cmake --install build --prefix build/install
+
     tools_codegen:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         - uses: actions/setup-python@v4
           with:
             python-version: '3.10'
@@ -219,5 +244,5 @@ jobs:
     chromium:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         - run: scripts/gn/gn.py

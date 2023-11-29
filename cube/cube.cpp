@@ -38,9 +38,12 @@
 #include <iostream>
 #include <memory>
 
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #define VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_TYPESAFE_CONVERSION
 #include <vulkan/vulkan.hpp>
+
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 #include "linmath.h"
 
@@ -69,21 +72,6 @@ constexpr uint32_t FRAME_LAG = 2;
         exit(1);                     \
     } while (0)
 #endif
-
-// easier to use the C function for extension functions
-PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT;
-PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT;
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(VkInstance instance,
-                                                              const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-                                                              const VkAllocationCallbacks *pAllocator,
-                                                              VkDebugUtilsMessengerEXT *pMessenger) {
-    return pfnVkCreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger);
-}
-
-VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT messenger,
-                                                           VkAllocationCallbacks const *pAllocator) {
-    return pfnVkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator);
-}
 
 struct texture_object {
     vk::Sampler sampler;
@@ -583,7 +571,7 @@ void Demo::cleanup() {
     prepared = false;
     auto result = device.waitIdle();
     VERIFY(result == vk::Result::eSuccess);
-    if (!is_minimized){
+    if (!is_minimized) {
         destroy_swapchain_related_resources();
     }
     // Wait for fences from present operations
@@ -653,6 +641,7 @@ void Demo::create_device() {
     auto device_return = gpu.createDevice(deviceInfo);
     VERIFY(device_return.result == vk::Result::eSuccess);
     device = device_return.value;
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(device);
 }
 
 void Demo::destroy_texture(texture_object &tex_objs) {
@@ -1076,7 +1065,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL Demo::debug_messenger_callback(VkDebugUtilsMessag
             VkObjectType t = pCallbackData->pObjects[object].objectType;
             if (t == VK_OBJECT_TYPE_INSTANCE || t == VK_OBJECT_TYPE_PHYSICAL_DEVICE || t == VK_OBJECT_TYPE_DEVICE ||
                 t == VK_OBJECT_TYPE_COMMAND_BUFFER || t == VK_OBJECT_TYPE_QUEUE) {
-                message << reinterpret_cast<void*>(static_cast<uintptr_t>(pCallbackData->pObjects[object].objectHandle));
+                message << reinterpret_cast<void *>(static_cast<uintptr_t>(pCallbackData->pObjects[object].objectHandle));
             } else {
                 message << pCallbackData->pObjects[object].objectHandle;
             }
@@ -1128,6 +1117,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL Demo::debug_messenger_callback(VkDebugUtilsMessag
 }
 
 void Demo::init_vk() {
+    VULKAN_HPP_DEFAULT_DISPATCHER.init();
+
     std::vector<char const *> instance_validation_layers = {"VK_LAYER_KHRONOS_validation"};
 
     // Look for validation layers
@@ -1318,13 +1309,9 @@ void Demo::init_vk() {
             "vkCreateInstance Failure");
     }
     inst = instance_result.value;
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(inst);
 
     if (use_debug_messenger) {
-        pfnVkCreateDebugUtilsMessengerEXT =
-            reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(inst.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
-        pfnVkDestroyDebugUtilsMessengerEXT =
-            reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(inst.getProcAddr("vkDestroyDebugUtilsMessengerEXT"));
-        VERIFY(pfnVkCreateDebugUtilsMessengerEXT != nullptr && pfnVkDestroyDebugUtilsMessengerEXT != nullptr);
         auto create_debug_messenger_return = inst.createDebugUtilsMessengerEXT(debug_utils_create_info);
         VERIFY(create_debug_messenger_return.result == vk::Result::eSuccess);
         debug_messenger = create_debug_messenger_return.value;
@@ -1673,7 +1660,7 @@ void Demo::prepare_buffers() {
         height = surfCapabilities.currentExtent.height;
     }
 
-    if (width==0||height==0){
+    if (width == 0 || height == 0) {
         is_minimized = true;
         return;
     } else {
@@ -2380,7 +2367,7 @@ void Demo::destroy_swapchain_related_resources() {
 void Demo::resize() {
     // Don't react to resize until after first initialization.
     if (!prepared) {
-        if(is_minimized) {
+        if (is_minimized) {
             prepare();
         }
         return;
@@ -3077,9 +3064,8 @@ void Demo::run_display() {
 #elif defined(VK_USE_PLATFORM_SCREEN_QNX)
 #include <sys/keycodes.h>
 
-void Demo::run()
-{
-    int size[2] = { 0, 0 };
+void Demo::run() {
+    int size[2] = {0, 0};
     screen_window_t win;
     int val;
     int rc;
@@ -3098,74 +3084,74 @@ void Demo::run()
             }
             switch (val) {
                 case SCREEN_EVENT_KEYBOARD:
-                     rc = screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_FLAGS, &val);
-                     if (rc) {
-                         printf("Cannot get SCREEN_PROPERTY_FLAGS of the event! (%s)\n", strerror(errno));
-                         fflush(stdout);
-                         quit = true;
-                         break;
-                     }
-                     if (val & KEY_DOWN) {
-                         rc = screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_SYM, &val);
-                         if (rc) {
-                             printf("Cannot get SCREEN_PROPERTY_SYM of the event! (%s)\n", strerror(errno));
-                             fflush(stdout);
-                             quit = true;
-                             break;
-                         }
-                         switch (val) {
-                             case KEYCODE_ESCAPE:
-                                  quit = true;
-                                  break;
-                             case KEYCODE_SPACE:
-                                  pause = !pause;
-                                  break;
-                             case KEYCODE_LEFT:
-                                  spin_angle -= spin_increment;
-                                  break;
-                             case KEYCODE_RIGHT:
-                                  spin_angle += spin_increment;
-                                  break;
-                             default:
-                                  break;
-                         }
-                     }
-                     break;
+                    rc = screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_FLAGS, &val);
+                    if (rc) {
+                        printf("Cannot get SCREEN_PROPERTY_FLAGS of the event! (%s)\n", strerror(errno));
+                        fflush(stdout);
+                        quit = true;
+                        break;
+                    }
+                    if (val & KEY_DOWN) {
+                        rc = screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_SYM, &val);
+                        if (rc) {
+                            printf("Cannot get SCREEN_PROPERTY_SYM of the event! (%s)\n", strerror(errno));
+                            fflush(stdout);
+                            quit = true;
+                            break;
+                        }
+                        switch (val) {
+                            case KEYCODE_ESCAPE:
+                                quit = true;
+                                break;
+                            case KEYCODE_SPACE:
+                                pause = !pause;
+                                break;
+                            case KEYCODE_LEFT:
+                                spin_angle -= spin_increment;
+                                break;
+                            case KEYCODE_RIGHT:
+                                spin_angle += spin_increment;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
                 case SCREEN_EVENT_PROPERTY:
-                     rc = screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void **)&win);
-                     if (rc) {
-                         printf("Cannot get SCREEN_PROPERTY_WINDOW of the event! (%s)\n", strerror(errno));
-                         fflush(stdout);
-                         quit = true;
-                         break;
-                     }
-                     rc = screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_NAME, &val);
-                     if (rc) {
-                         printf("Cannot get SCREEN_PROPERTY_NAME of the event! (%s)\n", strerror(errno));
-                         fflush(stdout);
-                         quit = true;
-                         break;
-                     }
-                     if (win == screen_window) {
-                         switch(val) {
-                             case SCREEN_PROPERTY_SIZE:
-                                  rc = screen_get_window_property_iv(win, SCREEN_PROPERTY_SIZE, size);
-                                  if (rc) {
-                                      printf("Cannot get SCREEN_PROPERTY_SIZE of the window in the event! (%s)\n", strerror(errno));
-                                      fflush(stdout);
-                                      quit = true;
-                                      break;
-                                  }
-                                  width = size[0];
-                                  height = size[1];
-                                  resize();
-                                  break;
-                             default:
-                                  /* We are not interested in any other events for now */
-                                  break;
-                         }
-                     }
-                     break;
+                    rc = screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void **)&win);
+                    if (rc) {
+                        printf("Cannot get SCREEN_PROPERTY_WINDOW of the event! (%s)\n", strerror(errno));
+                        fflush(stdout);
+                        quit = true;
+                        break;
+                    }
+                    rc = screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_NAME, &val);
+                    if (rc) {
+                        printf("Cannot get SCREEN_PROPERTY_NAME of the event! (%s)\n", strerror(errno));
+                        fflush(stdout);
+                        quit = true;
+                        break;
+                    }
+                    if (win == screen_window) {
+                        switch (val) {
+                            case SCREEN_PROPERTY_SIZE:
+                                rc = screen_get_window_property_iv(win, SCREEN_PROPERTY_SIZE, size);
+                                if (rc) {
+                                    printf("Cannot get SCREEN_PROPERTY_SIZE of the window in the event! (%s)\n", strerror(errno));
+                                    fflush(stdout);
+                                    quit = true;
+                                    break;
+                                }
+                                width = size[0];
+                                height = size[1];
+                                resize();
+                                break;
+                            default:
+                                /* We are not interested in any other events for now */
+                                break;
+                        }
+                    }
+                    break;
             }
         }
 
@@ -3181,8 +3167,7 @@ void Demo::run()
     }
 }
 
-void Demo::create_window()
-{
+void Demo::create_window() {
     const char *idstr = APP_SHORT_NAME;
     int size[2];
     int usage = SCREEN_USAGE_VULKAN;

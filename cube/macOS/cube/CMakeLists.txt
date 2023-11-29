@@ -17,22 +17,26 @@
 
 # VkCube Application Bundle
 
-set(cube_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/main.m
-    ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/AppDelegate.m
-    ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/DemoViewController.m)
-
-set(cube_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/AppDelegate.h ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/DemoViewController.h)
-
-set(cube_RESOURCES ${CMAKE_BINARY_DIR}/staging-json/MoltenVK_icd.json
-    ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/Resources/VulkanIcon.icns)
+set(cube_RESOURCES ${PROJECT_BINARY_DIR}/staging-json/MoltenVK_icd.json
+    ${CMAKE_CURRENT_LIST_DIR}/Resources/VulkanIcon.icns)
 
 # Have Xcode handle the Storyboard
 if(XCODE)
-    set(cube_RESOURCES ${cube_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/Resources/Main.storyboard)
+    set(cube_RESOURCES ${cube_RESOURCES} ${CMAKE_CURRENT_LIST_DIR}/Resources/Main.storyboard)
 endif()
 
-add_executable(vkcube MACOSX_BUNDLE ${cube_SRCS} ${cube_HDRS} ${cube_RESOURCES} cube.vert.inc cube.frag.inc)
+add_executable(vkcube MACOSX_BUNDLE)
+
+target_sources(vkcube PRIVATE
+    main.m
+    AppDelegate.m
+    AppDelegate.h
+    DemoViewController.m
+    DemoViewController.h
+    ${cube_RESOURCES}
+    ../../cube.vert.inc
+    ../../cube.frag.inc
+)
 
 # Handle the Storyboard ourselves
 if(NOT XCODE)
@@ -44,7 +48,7 @@ if(NOT XCODE)
                                --notices
                                --output-format human-readable-text
                                --compile ${CMAKE_CURRENT_BINARY_DIR}/vkcube.app/Contents/Resources/Main.storyboardc
-                                         ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/Resources/Main.storyboard
+                                         ${CMAKE_CURRENT_LIST_DIR}/Resources/Main.storyboard
                        COMMENT "Compiling storyboard")
 endif()
 
@@ -52,22 +56,22 @@ add_dependencies(vkcube MoltenVK_icd-staging-json)
 
 # Include demo source code dir because the MacOS cube's Objective-C source includes the "original" cube application C source code.
 # Also include the MoltenVK helper files.
-target_include_directories(vkcube PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${MOLTENVK_DIR}/MoltenVK/include)
+target_include_directories(vkcube PRIVATE . ${MOLTENVK_DIR}/MoltenVK/include)
 
-# We do this so vulkaninfo is linked to an individual library and NOT a framework.
-target_link_libraries(vkcube Vulkan::Loader "-framework Cocoa -framework QuartzCore")
+# We do this so vkcube is linked to an individual library and NOT a framework.
+target_link_libraries(vkcube Vulkan::Loader volk::volk_headers "-framework Cocoa -framework QuartzCore")
 
 # Disable warnings about sprintf
 target_compile_options(vkcube PRIVATE -Wno-deprecated-declarations)
 
-set_target_properties(vkcube PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/macOS/cube/Info.plist)
+set_target_properties(vkcube PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_LIST_DIR}/Info.plist)
 
 # The RESOURCE target property cannot be used in conjunction with the MACOSX_PACKAGE_LOCATION property.  We need fine-grained
 # control over the Resource directory, so we have to specify the destination of all the resource files on a per-destination-
 # directory basis. If all the files went into the top-level Resource directory, then we could simply set the RESOURCE property to a
 # list of all the resource files.
 set_source_files_properties(${cube_RESOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-set_source_files_properties("${CMAKE_BINARY_DIR}/staging-json/MoltenVK_icd.json"
+set_source_files_properties("${PROJECT_BINARY_DIR}/staging-json/MoltenVK_icd.json"
                             PROPERTIES
                             MACOSX_PACKAGE_LOCATION
                             "Resources/vulkan/icd.d")
@@ -76,11 +80,9 @@ set_source_files_properties("${CMAKE_BINARY_DIR}/staging-json/MoltenVK_icd.json"
 if(XCODE)
     add_custom_command(TARGET vkcube POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy "${MOLTENVK_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib"
-                               ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/vkcube.app/Contents/Frameworks/libMoltenVK.dylib
-                       DEPENDS vulkan)
+                               ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/vkcube.app/Contents/Frameworks/libMoltenVK.dylib)
 else()
     add_custom_command(TARGET vkcube POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy "${MOLTENVK_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib"
-                               ${CMAKE_CURRENT_BINARY_DIR}/vkcube.app/Contents/Frameworks/libMoltenVK.dylib
-                       DEPENDS vulkan)
+                               ${CMAKE_CURRENT_BINARY_DIR}/vkcube.app/Contents/Frameworks/libMoltenVK.dylib)
 endif()

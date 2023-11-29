@@ -4080,6 +4080,15 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_HDR_METADATA_EXT> {
     typedef VkHdrMetadataEXT Type;
 };
 
+// Map type VkPhysicalDeviceRelaxedLineRasterizationFeaturesIMG to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RELAXED_LINE_RASTERIZATION_FEATURES_IMG
+template <> struct LvlTypeMap<VkPhysicalDeviceRelaxedLineRasterizationFeaturesIMG> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RELAXED_LINE_RASTERIZATION_FEATURES_IMG;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RELAXED_LINE_RASTERIZATION_FEATURES_IMG> {
+    typedef VkPhysicalDeviceRelaxedLineRasterizationFeaturesIMG Type;
+};
+
 #ifdef VK_USE_PLATFORM_IOS_MVK
 // Map type VkIOSSurfaceCreateInfoMVK to id VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK
 template <> struct LvlTypeMap<VkIOSSurfaceCreateInfoMVK> {
@@ -5668,6 +5677,51 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREAT
     typedef VkDeviceDiagnosticsConfigCreateInfoNV Type;
 };
 
+// Map type VkCudaModuleCreateInfoNV to id VK_STRUCTURE_TYPE_CUDA_MODULE_CREATE_INFO_NV
+template <> struct LvlTypeMap<VkCudaModuleCreateInfoNV> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_CUDA_MODULE_CREATE_INFO_NV;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_CUDA_MODULE_CREATE_INFO_NV> {
+    typedef VkCudaModuleCreateInfoNV Type;
+};
+
+// Map type VkCudaFunctionCreateInfoNV to id VK_STRUCTURE_TYPE_CUDA_FUNCTION_CREATE_INFO_NV
+template <> struct LvlTypeMap<VkCudaFunctionCreateInfoNV> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_CUDA_FUNCTION_CREATE_INFO_NV;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_CUDA_FUNCTION_CREATE_INFO_NV> {
+    typedef VkCudaFunctionCreateInfoNV Type;
+};
+
+// Map type VkCudaLaunchInfoNV to id VK_STRUCTURE_TYPE_CUDA_LAUNCH_INFO_NV
+template <> struct LvlTypeMap<VkCudaLaunchInfoNV> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_CUDA_LAUNCH_INFO_NV;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_CUDA_LAUNCH_INFO_NV> {
+    typedef VkCudaLaunchInfoNV Type;
+};
+
+// Map type VkPhysicalDeviceCudaKernelLaunchFeaturesNV to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_FEATURES_NV
+template <> struct LvlTypeMap<VkPhysicalDeviceCudaKernelLaunchFeaturesNV> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_FEATURES_NV;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_FEATURES_NV> {
+    typedef VkPhysicalDeviceCudaKernelLaunchFeaturesNV Type;
+};
+
+// Map type VkPhysicalDeviceCudaKernelLaunchPropertiesNV to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_PROPERTIES_NV
+template <> struct LvlTypeMap<VkPhysicalDeviceCudaKernelLaunchPropertiesNV> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_PROPERTIES_NV;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_PROPERTIES_NV> {
+    typedef VkPhysicalDeviceCudaKernelLaunchPropertiesNV Type;
+};
+
 // Map type VkQueryLowLatencySupportNV to id VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV
 template <> struct LvlTypeMap<VkQueryLowLatencySupportNV> {
     static const VkStructureType kSType = VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV;
@@ -6819,6 +6873,33 @@ template <> struct LvlTypeMap<VkPhysicalDeviceShaderCorePropertiesARM> {
 
 template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_ARM> {
     typedef VkPhysicalDeviceShaderCorePropertiesARM Type;
+};
+
+// Map type VkDeviceQueueShaderCoreControlCreateInfoARM to id VK_STRUCTURE_TYPE_DEVICE_QUEUE_SHADER_CORE_CONTROL_CREATE_INFO_ARM
+template <> struct LvlTypeMap<VkDeviceQueueShaderCoreControlCreateInfoARM> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_SHADER_CORE_CONTROL_CREATE_INFO_ARM;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_DEVICE_QUEUE_SHADER_CORE_CONTROL_CREATE_INFO_ARM> {
+    typedef VkDeviceQueueShaderCoreControlCreateInfoARM Type;
+};
+
+// Map type VkPhysicalDeviceSchedulingControlsFeaturesARM to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_FEATURES_ARM
+template <> struct LvlTypeMap<VkPhysicalDeviceSchedulingControlsFeaturesARM> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_FEATURES_ARM;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_FEATURES_ARM> {
+    typedef VkPhysicalDeviceSchedulingControlsFeaturesARM Type;
+};
+
+// Map type VkPhysicalDeviceSchedulingControlsPropertiesARM to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_PROPERTIES_ARM
+template <> struct LvlTypeMap<VkPhysicalDeviceSchedulingControlsPropertiesARM> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_PROPERTIES_ARM;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_PROPERTIES_ARM> {
+    typedef VkPhysicalDeviceSchedulingControlsPropertiesARM Type;
 };
 
 // Map type VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_SLICED_VIEW_OF_3D_FEATURES_EXT

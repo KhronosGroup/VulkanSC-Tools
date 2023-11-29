@@ -33,6 +33,8 @@ if (ANDROID)
     return()
 endif()
 
+find_package(VulkanLoader CONFIG)
+
 # setup binary_locations_$<CONFIG>.h.in using binary_locations.h.in as a source
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/binary_locations_$<CONFIG>.h" INPUT "${CMAKE_CURRENT_SOURCE_DIR}/binary_locations.h.in")
 
@@ -70,11 +72,6 @@ set_target_properties(vulkan_tools_tests PROPERTIES MSVC_RUNTIME_LIBRARY "MultiT
 if (DEFINED GIT_BRANCH_NAME AND DEFINED GIT_TAG_INFO)
     target_compile_definitions(vulkan_tools_tests PRIVATE GIT_BRANCH_NAME="${GIT_BRANCH_NAME}" GIT_TAG_INFO="${GIT_TAG_INFO}")
 endif()
-
-if (ENABLE_ADDRESS_SANITIZER)
-    target_compile_options(vulkan_tools_tests PUBLIC -fsanitize=address)
-    target_link_options(vulkan_tools_tests PUBLIC -fsanitize=address)
-endif ()
 
 if (WIN32)
     # Copy the loader shared lib (if built) to the test application directory so the test app finds it.
