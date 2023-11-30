@@ -29,7 +29,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "210083fcad217e829023f5febed4e062982f6fce",
+            "commit": "f4e86289111cfadef07b6b189055bab1f5b2a436",
             "cmake_options": [
                 "-DVULKANSC=ON"
             ],
@@ -155,7 +155,7 @@
                 "-DVULKANSC=ON",
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "80cbe9456fab6f24cd3e39630dc6a71f961780f9",
+            "commit": "10248698fb4ad0e030fd201f269ca101d24510ee",
             "build_platforms": [
                 "windows",
                 "linux",

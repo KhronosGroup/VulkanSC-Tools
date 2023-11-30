@@ -108,7 +108,7 @@ endif()
 
 add_definitions(-DVK_ENABLE_BETA_EXTENSIONS)
 
-if (WIN32)
+if(MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /bigobj")
     set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS /bigobj")
 else()
