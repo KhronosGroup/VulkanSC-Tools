@@ -155,7 +155,7 @@
                 "-DVULKANSC=ON",
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "sc_next",
+            "commit": "80cbe9456fab6f24cd3e39630dc6a71f961780f9",
             "build_platforms": [
                 "windows",
                 "linux",
