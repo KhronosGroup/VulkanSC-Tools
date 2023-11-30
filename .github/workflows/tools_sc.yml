@@ -33,23 +33,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-    linux-sc:
+    linux:
         runs-on: ${{matrix.os}}
 
         strategy:
             matrix:
-                cc: [ gcc, clang ]
-                cxx: [ g++, clang++ ]
+                cc: [ gcc ]
+                cxx: [ g++ ]
                 config: [ Debug, Release ]
-                os: [ ubuntu-22.04 ]
-                exclude:
-                    - cc: gcc
-                      cxx: clang++
-                    - cc: clang
-                      cxx: g++
+                os: [ ubuntu-20.04, ubuntu-22.04 ]
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
@@ -62,6 +57,10 @@ jobs:
                 python3 -m pip install jsonschema pyparsing
                 sudo apt update && sudo apt install --yes --no-install-recommends libwayland-dev libxrandr-dev
 
+            - name: Setup ccache
+              uses: hendrikmuhs/ccache-action@v1.2
+              with:
+                key: ${{ runner.os }}-${{ matrix.config }}-${{ matrix.cc }}-${{matrix.cube_wsi}}
             - name: Configure
               run: |
                 cmake -S. -B build -G "Ninja" \
@@ -75,6 +74,8 @@ jobs:
               env:
                 CC: ${{matrix.cc}}
                 CXX: ${{matrix.cxx}}
+                CMAKE_CXX_COMPILER_LAUNCHER: ccache
+                CMAKE_C_COMPILER_LAUNCHER: ccache
 
             - name: Build
               run: cmake --build build
@@ -82,10 +83,15 @@ jobs:
             - name: Install
               run: cmake --install build/ --prefix build/install
 
-            - name: Verify generated source files
-              run: python scripts/generate_source.py --verify external/${{ matrix.config }}/Vulkan-Headers/build/install/share/vulkan/registry --api vulkansc
 
-    windows-sc:
+    codegen:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: scripts/update_deps.py --dir ext --no-build
+        - run: scripts/generate_source.py --verify ext/Vulkan-Headers/registry/ --api vulkansc
+
+    windows:
         runs-on: ${{matrix.os}}
 
         strategy:
@@ -95,7 +101,7 @@ jobs:
                 os: [ windows-latest ]
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: actions/setup-python@v4
               with:
                 python-version: '3.7'
@@ -116,10 +122,39 @@ jobs:
             - name: Install
               run: cmake --install build/ --prefix build/install
 
+    mingw:
+        runs-on: windows-latest
+        defaults:
+          run:
+            shell: bash
+        steps:
+          - uses: actions/checkout@v4
+          - name: Setup ccache
+            uses: hendrikmuhs/ccache-action@v1.2
+            with:
+              key: mingw-ccache
+          - uses: actions/setup-python@v4
+            with:
+              python-version: '3.10'
+          - name: Install dependencies
+            run: python -m pip install jsonschema pyparsing
+          - uses: lukka/get-cmake@latest
+          - name: GCC Version
+            run: gcc --version # If this fails MINGW is not setup correctly
+          - name: Configure
+            run: cmake -S. -B build -D UPDATE_DEPS=ON -D CMAKE_BUILD_TYPE=Release -D VULKANSC=ON -D BUILD_VKSC_DEVSIM=ON
+            env:
+              LDFLAGS: -fuse-ld=lld # MINGW linking is very slow. Use llvm linker instead.
+              CMAKE_C_COMPILER_LAUNCHER: ccache
+              CMAKE_CXX_COMPILER_LAUNCHER: ccache
+              CMAKE_GENERATOR: Ninja
+          - run: cmake --build build
+          - run: cmake --install build --prefix build/install
+
     tools_codegen:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         - uses: actions/setup-python@v4
           with:
             python-version: '3.10'
