@@ -7,7 +7,7 @@
             "sub_dir": "Vulkan-Headers",
             "build_dir": "Vulkan-Headers/build",
             "install_dir": "Vulkan-Headers/build/install",
-            "commit": "v1.3.271"
+            "commit": "v1.3.272"
         },
         {
             "name": "Vulkan-Headers",
@@ -20,7 +20,7 @@
                 "-DVULKANSC=ON",
                 "-DGEN_VULKANSC_COMBINED=ON"
             ],
-            "commit": "8808ce6c7fc9092e24489bfecc9d4a903f5a0c12"
+            "commit": "e98757b36fc2afb8c7b56803e4a31029695af947"
         },
         {
             "name": "Vulkan-Utility-Libraries",
@@ -29,7 +29,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "f4e86289111cfadef07b6b189055bab1f5b2a436",
+            "commit": "d7a0eede7b94c5e3b31336df4d132c68e5c3c530",
             "cmake_options": [
                 "-DVULKANSC=ON"
             ],
@@ -131,7 +131,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "v1.3.271",
+            "commit": "v1.3.272",
             "build_platforms": [
                 "windows",
                 "linux",
@@ -155,7 +155,7 @@
                 "-DVULKANSC=ON",
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "4ba8478f5cc0de637a00bc6b95e9ad6f2fa3cd6c",
+            "commit": "48de6966bea876cdb40842c99d1f03390ef1178d",
             "build_platforms": [
                 "windows",
                 "linux",
