@@ -156,11 +156,10 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties(
     pProperties->vendorID = 0xba5eba11;
     pProperties->deviceID = 0xf005ba11;
     pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-    //std::string devName = "Vulkan Mock Device";
-    strcpy(pProperties->deviceName, "Vulkan Mock Device");
+    strcpy(pProperties->deviceName, "Vulkan SC Mock Device");
     pProperties->pipelineCacheUUID[0] = 18;
     pProperties->limits = SetLimits(&pProperties->limits);
-    pProperties->sparseProperties = { VK_TRUE, VK_TRUE, VK_TRUE, VK_TRUE, VK_TRUE };
+    pProperties->sparseProperties = {VK_FALSE, VK_FALSE, VK_FALSE, VK_FALSE, VK_FALSE};
 }
 
 static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties(

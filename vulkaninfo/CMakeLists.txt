@@ -1,6 +1,7 @@
 # ~~~
 # Copyright (c) 2018-2023 Valve Corporation
 # Copyright (c) 2018-2023 LunarG, Inc.
+# Copyright (c) 2023-2023 RasterGrid Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +16,18 @@
 # limitations under the License.
 # ~~~
 
+# These variables enable downstream users to customize the CMake targets
+# based on the target API variant (e.g. Vulkan SC)
+set(VULKANINFO_NAME vulkaninfo)
+set(GENERATED generated)
+
+if(VULKANSC)
+    set(VULKANINFO_NAME vulkanscinfo)
+    set(GENERATED generated-vksc)
+endif()
+
 add_executable(vulkaninfo)
+set_target_properties(vulkaninfo PROPERTIES OUTPUT_NAME ${VULKANINFO_NAME})
 
 target_sources(vulkaninfo PRIVATE vulkaninfo.cpp)
 
@@ -49,17 +61,24 @@ if(WIN32)
 endif()
 
 target_include_directories(vulkaninfo PRIVATE
-    generated
+    ${GENERATED}
     .
 )
 
 target_compile_definitions(vulkaninfo PRIVATE VK_ENABLE_BETA_EXTENSIONS VK_NO_PROTOTYPES)
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
-    option(BUILD_WSI_XCB_SUPPORT "Build XCB WSI support" ON)
-    option(BUILD_WSI_XLIB_SUPPORT "Build Xlib WSI support" ON)
-    option(BUILD_WSI_WAYLAND_SUPPORT "Build Wayland WSI support" ON)
+if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|QNX")
+    if(VULKANSC)
+        option(BUILD_WSI_XCB_SUPPORT "Build XCB WSI support" OFF)
+        option(BUILD_WSI_XLIB_SUPPORT "Build Xlib WSI support" OFF)
+        option(BUILD_WSI_WAYLAND_SUPPORT "Build Wayland WSI support" OFF)
+    else()
+        option(BUILD_WSI_XCB_SUPPORT "Build XCB WSI support" ON)
+        option(BUILD_WSI_XLIB_SUPPORT "Build Xlib WSI support" ON)
+        option(BUILD_WSI_WAYLAND_SUPPORT "Build Wayland WSI support" ON)
+    endif()
     option(BUILD_WSI_DIRECTFB_SUPPORT "Build DirectFB WSI support" OFF)
+    option(BUILD_WSI_SCI_SUPPORT "Build SCI WSI support" OFF)
 
     find_package(PkgConfig REQUIRED QUIET) # Use PkgConfig to find Linux system libraries
 
@@ -85,6 +104,10 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
         pkg_check_modules(DirectFB REQUIRED QUIET IMPORTED_TARGET directfb)
         target_compile_definitions(vulkaninfo PRIVATE VK_USE_PLATFORM_DIRECTFB_EXT)
         target_link_libraries(vulkaninfo PRIVATE PkgConfig::DirectFB)
+    endif()
+
+    if(BUILD_WSI_SCI_SUPPORT)
+        target_compile_definitions(platform_wsi INTERFACE VK_USE_PLATFORM_SCI)
     endif()
 endif()
 

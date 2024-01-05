@@ -102,6 +102,6 @@ The Vulkan Info project contains a folder at [vulkaninfo/ios](https://github.com
 
 When Vulkan Info is run on an iOS device, it will create the standard vulkaninfo.json file and also a portability.json file. An HTML file is also created, and is displayed in a webview on the iOS device when the application is run. These files are located on the iOS device, and are available via the [iOS application file sharing mechanism](https://support.apple.com/en-us/HT201301) via iTunes for Windows or macOS. You can also access these files using the macOS Finder or Windows Explorer when the device is attached to the host computer via a USB cable. Select the device, and navigate to the "vulkaninfo" folder to access these files. There is currently no supported means to access these files on an iOS device from a Linux host computer.
 
+# Vulkan SC Information
 
-
-
+For Vulkan SC builds an analogous Vulkan SC Info tool is available. This tool is named `vulkanscinfo`, and outputs information about available Vulkan SC devices.
