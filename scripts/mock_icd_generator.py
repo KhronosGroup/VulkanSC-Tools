@@ -1126,6 +1126,17 @@ CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
     }
 ''',
 # Replace device properties query
+'vkGetPhysicalDeviceProperties': '''
+    pProperties->apiVersion = VK_HEADER_VERSION_COMPLETE;
+    pProperties->driverVersion = 1;
+    pProperties->vendorID = 0xba5eba11;
+    pProperties->deviceID = 0xf005ba11;
+    pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+    strcpy(pProperties->deviceName, "Vulkan SC Mock Device");
+    pProperties->pipelineCacheUUID[0] = 18;
+    pProperties->limits = SetLimits(&pProperties->limits);
+    pProperties->sparseProperties = {VK_FALSE, VK_FALSE, VK_FALSE, VK_FALSE, VK_FALSE};
+''',
 'vkGetPhysicalDeviceProperties2KHR': None,
 'vkGetPhysicalDeviceProperties2': '''
     GetPhysicalDeviceProperties(physicalDevice, &pProperties->properties);

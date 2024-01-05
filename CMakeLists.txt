@@ -25,6 +25,7 @@ set(API_TYPE "vulkan")
 
 if(VULKANSC)
     set(API_TYPE "vulkansc")
+    add_definitions(-DVULKANSC)
 endif()
 
 add_subdirectory(scripts)
@@ -49,7 +50,6 @@ option(BUILD_ICD "Build icd" ON)
 
 if(VULKANSC)
     set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
-    set(BUILD_VULKANINFO OFF CACHE BOOL "vulkaninfo is not currently supported for Vulkan SC" FORCE)
 else()
     set(BUILD_VKSC_DEVSIM OFF CACHE BOOL "Vulkan SC device simulation layer is not supported for Vulkan" FORCE)
 endif()

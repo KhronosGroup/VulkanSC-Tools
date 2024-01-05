@@ -55,7 +55,8 @@ def main(argv):
     if args.api == 'vulkansc':
         files_to_gen = {str(os.path.join('icd','generated-vksc')) : ['vk_typemap_helper.h',
                                                 'function_definitions.h',
-                                                'function_declarations.h']}
+                                                'function_declarations.h'],
+                        str(os.path.join('vulkaninfo','generated-vksc')): ['vulkaninfo.hpp']}
 
     #base directory for the source repository
     repo_dir = common_codegen.repo_relative('')

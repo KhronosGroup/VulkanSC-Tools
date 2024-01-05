@@ -2,6 +2,7 @@
  * Copyright (c) 2015-2021 The Khronos Group Inc.
  * Copyright (c) 2015-2021 Valve Corporation
  * Copyright (c) 2015-2021 LunarG, Inc.
+ * Copyright (c) 2023-2023 RasterGrid Kft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +26,7 @@
  * Author: Charles Giessen <charles@lunarg.com>
  *
  */
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -191,7 +193,15 @@ struct User32Handles {
 User32Handles *user32_handles;
 #endif  // _WIN32
 
-const char *app_short_name = "vulkaninfo";
+#ifdef VULKANSC
+#define APP_SHORT_NAME "vulkanscinfo"
+#define APP_UPPER_CASE_NAME "VULKANSCINFO"
+#define API_NAME "Vulkan SC"
+#else
+#define APP_SHORT_NAME "vulkaninfo"
+#define APP_UPPER_CASE_NAME "VULKANINFO"
+#define API_NAME "Vulkan"
+#endif  // VULKANSC
 
 std::vector<const char *> get_c_str_array(std::vector<std::string> const &vec) {
     std::vector<const char *> ret;
@@ -199,6 +209,7 @@ std::vector<const char *> get_c_str_array(std::vector<std::string> const &vec) {
     return ret;
 }
 
+#ifndef VULKANSC
 static const char *VkDebugReportFlagsEXTString(const VkDebugReportFlagsEXT flags) {
     switch (flags) {
         case VK_DEBUG_REPORT_ERROR_BIT_EXT:
@@ -224,6 +235,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DbgCallback(VkDebugReportFlagsEXT msgFlags
     // error. False SHOULD always be returned by apps:
     return VK_FALSE;
 }
+#endif  // VULKANSC
 
 // Helper for robustly executing the two-call pattern
 template <typename T, typename F, typename... Ts>
@@ -253,6 +265,17 @@ auto GetVector(const char *func_name, F &&f, Ts &&...ts) -> std::vector<T> {
 // ----------- Instance Setup ------- //
 struct VkDll {
     VkResult Initialize() {
+#ifdef VULKANSC
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__)
+        library = dlopen("libvulkansc.so", RTLD_NOW | RTLD_LOCAL);
+        if (!library) library = dlopen("libvulkansc.so.1", RTLD_NOW | RTLD_LOCAL);
+#elif defined(__APPLE__)
+        library = dlopen("libvulkansc.dylib", RTLD_NOW | RTLD_LOCAL);
+        if (!library) library = dlopen("libvulkansc.dylib.1", RTLD_NOW | RTLD_LOCAL);
+#elif defined(_WIN32)
+        library = LoadLibrary(TEXT("vulkansc-1.dll"));
+#endif
+#else
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__)
         library = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
         if (!library) library = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
@@ -263,6 +286,7 @@ struct VkDll {
 #elif defined(_WIN32)
         library = LoadLibrary(TEXT("vulkan-1.dll"));
 #endif
+#endif  // VULKANSC
         return library != nullptr ? VK_SUCCESS : VK_ERROR_INITIALIZATION_FAILED;
     }
     void Close() {
@@ -456,14 +480,26 @@ struct ExtensionFunctions {
         Load(vkGetPhysicalDeviceSurfaceFormats2KHR, "vkGetPhysicalDeviceSurfaceFormats2KHR");
         Load(vkGetPhysicalDeviceSurfacePresentModesKHR, "vkGetPhysicalDeviceSurfacePresentModesKHR");
         Load(vkGetDeviceGroupPresentCapabilitiesKHR, "vkGetDeviceGroupPresentCapabilitiesKHR");
+#ifdef VULKANSC
+        Load(vkGetPhysicalDeviceProperties2KHR, "vkGetPhysicalDeviceProperties2");
+        Load(vkGetPhysicalDeviceFormatProperties2KHR, "vkGetPhysicalDeviceFormatProperties2");
+        Load(vkGetPhysicalDeviceQueueFamilyProperties2KHR, "vkGetPhysicalDeviceQueueFamilyProperties2");
+        Load(vkGetPhysicalDeviceFeatures2KHR, "vkGetPhysicalDeviceFeatures2");
+        Load(vkGetPhysicalDeviceMemoryProperties2KHR, "vkGetPhysicalDeviceMemoryProperties2");
+#else
         Load(vkGetPhysicalDeviceProperties2KHR, "vkGetPhysicalDeviceProperties2KHR");
         Load(vkGetPhysicalDeviceFormatProperties2KHR, "vkGetPhysicalDeviceFormatProperties2KHR");
         Load(vkGetPhysicalDeviceQueueFamilyProperties2KHR, "vkGetPhysicalDeviceQueueFamilyProperties2KHR");
         Load(vkGetPhysicalDeviceFeatures2KHR, "vkGetPhysicalDeviceFeatures2KHR");
         Load(vkGetPhysicalDeviceMemoryProperties2KHR, "vkGetPhysicalDeviceMemoryProperties2KHR");
+#endif  // VULKANSC
         Load(vkGetPhysicalDeviceSurfaceCapabilities2KHR, "vkGetPhysicalDeviceSurfaceCapabilities2KHR");
         Load(vkGetPhysicalDeviceSurfaceCapabilities2EXT, "vkGetPhysicalDeviceSurfaceCapabilities2EXT");
+#ifdef VULKANSC
+        Load(vkEnumeratePhysicalDeviceGroupsKHR, "vkEnumeratePhysicalDeviceGroups");
+#else
         Load(vkEnumeratePhysicalDeviceGroupsKHR, "vkEnumeratePhysicalDeviceGroupsKHR");
+#endif  // VULKANSC
         Load(vkGetPhysicalDeviceToolPropertiesEXT, "vkGetPhysicalDeviceToolPropertiesEXT");
     }
 
@@ -549,24 +585,56 @@ struct SurfaceExtension {
     }
 };
 
-struct VulkanVersion {
-    uint32_t major = 1;
-    uint32_t minor = 0;
-    uint32_t patch = 0;
-    VulkanVersion() = default;
-    VulkanVersion(uint32_t version) noexcept
-        : major{VK_VERSION_MAJOR(version)}, minor{VK_VERSION_MINOR(version)}, patch{VK_VERSION_PATCH(version)} {}
-    std::string str() { return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch); }
+class APIVersion {
+  public:
+#ifdef VULKANSC
+    APIVersion() : api_version_(VKSC_API_VERSION_1_0) {}
+    APIVersion(uint32_t api_version) : api_version_(ConvertVersion(api_version)) {}
+#else
+    APIVersion() : api_version_(VK_API_VERSION_1_0) {}
+    APIVersion(uint32_t api_version) : api_version_(api_version) {}
+#endif  // VULKANSC
+    void SetPatch(uint32_t patch) { api_version_ = api_version_ - Patch() + VK_API_VERSION_PATCH(patch); }
+    uint32_t Major() const { return VK_API_VERSION_MAJOR(api_version_); }
+    uint32_t Minor() const { return VK_API_VERSION_MINOR(api_version_); }
+    uint32_t Patch() const { return VK_API_VERSION_PATCH(api_version_); }
+    bool operator<(APIVersion api_version) const { return api_version_ < api_version.api_version_; }
+    bool operator<=(APIVersion api_version) const { return api_version_ <= api_version.api_version_; }
+    bool operator>(APIVersion api_version) const { return api_version_ > api_version.api_version_; }
+    bool operator>=(APIVersion api_version) const { return api_version_ >= api_version.api_version_; }
+    bool operator==(APIVersion api_version) const { return api_version_ == api_version.api_version_; }
+    bool operator!=(APIVersion api_version) const { return api_version_ != api_version.api_version_; }
+    std::string str() { return std::to_string(Major()) + "." + std::to_string(Minor()) + "." + std::to_string(Patch()); }
     operator std::string() { return str(); }
+
+  private:
+#ifdef VULKANSC
+    uint32_t ConvertVersion(uint32_t api_version) {
+        if (VK_API_VERSION_VARIANT(api_version) == VKSC_API_VARIANT) {
+            return api_version;
+        } else {
+            if (api_version < VK_API_VERSION_1_3) {
+                // Vulkan SC 1.0 includes Vulkan 1.2
+                return VKSC_API_VERSION_1_0;
+            } else {
+                // Newer Vulkan versions are unsupported
+                return 0xFFFFFFFF;
+            }
+        }
+    }
+#endif  // VULKANSC
+    uint32_t api_version_;
 };
-std::ostream &operator<<(std::ostream &out, const VulkanVersion &v) { return out << v.major << "." << v.minor << "." << v.patch; }
+
+std::ostream &operator<<(std::ostream &out, const APIVersion &v) {
+    return out << v.Major() << "." << v.Minor() << "." << v.Patch();
+}
 
 struct AppInstance {
     VkDll dll;
 
     VkInstance instance;
-    uint32_t instance_version;
-    VulkanVersion vk_version;
+    APIVersion api_version;
 
     VkDebugReportCallbackEXT debug_callback = VK_NULL_HANDLE;
 
@@ -621,29 +689,30 @@ struct AppInstance {
     AppInstance() {
         VkResult dllErr = dll.Initialize();
         if (dllErr != VK_SUCCESS) {
-            THROW_ERR("Failed to initialize: Vulkan loader is not installed, not found, or failed to load.");
+            THROW_ERR("Failed to initialize: " API_NAME " loader is not installed, not found, or failed to load.");
         }
         dll.InitializeDispatchPointers();
 
-        if (!dll.fp_vkEnumerateInstanceVersion) {
-            instance_version = VK_API_VERSION_1_0;
-        } else {
+        uint32_t instance_version = VK_API_VERSION_1_0;
+        if (dll.fp_vkEnumerateInstanceVersion) {
             const VkResult err = dll.fp_vkEnumerateInstanceVersion(&instance_version);
             if (err) THROW_VK_ERR("vkEnumerateInstanceVersion", err);
         }
 
-        vk_version = VulkanVersion(instance_version);
+        api_version = APIVersion(instance_version);
         // fallback to baked header version if loader returns 0 for the patch version
-        if (VK_VERSION_PATCH(instance_version) == 0) vk_version.patch = VK_VERSION_PATCH(VK_HEADER_VERSION);
+        if (api_version.Patch() == 0) api_version.SetPatch(VK_HEADER_VERSION);
 
         AppGetInstanceExtensions();
 
+#ifndef VULKANSC
         const VkDebugReportCallbackCreateInfoEXT dbg_info = {VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT, nullptr,
                                                              VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT,
                                                              DbgCallback};
+#endif  // VULKANSC
 
         const VkApplicationInfo app_info = {
-            VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, app_short_name, 1, nullptr, 0, instance_version};
+            VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, APP_SHORT_NAME, 1, nullptr, 0, instance_version};
 
         AppCompileInstanceExtensionsToEnable();
 
@@ -654,10 +723,15 @@ struct AppInstance {
 
         const VkInstanceCreateInfo inst_info = {
             VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+#ifndef VULKANSC
             &dbg_info,
             (CheckExtensionEnabled(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME)
                  ? static_cast<VkInstanceCreateFlags>(VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR)
                  : 0),
+#else
+            nullptr,
+            0,
+#endif  // VULKANSC
             &app_info,
             0,
             nullptr,
@@ -666,23 +740,28 @@ struct AppInstance {
 
         VkResult err = dll.fp_vkCreateInstance(&inst_info, nullptr, &instance);
         if (err == VK_ERROR_INCOMPATIBLE_DRIVER) {
-            std::cerr << "Cannot create Vulkan instance.\n";
-            std::cerr << "This problem is often caused by a faulty installation of the Vulkan driver or attempting to use a GPU "
-                         "that does not support Vulkan.\n";
+            std::cerr << "Cannot create " API_NAME " instance.\n";
+            std::cerr << "This problem is often caused by a faulty installation of the " API_NAME
+                         " driver or attempting to use a GPU "
+                         "that does not support " API_NAME ".\n";
             THROW_VK_ERR("vkCreateInstance", err);
         } else if (err) {
             THROW_VK_ERR("vkCreateInstance", err);
         }
         ext_funcs.LoadInstanceExtensionDispatchPointers(dll.fp_vkGetInstanceProcAddr, instance);
 
+#ifndef VULKANSC
         err = ext_funcs.vkCreateDebugReportCallbackEXT(instance, &dbg_info, nullptr, &debug_callback);
         if (err != VK_SUCCESS) {
             THROW_VK_ERR("vkCreateDebugReportCallbackEXT", err);
         }
+#endif  // VULKANSC
     }
 
     ~AppInstance() {
+#ifndef VULKANSC
         if (debug_callback) ext_funcs.vkDestroyDebugReportCallbackEXT(instance, debug_callback, nullptr);
+#endif  // VULKANSC
         if (dll.fp_vkDestroyInstance) dll.fp_vkDestroyInstance(instance, nullptr);
         dll.Close();
     }
@@ -861,7 +940,7 @@ static void AppCreateWin32Window(AppInstance &inst) {
     win_class.hCursor = LoadCursor(nullptr, IDC_ARROW);
     win_class.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     win_class.lpszMenuName = nullptr;
-    win_class.lpszClassName = app_short_name;
+    win_class.lpszClassName = APP_SHORT_NAME;
     win_class.hInstance = inst.h_instance;
     win_class.hIconSm = user32_handles->pfnLoadIconA(nullptr, IDI_WINLOGO);
     // Register window class:
@@ -873,8 +952,8 @@ static void AppCreateWin32Window(AppInstance &inst) {
     RECT wr = {0, 0, inst.width, inst.height};
     user32_handles->pfnAdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
     inst.h_wnd = user32_handles->pfnCreateWindowExA(0,
-                                                    app_short_name,  // class name
-                                                    app_short_name,  // app name
+                                                    APP_SHORT_NAME,  // class name
+                                                    APP_SHORT_NAME,  // app name
                                                     // WS_VISIBLE | WS_SYSMENU |
                                                     WS_OVERLAPPEDWINDOW,  // window style
                                                     100, 100,             // x/y coords
@@ -1491,6 +1570,13 @@ util::vulkaninfo_optional<VkDeviceGroupPresentCapabilitiesKHR> GetGroupCapabilit
     VkDeviceGroupDeviceCreateInfoKHR dg_ci = {VK_STRUCTURE_TYPE_DEVICE_GROUP_DEVICE_CREATE_INFO_KHR, nullptr,
                                               group.physicalDeviceCount, group.physicalDevices};
 
+#ifdef VULKANSC
+    VkPhysicalDeviceVulkanSC10Features sc10_features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_SC_1_0_FEATURES, nullptr};
+    VkDeviceObjectReservationCreateInfo object_reservation_ci = {VK_STRUCTURE_TYPE_DEVICE_OBJECT_RESERVATION_CREATE_INFO,
+                                                                 &sc10_features};
+    dg_ci.pNext = &object_reservation_ci;
+#endif  // VULKANSC
+
     float queue_priority = 1.0f;
 
     auto ext_list = get_c_str_array(extensions_list);
@@ -1589,7 +1675,7 @@ util::vulkaninfo_optional<ImageTypeSupport> FillImageTypeSupport(AppInstance &in
 
 struct FormatRange {
     // the Vulkan standard version that supports this format range, or 0 if non-standard
-    uint32_t minimum_instance_version;
+    APIVersion minimum_instance_version;
 
     // The name of the extension that supports this format range, or NULL if the range
     // is only part of the standard
@@ -1627,7 +1713,7 @@ struct AppGpu {
     AppInstance &inst;
     uint32_t id{};
     VkPhysicalDevice phys_device = VK_NULL_HANDLE;
-    VulkanVersion api_version;
+    APIVersion api_version;
 
     VkPhysicalDeviceProperties props{};
     VkPhysicalDeviceProperties2KHR props2{};
@@ -1676,7 +1762,7 @@ struct AppGpu {
         inst.dll.fp_vkGetPhysicalDeviceProperties(phys_device, &props);
 
         // needs to find the minimum of the instance and device version, and use that to print the device info
-        api_version = VulkanVersion(props.apiVersion);
+        api_version = APIVersion(props.apiVersion);
 
         device_extensions = inst.AppGetPhysicalDeviceLayerExtensions(phys_device, nullptr);
 
@@ -1689,8 +1775,12 @@ struct AppGpu {
         queue_props.resize(queue_count);
         inst.dll.fp_vkGetPhysicalDeviceQueueFamilyProperties(phys_device, &queue_count, queue_props.data());
 
+#ifdef VULKANSC
+        {
+#else
         if (inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
-            // VkPhysicalDeviceProperties2
+#endif  // VULKANSC
+        // VkPhysicalDeviceProperties2
             props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
             setup_phys_device_props2_chain(props2, chain_for_phys_device_props2, inst, *this);
 
@@ -1719,7 +1809,8 @@ struct AppGpu {
             }
             inst.ext_funcs.vkGetPhysicalDeviceQueueFamilyProperties2KHR(phys_device, &queue_prop2_count, queue_props2.data());
 
-            if (CheckPhysicalDeviceExtensionIncluded(VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME) || api_version.minor >= 2) {
+            if (CheckPhysicalDeviceExtensionIncluded(VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME) ||
+                api_version >= VK_API_VERSION_1_2) {
                 void *place = props2.pNext;
                 while (place) {
                     VkBaseOutStructure *structure = static_cast<VkBaseOutStructure *>(place);
@@ -1799,6 +1890,14 @@ struct AppGpu {
         device_ci.ppEnabledExtensionNames = extensions_to_enable.data();
         device_ci.pEnabledFeatures = &enabled_features;
 
+#ifdef VULKANSC
+        VkPhysicalDeviceVulkanSC10Features sc10_features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_SC_1_0_FEATURES, nullptr};
+        VkDeviceObjectReservationCreateInfo object_reservation_ci = {VK_STRUCTURE_TYPE_DEVICE_OBJECT_RESERVATION_CREATE_INFO,
+                                                                     &sc10_features};
+        object_reservation_ci.imageRequestCount = 1;
+        device_ci.pNext = &object_reservation_ci;
+#endif  // VULKANSC
+
         VkResult err = inst.dll.fp_vkCreateDevice(phys_device, &device_ci, nullptr, &dev);
         if (err) THROW_VK_ERR("vkCreateDevice", err);
 
@@ -1873,7 +1972,11 @@ struct AppGpu {
         // Memory //
 
         struct VkBaseOutStructure *structure = NULL;
+#ifdef VULKANSC
+        {
+#else
         if (inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
+#endif  // VULKANSC
             structure = (struct VkBaseOutStructure *)memory_props2.pNext;
 
             while (structure) {
@@ -1916,8 +2019,8 @@ struct AppGpu {
         }
 
         // True if standard and supported by both this instance and this GPU
-        if (inst.instance_version >= VK_MAKE_API_VERSION(0, 1, format_range.minimum_instance_version, 0) &&
-            props.apiVersion >= VK_MAKE_API_VERSION(0, 1, format_range.minimum_instance_version, 0)) {
+        if (inst.api_version >= format_range.minimum_instance_version &&
+            APIVersion(props.apiVersion) >= format_range.minimum_instance_version) {
             return true;
         }
 
@@ -1926,11 +2029,15 @@ struct AppGpu {
     }
 
     VkPhysicalDeviceProperties GetDeviceProperties() {
+#ifdef VULKANSC
+        return props2.properties;
+#else
         if (inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
             return props2.properties;
         } else {
             return props;
         }
+#endif  // VULKANSC
     }
 
     // Vendor specific driverVersion mapping scheme
@@ -1949,7 +2056,7 @@ struct AppGpu {
             return std::to_string(v >> 14) + "." + std::to_string(v & 0x3fff);
         } else {
             // AMD uses the standard vulkan scheme
-            return VulkanVersion(v).str();
+            return APIVersion(v).str();
         }
     }
 };
@@ -1985,8 +2092,12 @@ PropFlags get_format_properties(const AppGpu &gpu, VkFormat fmt) {
     VkFormatProperties3 props3{};
     props3.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3;
 
+#ifdef VULKANSC
+    if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME)) {
+#else
     if (gpu.inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) &&
         gpu.CheckPhysicalDeviceExtensionIncluded(VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME)) {
+#endif  // VUKANSC
         VkFormatProperties2 props2{};
         props2.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
         props2.formatProperties = props;
