@@ -20,7 +20,7 @@
                 "-DVULKANSC=ON",
                 "-DGEN_VULKANSC_COMBINED=ON"
             ],
-            "commit": "e98757b36fc2afb8c7b56803e4a31029695af947"
+            "commit": "vksc1.0.14"
         },
         {
             "name": "Vulkan-Utility-Libraries",
@@ -29,7 +29,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "d7a0eede7b94c5e3b31336df4d132c68e5c3c530",
+            "commit": "vksc1.0.14",
             "cmake_options": [
                 "-DVULKANSC=ON"
             ],
@@ -155,7 +155,7 @@
                 "-DVULKANSC=ON",
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "48de6966bea876cdb40842c99d1f03390ef1178d",
+            "commit": "vksc1.0.14",
             "build_platforms": [
                 "windows",
                 "linux",

@@ -107,7 +107,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|QNX")
     endif()
 
     if(BUILD_WSI_SCI_SUPPORT)
-        target_compile_definitions(platform_wsi INTERFACE VK_USE_PLATFORM_SCI)
+        target_compile_definitions(vulkaninfo INTERFACE VK_USE_PLATFORM_SCI)
     endif()
 endif()
 
