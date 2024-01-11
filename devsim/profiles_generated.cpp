@@ -3066,7 +3066,7 @@ bool JsonLoader::GetFeature(const char *device_name, const Json::Value &features
 #ifdef VK_USE_PLATFORM_SCI
         auto support = CheckExtensionSupport(VK_NV_EXTERNAL_MEMORY_SCI_BUF_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_external_sci_buf_features_);
+        return GetStruct(device_name, feature, &pdd_->physical_device_external_memory_sci_buf_features_);
 #else
         return false;
 #endif // VK_USE_PLATFORM_SCI
