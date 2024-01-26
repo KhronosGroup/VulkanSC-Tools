@@ -23,7 +23,7 @@
 ;
 ;;;;  End Copyright Notice ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-LIBRARY VkSCICD_mock_icd
+LIBRARY VkICD_mock_icd_vksc
 EXPORTS
 vk_icdGetInstanceProcAddr
 vk_icdGetPhysicalDeviceProcAddr
