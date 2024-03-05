@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2015-2018, 2023 The Khronos Group Inc.
+** Copyright (c) 2015-2024 The Khronos Group Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -52,8 +52,10 @@ static VKAPI_ATTR void VKAPI_CALL DestroyInstance(
 {
 
     if (instance) {
-        for (const auto physical_device : physical_device_map.at(instance))
+        for (const auto physical_device : physical_device_map.at(instance)) {
+            display_map.erase(physical_device);
             DestroyDispObjHandle((void*)physical_device);
+        }
         physical_device_map.erase(instance);
         DestroyDispObjHandle((void*)instance);
     }
@@ -115,6 +117,14 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFormatProperties(
             case VK_FORMAT_D32_SFLOAT_S8_UINT:
                 // Don't set color bits for DS formats
                 *pFormatProperties = { 0x00FFFE7F, 0x00FFFE7F, 0x00FFFE7F };
+                break;
+            case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+            case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+            case VK_FORMAT_G8_B8R8_2PLANE_422_UNORM:
+            case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16:
+            case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM:
+                // Set decode/encode bits for these formats
+                *pFormatProperties = { 0x1EFFFDFF, 0x1EFFFDFF, 0x00FFFDFF };
                 break;
             default:
                 break;
@@ -2512,7 +2522,13 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceDisplayPropertiesKHR(
     uint32_t*                                   pPropertyCount,
     VkDisplayPropertiesKHR*                     pProperties)
 {
-//Not a CREATE or DESTROY function
+    if (!pProperties) {
+        *pPropertyCount = 1;
+    } else {
+        unique_lock_t lock(global_lock);
+        pProperties[0].display = (VkDisplayKHR)global_unique_handle++;
+        display_map[physicalDevice].insert(pProperties[0].display);
+    }
     return VK_SUCCESS;
 }
 
@@ -3001,7 +3017,8 @@ static VKAPI_ATTR VkResult VKAPI_CALL RegisterDisplayEventEXT(
     const VkAllocationCallbacks*                pAllocator,
     VkFence*                                    pFence)
 {
-//Not a CREATE or DESTROY function
+    unique_lock_t lock(global_lock);
+    *pFence = (VkFence)global_unique_handle++;
     return VK_SUCCESS;
 }
 
@@ -3188,7 +3205,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetMemoryHostPointerPropertiesEXT(
 static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsEXT(
     VkPhysicalDevice                            physicalDevice,
     uint32_t*                                   pTimeDomainCount,
-    VkTimeDomainEXT*                            pTimeDomains)
+    VkTimeDomainKHR*                            pTimeDomains)
 {
     if (!pTimeDomains) {
         *pTimeDomainCount = 1;
@@ -3202,7 +3219,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsE
 static VKAPI_ATTR VkResult VKAPI_CALL GetCalibratedTimestampsEXT(
     VkDevice                                    device,
     uint32_t                                    timestampCount,
-    const VkCalibratedTimestampInfoEXT*         pTimestampInfos,
+    const VkCalibratedTimestampInfoKHR*         pTimestampInfos,
     uint64_t*                                   pTimestamps,
     uint64_t*                                   pMaxDeviation)
 {

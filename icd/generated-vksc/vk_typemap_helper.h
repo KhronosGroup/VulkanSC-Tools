@@ -2730,13 +2730,13 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY
     typedef VkPhysicalDeviceExternalMemoryHostPropertiesEXT Type;
 };
 
-// Map type VkCalibratedTimestampInfoEXT to id VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_EXT
-template <> struct LvlTypeMap<VkCalibratedTimestampInfoEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_EXT;
+// Map type VkCalibratedTimestampInfoKHR to id VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR
+template <> struct LvlTypeMap<VkCalibratedTimestampInfoKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_EXT> {
-    typedef VkCalibratedTimestampInfoEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR> {
+    typedef VkCalibratedTimestampInfoKHR Type;
 };
 
 // Map type VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT
@@ -2748,22 +2748,22 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUT
     typedef VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT Type;
 };
 
-// Map type VkPipelineVertexInputDivisorStateCreateInfoEXT to id VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT
-template <> struct LvlTypeMap<VkPipelineVertexInputDivisorStateCreateInfoEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT;
+// Map type VkPipelineVertexInputDivisorStateCreateInfoKHR to id VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR
+template <> struct LvlTypeMap<VkPipelineVertexInputDivisorStateCreateInfoKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT> {
-    typedef VkPipelineVertexInputDivisorStateCreateInfoEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR> {
+    typedef VkPipelineVertexInputDivisorStateCreateInfoKHR Type;
 };
 
-// Map type VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT
-template <> struct LvlTypeMap<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT;
+// Map type VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_KHR
+template <> struct LvlTypeMap<VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT> {
-    typedef VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_KHR> {
+    typedef VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR Type;
 };
 
 // Map type VkPhysicalDevicePCIBusInfoPropertiesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT
@@ -2829,31 +2829,31 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EX
     typedef VkHeadlessSurfaceCreateInfoEXT Type;
 };
 
-// Map type VkPhysicalDeviceLineRasterizationFeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT
-template <> struct LvlTypeMap<VkPhysicalDeviceLineRasterizationFeaturesEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT;
+// Map type VkPhysicalDeviceLineRasterizationFeaturesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR
+template <> struct LvlTypeMap<VkPhysicalDeviceLineRasterizationFeaturesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT> {
-    typedef VkPhysicalDeviceLineRasterizationFeaturesEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR> {
+    typedef VkPhysicalDeviceLineRasterizationFeaturesKHR Type;
 };
 
-// Map type VkPhysicalDeviceLineRasterizationPropertiesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT
-template <> struct LvlTypeMap<VkPhysicalDeviceLineRasterizationPropertiesEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT;
+// Map type VkPhysicalDeviceLineRasterizationPropertiesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR
+template <> struct LvlTypeMap<VkPhysicalDeviceLineRasterizationPropertiesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT> {
-    typedef VkPhysicalDeviceLineRasterizationPropertiesEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR> {
+    typedef VkPhysicalDeviceLineRasterizationPropertiesKHR Type;
 };
 
-// Map type VkPipelineRasterizationLineStateCreateInfoEXT to id VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT
-template <> struct LvlTypeMap<VkPipelineRasterizationLineStateCreateInfoEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT;
+// Map type VkPipelineRasterizationLineStateCreateInfoKHR to id VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR
+template <> struct LvlTypeMap<VkPipelineRasterizationLineStateCreateInfoKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT> {
-    typedef VkPipelineRasterizationLineStateCreateInfoEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR> {
+    typedef VkPipelineRasterizationLineStateCreateInfoKHR Type;
 };
 
 // Map type VkPhysicalDeviceShaderAtomicFloatFeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT
@@ -2865,13 +2865,13 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_F
     typedef VkPhysicalDeviceShaderAtomicFloatFeaturesEXT Type;
 };
 
-// Map type VkPhysicalDeviceIndexTypeUint8FeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT
-template <> struct LvlTypeMap<VkPhysicalDeviceIndexTypeUint8FeaturesEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT;
+// Map type VkPhysicalDeviceIndexTypeUint8FeaturesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_KHR
+template <> struct LvlTypeMap<VkPhysicalDeviceIndexTypeUint8FeaturesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_KHR;
 };
 
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT> {
-    typedef VkPhysicalDeviceIndexTypeUint8FeaturesEXT Type;
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_KHR> {
+    typedef VkPhysicalDeviceIndexTypeUint8FeaturesKHR Type;
 };
 
 // Map type VkPhysicalDeviceExtendedDynamicStateFeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT

@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2015-2018, 2023 The Khronos Group Inc.
+** Copyright (c) 2015-2024 The Khronos Group Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -1676,12 +1676,12 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetMemoryHostPointerPropertiesEXT(
 static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsEXT(
     VkPhysicalDevice                            physicalDevice,
     uint32_t*                                   pTimeDomainCount,
-    VkTimeDomainEXT*                            pTimeDomains);
+    VkTimeDomainKHR*                            pTimeDomains);
 
 static VKAPI_ATTR VkResult VKAPI_CALL GetCalibratedTimestampsEXT(
     VkDevice                                    device,
     uint32_t                                    timestampCount,
-    const VkCalibratedTimestampInfoEXT*         pTimestampInfos,
+    const VkCalibratedTimestampInfoKHR*         pTimestampInfos,
     uint64_t*                                   pTimestamps,
     uint64_t*                                   pMaxDeviation);
 

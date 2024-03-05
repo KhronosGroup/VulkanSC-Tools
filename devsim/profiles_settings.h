@@ -149,7 +149,9 @@ struct ProfileLayerSettings {
     }
 
     struct Simulate {
+        bool profile_emulation{true};
         std::string profile_file{};
+        std::vector<std::string> profile_dirs;
         std::string profile_name{"${VP_DEFAULT}"};
         bool profile_validation{false};
         SimulateCapabilityFlags capabilities{SIMULATE_API_VERSION_BIT | SIMULATE_FEATURES_BIT | SIMULATE_PROPERTIES_BIT};

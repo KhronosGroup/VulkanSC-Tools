@@ -92,6 +92,8 @@ STRUCT_COMPARISONS_TO_GEN = ['VkSurfaceFormatKHR', 'VkSurfaceFormat2KHR', 'VkSur
                              'VkSurfaceCapabilities2KHR', 'VkSurfaceCapabilities2EXT']
 # don't generate these structures
 STRUCT_BLACKLIST = ['VkVideoProfileListInfoKHR', 'VkVideoProfileInfoKHR', 'VkDrmFormatModifierPropertiesListEXT', 'VkDrmFormatModifierPropertiesEXT', 'VkDrmFormatModifierPropertiesList2EXT']
+# These structures are only used in version 1.1, otherwise they are included in the promoted structs
+STRUCT_1_1_LIST = ['VkPhysicalDeviceProtectedMemoryFeatures', 'VkPhysicalDeviceShaderDrawParametersFeatures', 'VkPhysicalDeviceSubgroupProperties', 'VkPhysicalDeviceProtectedMemoryProperties']
 
 # generate these structures such that they only print when not in json mode (as json wants them separate)
 PORTABILITY_STRUCTS = ['VkPhysicalDevicePortabilitySubsetFeaturesKHR', 'VkPhysicalDevicePortabilitySubsetPropertiesKHR']
@@ -653,8 +655,10 @@ def PrintStructure(struct, types_to_gen):
                 out += f'        for (uint32_t i = 0; i < {v.arrayLength}; i++) {{ p.PrintElement(obj.{v.name}[i]); }}\n'
                 out += '    }\n'
             else:  # dynamic array length based on other member
-                out += '    {\n'
-                out += f'        ArrayWrapper arr(p,"{v.name}", obj.' + v.arrayLength + ');\n'
+                out += f'    if (obj.{v.arrayLength} == 0) {{\n'
+                out += f'        p.PrintKeyValue("{v.name}", "NULL");\n'
+                out += '    } else {\n'
+                out += f'        ArrayWrapper arr(p,"{v.name}", obj.{v.arrayLength});\n'
                 out += f'        for (uint32_t i = 0; i < obj.{v.arrayLength}; i++) {{\n'
                 if v.typeID in types_to_gen:
                     out += f'            if (obj.{v.name} != nullptr) {{\n'
@@ -801,7 +805,9 @@ def PrintChainStruct(listName, structures, all_structures, chain_details, extTyp
                     else:
                         assert False, 'Should never get here'
             if has_version:
-                if has_printed_condition:
+                if s.name in STRUCT_1_1_LIST:
+                    out += f'{version_desc} == {version.constant}'
+                elif has_printed_condition:
                     out += f')\n            && {version_desc} < {version.constant}'
                 else:
                     out += f'{version_desc} >= {version.constant}'
@@ -891,7 +897,9 @@ void setup_{listName}_chain({chain_details['holder_type']}& start, std::unique_p
                             else:
                                 assert False, 'Should never get here'
                     if has_version:
-                        if has_printed_condition:
+                        if s.name in STRUCT_1_1_LIST:
+                            out += f'{version_desc} == {version.constant}'
+                        elif has_printed_condition:
                             out += f') &&\n            {version_desc} < {version.constant}'
                         else:
                             out += f'{version_desc} >= {version.constant}'

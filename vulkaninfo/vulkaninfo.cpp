@@ -194,8 +194,7 @@ void DumpSurfaceCapabilities(Printer &p, AppInstance &inst, AppGpu &gpu, AppSurf
             surface_caps2.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
             surface_caps2.pNext = &SurfacePresentScalingCapabilitiesEXT;
 
-            VkResult err =
-                inst.ext_funcs.vkGetPhysicalDeviceSurfaceCapabilities2KHR(gpu.phys_device, &surface_info, &surface_caps2);
+            VkResult err = vkGetPhysicalDeviceSurfaceCapabilities2KHR(gpu.phys_device, &surface_info, &surface_caps2);
             if (err != VK_SUCCESS) {
                 continue;
             }
@@ -203,7 +202,7 @@ void DumpSurfaceCapabilities(Printer &p, AppInstance &inst, AppGpu &gpu, AppSurf
             std::vector<VkPresentModeKHR> compatible_present_modes{SurfacePresentModeCompatibilityEXT.presentModeCount};
             SurfacePresentModeCompatibilityEXT.pPresentModes = compatible_present_modes.data();
 
-            err = inst.ext_funcs.vkGetPhysicalDeviceSurfaceCapabilities2KHR(gpu.phys_device, &surface_info, &surface_caps2);
+            err = vkGetPhysicalDeviceSurfaceCapabilities2KHR(gpu.phys_device, &surface_info, &surface_caps2);
 
 #ifndef VULKANSC
             if (err == VK_SUCCESS) {
@@ -352,19 +351,25 @@ void DumpGroups(Printer &p, AppInstance &inst) {
 
 void GetAndDumpHostImageCopyPropertiesEXT(Printer &p, AppGpu &gpu) {
 #ifndef VULKANSC
+    if (!gpu.CheckPhysicalDeviceExtensionIncluded("VK_EXT_host_image_copy")) {
+        return;
+    }
+
     // Manually implement VkPhysicalDeviceHostImageCopyPropertiesEXT due to it needing to be called twice
     VkPhysicalDeviceHostImageCopyPropertiesEXT host_image_copy_properties_ext{};
     host_image_copy_properties_ext.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES_EXT;
     VkPhysicalDeviceProperties2KHR props2{};
     props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
     props2.pNext = static_cast<void *>(&host_image_copy_properties_ext);
-    gpu.inst.ext_funcs.vkGetPhysicalDeviceProperties2KHR(gpu.phys_device, &props2);
+    vkGetPhysicalDeviceProperties2KHR(gpu.phys_device, &props2);
     std::vector<VkImageLayout> src_layouts(host_image_copy_properties_ext.copySrcLayoutCount);
     host_image_copy_properties_ext.pCopySrcLayouts = src_layouts.data();
     std::vector<VkImageLayout> dst_layouts(host_image_copy_properties_ext.copyDstLayoutCount);
     host_image_copy_properties_ext.pCopyDstLayouts = dst_layouts.data();
-    gpu.inst.ext_funcs.vkGetPhysicalDeviceProperties2KHR(gpu.phys_device, &props2);
+    vkGetPhysicalDeviceProperties2KHR(gpu.phys_device, &props2);
+    p.SetSubHeader();
     DumpVkPhysicalDeviceHostImageCopyPropertiesEXT(p, "VkPhysicalDeviceHostImageCopyPropertiesEXT", host_image_copy_properties_ext);
+    p.AddNewline();
 #endif  // VULKANSC
 }
 
@@ -400,7 +405,6 @@ void GpuDumpProps(Printer &p, AppGpu &gpu) {
 #endif  // VULKANSC
         void *place = gpu.props2.pNext;
         chain_iterator_phys_device_props2(p, gpu.inst, gpu, place);
-        p.AddNewline();
         GetAndDumpHostImageCopyPropertiesEXT(p, gpu);
     }
 }
@@ -738,7 +742,7 @@ void DumpGpuProfileCapabilities(Printer &p, AppGpu &gpu) {
                             format_props2.formatProperties = formats.props;
                             std::unique_ptr<format_properties2_chain> chain_for_format_props2;
                             setup_format_properties2_chain(format_props2, chain_for_format_props2, gpu);
-                            gpu.inst.ext_funcs.vkGetPhysicalDeviceFormatProperties2KHR(gpu.phys_device, fmt, &format_props2);
+                            vkGetPhysicalDeviceFormatProperties2KHR(gpu.phys_device, fmt, &format_props2);
                             chain_iterator_format_properties2(p, gpu, format_props2.pNext);
                         }
                         already_printed_formats.insert(fmt);
@@ -953,28 +957,21 @@ const char *help_message_body =
     "[-o <filename>, --output <filename>]\n"
     "                    Print output to a new file whose name is specified by filename.\n"
     "                    File will be written to the current working directory.\n"
-    "[--text]            Produce a text version of " APP_SHORT_NAME
-    " output to stdout. This is\n"
+    "[--text]            Produce a text version of " APP_SHORT_NAME " output to stdout. This is\n"
     "                    the default output.\n"
-    "[--html]            Produce an html version of " APP_SHORT_NAME
-    " output, saved as\n"
-    "                    \"" APP_SHORT_NAME
-    ".html\" in the directory in which the command\n"
+    "[--html]            Produce an html version of " APP_SHORT_NAME " output, saved as\n"
+    "                    \"" APP_SHORT_NAME ".html\" in the directory in which the command\n"
     "                    is run.\n"
-    "[-j, --json]        Produce a json version of " APP_SHORT_NAME
-    " output conforming to the Vulkan\n"
+    "[-j, --json]        Produce a json version of " APP_SHORT_NAME " output conforming to the Vulkan\n"
     "                    Profiles schema, saved as \n"
-    "                     \"VP_" APP_UPPER_CASE_NAME
-    "_[DEVICE_NAME]_[DRIVER_VERSION].json\"\n"
+    "                     \"VP_" APP_UPPER_CASE_NAME "_[DEVICE_NAME]_[DRIVER_VERSION].json\"\n"
     "                     of the first gpu in the system.\n"
     "[-j=<gpu-number>, --json=<gpu-number>]\n"
     "                    For a multi-gpu system, a single gpu can be targetted by\n"
     "                    specifying the gpu-number associated with the gpu of \n"
     "                    interest. This number can be determined by running\n"
-    "                    " APP_SHORT_NAME
-    " without any options specified.\n"
-    "[--show-tool-props] Show the active VkPhysicalDeviceToolPropertiesEXT that " APP_SHORT_NAME
-    " finds.\n"
+    "                    " APP_SHORT_NAME " without any options specified.\n"
+    "[--show-tool-props] Show the active VkPhysicalDeviceToolPropertiesEXT that " APP_SHORT_NAME " finds.\n"
     "[--show-formats]    Display the format properties of each physical device.\n"
     "                    Note: This only affects text output.\n";
 
@@ -1216,8 +1213,7 @@ int main(int argc, char **argv) {
                 try {
                     // check if the surface is supported by the physical device before adding it to the list
                     VkBool32 supported = VK_FALSE;
-                    VkResult err = instance.ext_funcs.vkGetPhysicalDeviceSurfaceSupportKHR(gpu->phys_device, 0,
-                                                                                           surface_extension.surface, &supported);
+                    VkResult err = vkGetPhysicalDeviceSurfaceSupportKHR(gpu->phys_device, 0, surface_extension.surface, &supported);
                     if (err != VK_SUCCESS || supported == VK_FALSE) continue;
 
                     surfaces.push_back(

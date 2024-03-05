@@ -129,7 +129,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
 endif()
 
 if(WIN32)
-    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DWIN32_LEAN_AND_MEAN)
+    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DWIN32_LEAN_AND_MEAN -DNOMINMAX)
 elseif(ANDROID)
     add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
 elseif(APPLE)
@@ -205,6 +205,15 @@ if(WIN32)
     add_compile_definitions(_USE_MATH_DEFINES)
 endif()
 
+
+# On Ubuntu 20.04, it was found that the validation layers fail to launch in vkcube & vkcubepp due to
+# a missing dependency on libpthread. While newer Ubuntu versions use a glibc version where libpthread
+# is integrated into libc, older ubuntu's do not so we need to link threads directly in order for
+# validation layers to be loadable.
+if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
+    find_package(Threads REQUIRED)
+endif()
+
 # ----------------------------------------------------------------------------
 # vkcube
 
@@ -234,7 +243,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
     if (NEED_RT)
         target_link_libraries(vkcube PRIVATE rt)
     endif()
-    target_link_libraries(vkcube PRIVATE Vulkan::Headers volk::volk_headers)
+    target_link_libraries(vkcube PRIVATE Vulkan::Headers volk::volk_headers Threads::Threads)
 elseif(WIN32)
     add_executable(vkcube WIN32)
     target_sources(vkcube PRIVATE
@@ -255,14 +264,15 @@ target_compile_definitions(vkcube PRIVATE VK_NO_PROTOTYPES)
 if (ANDROID)
     install(TARGETS vkcube DESTINATION ${CMAKE_INSTALL_LIBDIR})
 elseif(APPLE)
-    # Keep RPATH so fixup_bundle can use it to find libraries
-    set_target_properties(vkcube PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-    install(TARGETS vkcube BUNDLE DESTINATION "cube")
-    # Fix up the library references to be self-contained within the bundle.
-    install(CODE "
-        include(BundleUtilities)
-        fixup_bundle(\${CMAKE_INSTALL_PREFIX}/cube/vkcube.app \"\" \"\")
-        ")
+    install(
+        TARGETS vkcube
+        # Install runtime dependencies like the Vulkan::Loader so the app is self-contained
+        RUNTIME_DEPENDENCIES DESTINATION "cube/vkcube.app/Contents/Frameworks/"
+        BUNDLE DESTINATION "cube"
+    )
+    set_target_properties(vkcube PROPERTIES
+        INSTALL_RPATH @executable_path/../Frameworks
+    )
 else()
     install(TARGETS vkcube)
 endif()
@@ -284,7 +294,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
                    cube.vert.inc
                    cube.frag.inc
                    ${OPTIONAL_WAYLAND_DATA_FILES})
-    target_link_libraries(vkcubepp Vulkan::Headers volk::volk_headers)
+    target_link_libraries(vkcubepp Vulkan::Headers volk::volk_headers Threads::Threads)
     target_compile_definitions(vkcubepp PUBLIC ${CUBE_PLATFORM})
 else()
     add_executable(vkcubepp
@@ -300,14 +310,15 @@ target_include_directories(vkcubepp PRIVATE .)
 target_compile_definitions(vkcubepp PRIVATE VK_NO_PROTOTYPES)
 
 if(APPLE)
-    # Keep RPATH so fixup_bundle can use it to find libraries
-    set_target_properties(vkcubepp PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-    install(TARGETS vkcubepp BUNDLE DESTINATION "cube")
-    # Fix up the library references to be self-contained within the bundle.
-    install(CODE "
-        include(BundleUtilities)
-        fixup_bundle(\${CMAKE_INSTALL_PREFIX}/cube/vkcubepp.app \"\" \"\")
-        ")
+    install(
+        TARGETS vkcubepp
+        # Install runtime dependencies like the Vulkan::Loader so the app is self-contained
+        RUNTIME_DEPENDENCIES DESTINATION "cube/vkcubepp.app/Contents/Frameworks/"
+        BUNDLE DESTINATION "cube"
+    )
+    set_target_properties(vkcubepp PROPERTIES
+        INSTALL_RPATH @executable_path/../Frameworks
+    )
 else()
     install(TARGETS vkcubepp)
 endif()
@@ -337,6 +348,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD")
         target_link_libraries(vkcube-wayland PRIVATE
             Vulkan::Headers
             volk::volk_headers
+            Threads::Threads
             PkgConfig::WAYLAND_CLIENT
         )
         target_compile_definitions(vkcube-wayland PRIVATE VK_USE_PLATFORM_WAYLAND_KHR VK_NO_PROTOTYPES)

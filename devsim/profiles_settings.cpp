@@ -165,6 +165,39 @@ void LogFlush(ProfileLayerSettings *layer_settings) {
     }
 }
 
+static ForceDevice GetForceDevice(const std::string &value) {
+    if (value == "FORCE_DEVICE_OFF") {
+        return FORCE_DEVICE_OFF;
+    } else if (value == "FORCE_DEVICE_WITH_UUID") {
+        return FORCE_DEVICE_WITH_UUID;
+    } else if (value == "FORCE_DEVICE_WITH_NAME") {
+        return FORCE_DEVICE_WITH_NAME;
+    }
+
+    return FORCE_DEVICE_OFF;
+}
+
+static std::vector<std::string> Split(const std::string &value, const std::string &delimiter) {
+    std::vector<std::string> result;
+
+    std::string parse = value;
+
+    std::size_t start = 0;
+    std::size_t end = parse.find(delimiter);
+    while (end != std::string::npos) {
+        result.push_back(parse.substr(start, end - start));
+        start = end + delimiter.length();
+        end = parse.find(delimiter, start);
+    }
+
+    const std::string last = parse.substr(start, end);
+    if (!last.empty()) {
+        result.push_back(last);
+    }
+
+    return result;
+}
+
 void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator,
                                ProfileLayerSettings *layer_settings) {
     assert(layer_settings != nullptr);

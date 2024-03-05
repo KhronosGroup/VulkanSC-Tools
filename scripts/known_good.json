@@ -7,7 +7,7 @@
             "sub_dir": "Vulkan-Headers",
             "build_dir": "Vulkan-Headers/build",
             "install_dir": "Vulkan-Headers/build/install",
-            "commit": "v1.3.272"
+            "commit": "v1.3.278"
         },
         {
             "name": "Vulkan-Headers",
@@ -20,7 +20,7 @@
                 "-DVULKANSC=ON",
                 "-DGEN_VULKANSC_COMBINED=ON"
             ],
-            "commit": "vksc1.0.14"
+            "commit": "be40e89611cbbd4a48e4a566ddac468da5eb1cef"
         },
         {
             "name": "Vulkan-Utility-Libraries",
@@ -29,7 +29,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "vksc1.0.14",
+            "commit": "c0342cb387180f8bcbb0a38551603c365434581f",
             "cmake_options": [
                 "-DVULKANSC=ON"
             ],
@@ -46,7 +46,7 @@
             "sub_dir": "MoltenVK",
             "build_dir": "MoltenVK",
             "install_dir": "MoltenVK",
-            "commit": "v1.2.6",
+            "commit": "v1.2.7",
             "custom_build": [
                 "./fetchDependencies --macos",
                 "xcodebuild -project MoltenVKPackaging.xcodeproj GCC_PREPROCESSOR_DEFINITIONS='$GCC_PREPROCESSOR_DEFINITIONS MVK_CONFIG_LOG_LEVEL=1' -scheme \"MoltenVK Package (macOS only)\" build"
@@ -58,7 +58,6 @@
         },
         {
             "name": "volk",
-            "api": "vulkan",
             "url": "https://github.com/zeux/volk",
             "sub_dir": "volk",
             "build_dir": "volk/build",
@@ -66,7 +65,7 @@
             "cmake_options": [
                 "-DVOLK_INSTALL=ON"
             ],
-            "commit": "vulkan-sdk-1.3.268",
+            "commit": "vulkan-sdk-1.3.275",
             "deps": [
                 {
                     "var_name": "VULKAN_HEADERS_INSTALL_DIR",
@@ -131,7 +130,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "v1.3.272",
+            "commit": "v1.3.278",
             "build_platforms": [
                 "windows",
                 "linux",
@@ -155,7 +154,7 @@
                 "-DVULKANSC=ON",
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "vksc1.0.14",
+            "commit": "ef6ad6f4bc29d4006cf2a4d27ff8613c42ff545d",
             "build_platforms": [
                 "windows",
                 "linux",
