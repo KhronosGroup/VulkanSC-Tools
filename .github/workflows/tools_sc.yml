@@ -48,15 +48,12 @@ jobs:
             - uses: actions/setup-python@v5
               with:
                 python-version: '3.7'
+            - run: |
+                sudo apt-get -qq update
+                sudo apt install libwayland-dev xorg-dev wayland-protocols
             - uses: lukka/get-cmake@latest
               with:
                 cmakeVersion: 3.17.2
-
-            - name: Install build dependencies
-              run: |
-                python3 -m pip install jsonschema pyparsing
-                sudo apt update && sudo apt install --yes --no-install-recommends libwayland-dev libxrandr-dev
-
             - name: Setup ccache
               uses: hendrikmuhs/ccache-action@v1.2
               with:
@@ -68,9 +65,9 @@ jobs:
                 -D UPDATE_DEPS=ON \
                 -D BUILD_WERROR=ON \
                 -D INSTALL_ICD=ON \
-                -D ENABLE_ADDRESS_SANITIZER=ON \
                 -D VULKANSC=ON \
-                -D BUILD_VKSC_DEVSIM=ON
+                -D BUILD_VKSC_DEVSIM=ON \
+                -D ENABLE_ADDRESS_SANITIZER=OFF # Re-enable when github CI doesn't have fatal issues
               env:
                 CC: ${{matrix.cc}}
                 CXX: ${{matrix.cxx}}
@@ -110,9 +107,6 @@ jobs:
               with:
                 arch: ${{ matrix.arch }}
 
-            - name: Install dependencies
-              run: python -m pip install jsonschema pyparsing
-
             - name: Configure
               run: cmake -S. -B build -G "Ninja" -DCMAKE_BUILD_TYPE=${{matrix.config}} -D UPDATE_DEPS=ON -D INSTALL_ICD=ON -D BUILD_WERROR=ON -D VULKANSC=ON -D BUILD_VKSC_DEVSIM=ON
 
@@ -136,8 +130,6 @@ jobs:
           - uses: actions/setup-python@v5
             with:
               python-version: '3.10'
-          - name: Install dependencies
-            run: python -m pip install jsonschema pyparsing
           - uses: lukka/get-cmake@latest
           - name: GCC Version
             run: gcc --version # If this fails MINGW is not setup correctly
@@ -158,7 +150,7 @@ jobs:
         - uses: actions/setup-python@v5
           with:
             python-version: '3.10'
-        - run: python -m pip install jsonschema pyparsing
+        - run: sudo apt-get -qq update && sudo apt install libwayland-dev xorg-dev wayland-protocols
         - run: cmake -S . -B build/ -D UPDATE_DEPS=ON -D UPDATE_DEPS_DIR=external -D TOOLS_CODEGEN=ON -D VULKANSC=ON
         - run: cmake --build build --target tools_codegen
         - run: git diff --exit-code
