@@ -9,7 +9,6 @@
 1. [MacOS build](#building-on-macos)
 1. [Android Build](#building-for-android)
 1. [Installed Files](#installed-files)
-1. [Vulkan SC Build](#building-vulkan-sc-tools)
 
 ## Requirements
 
@@ -40,7 +39,7 @@ The following will be enough for most people, for more detailed instructions, se
 git clone https://github.com/KhronosGroup/VulkanSC-Tools.git
 cd VulkanSC-Tools
 
-cmake -S . -B build -D UPDATE_DEPS=ON -D BUILD_WERROR=ON -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=Debug -D VULKANSC=ON
+cmake -S . -B build -D UPDATE_DEPS=ON -D BUILD_WERROR=ON -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=Debug
 cmake --build build --config Debug
 ```
 
@@ -326,10 +325,3 @@ CMake Docs:
 # NOTE: --config is only needed for multi-config generators (Visual Studio, Xcode, etc)
 cmake --install build/ --config Release --prefix build/install
 ```
-
-### Building Vulkan SC Tools
-
-Commands for building the Vulkan SC version of the tools are similar to the instructions in the sections above with a few minor differences:
-
-1) When running `update_deps.py` and/or `generate_source.py`, the option `--api vulkansc` should be specified.
-2) When running `cmake -C helper.cmake ...`, the option `-DVULKANSC=ON` should be passed in.

@@ -288,7 +288,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-api', action='store',
-                        default='vulkan',
+                        default='vulkansc',
                         choices=['vulkan', 'vulkansc'],
                         help='Specify API name to generate')
     parser.add_argument('-defaultExtensions', action='store',

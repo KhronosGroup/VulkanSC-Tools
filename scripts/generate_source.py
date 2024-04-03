@@ -36,7 +36,7 @@ verify_exclude = ['.clang-format']
 def main(argv):
     parser = argparse.ArgumentParser(description='Generate source code for this repository')
     parser.add_argument('--api',
-                        default='vulkan',
+                        default='vulkansc',
                         choices=['vulkan', 'vulkansc'],
                         help='Specify API name to generate')
     parser.add_argument('--generated-version', help='sets the header version used to generate the repo')
