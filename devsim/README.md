@@ -4,7 +4,7 @@ This directory contains the Vulkan SC Device Simulation Layer (`VK_LAYER_KHRONOS
 
 ## Building the Vulkan SC Device Simulation Layer
 
-In order to build the Vulkan SC Device Simulation Layer, enable the `BUILD_VKSC_DEVSIM` build option when building the VulkanSC-Tools.
+The Vulkan SC Device Simulation Layer is built when the `BUILD_VKSC_DEVSIM` build option is enabled (default for Vulkan SC builds) when building the VulkanSC-Tools.
 
 ## Using the Vulkan SC Device Simulation Layer
 

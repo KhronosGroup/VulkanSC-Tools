@@ -19,6 +19,8 @@ cmake_minimum_required(VERSION 3.17.2)
 
 project(Vulkan-Tools)
 
+option(VULKANSC "Build Vulkan SC tools" ON)
+
 # This variable enables downstream users to customize the target API
 # variant (e.g. Vulkan SC)
 set(API_TYPE "vulkan")
@@ -41,8 +43,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-option(VULKANSC "Build Vulkan SC tools" OFF)
-option(BUILD_VKSC_DEVSIM "Build Vulkan SC device simulation layer" OFF)
+option(BUILD_VKSC_DEVSIM "Build Vulkan SC device simulation layer" ON)
 
 option(BUILD_CUBE "Build cube" ON)
 option(BUILD_VULKANINFO "Build vulkaninfo" ON)
