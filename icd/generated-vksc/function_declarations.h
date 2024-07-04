@@ -71,11 +71,9 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_EXT_post_depth_coverage", 1},
     {"VK_EXT_image_drm_format_modifier", 2},
     {"VK_EXT_filter_cubic", 3},
-    {"VK_EXT_global_priority", 2},
     {"VK_EXT_external_memory_host", 1},
     {"VK_KHR_shader_clock", 1},
-    {"VK_EXT_calibrated_timestamps", 2},
-    {"VK_EXT_vertex_attribute_divisor", 3},
+    {"VK_KHR_global_priority", 1},
     {"VK_KHR_swapchain_mutable_format", 1},
     {"VK_EXT_pci_bus_info", 2},
     {"VK_KHR_shader_terminate_invocation", 1},
@@ -99,13 +97,18 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_EXT_image_robustness", 1},
     {"VK_KHR_copy_commands2", 1},
     {"VK_EXT_4444_formats", 1},
+    {"VK_NV_acquire_winrt_display", 1},
     {"VK_EXT_vertex_input_dynamic_state", 2},
     {"VK_NV_external_sci_sync", 2},
     {"VK_NV_external_memory_sci_buf", 2},
     {"VK_EXT_extended_dynamic_state2", 1},
     {"VK_EXT_color_write_enable", 1},
     {"VK_NV_external_sci_sync2", 1},
+    {"VK_KHR_vertex_attribute_divisor", 1},
     {"VK_QNX_external_memory_screen_buffer", 1},
+    {"VK_KHR_index_type_uint8", 1},
+    {"VK_KHR_line_rasterization", 1},
+    {"VK_KHR_calibrated_timestamps", 1},
 };
 
 
@@ -1439,6 +1442,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetDisplayPlaneCapabilities2KHR(
 
 
 
+
 static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceFragmentShadingRatesKHR(
     VkPhysicalDevice                            physicalDevice,
     uint32_t*                                   pFragmentShadingRateCount,
@@ -1528,6 +1532,27 @@ static VKAPI_ATTR void VKAPI_CALL CmdBlitImage2KHR(
 static VKAPI_ATTR void VKAPI_CALL CmdResolveImage2KHR(
     VkCommandBuffer                             commandBuffer,
     const VkResolveImageInfo2*                  pResolveImageInfo);
+
+
+
+
+static VKAPI_ATTR void VKAPI_CALL CmdSetLineStippleKHR(
+    VkCommandBuffer                             commandBuffer,
+    uint32_t                                    lineStippleFactor,
+    uint16_t                                    lineStipplePattern);
+
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsKHR(
+    VkPhysicalDevice                            physicalDevice,
+    uint32_t*                                   pTimeDomainCount,
+    VkTimeDomainKHR*                            pTimeDomains);
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetCalibratedTimestampsKHR(
+    VkDevice                                    device,
+    uint32_t                                    timestampCount,
+    const VkCalibratedTimestampInfoKHR*         pTimestampInfos,
+    uint64_t*                                   pTimestamps,
+    uint64_t*                                   pMaxDeviation);
 
 
 
@@ -1665,26 +1690,11 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetImageDrmFormatModifierPropertiesEXT(
 
 
 
-
 static VKAPI_ATTR VkResult VKAPI_CALL GetMemoryHostPointerPropertiesEXT(
     VkDevice                                    device,
     VkExternalMemoryHandleTypeFlagBits          handleType,
     const void*                                 pHostPointer,
     VkMemoryHostPointerPropertiesEXT*           pMemoryHostPointerProperties);
-
-
-static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsEXT(
-    VkPhysicalDevice                            physicalDevice,
-    uint32_t*                                   pTimeDomainCount,
-    VkTimeDomainKHR*                            pTimeDomains);
-
-static VKAPI_ATTR VkResult VKAPI_CALL GetCalibratedTimestampsEXT(
-    VkDevice                                    device,
-    uint32_t                                    timestampCount,
-    const VkCalibratedTimestampInfoKHR*         pTimestampInfos,
-    uint64_t*                                   pTimestamps,
-    uint64_t*                                   pMaxDeviation);
-
 
 
 
@@ -1774,6 +1784,18 @@ static VKAPI_ATTR void VKAPI_CALL CmdSetStencilOpEXT(
 
 
 
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+
+static VKAPI_ATTR VkResult VKAPI_CALL AcquireWinrtDisplayNV(
+    VkPhysicalDevice                            physicalDevice,
+    VkDisplayKHR                                display);
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetWinrtDisplayNV(
+    VkPhysicalDevice                            physicalDevice,
+    uint32_t                                    deviceRelativeId,
+    VkDisplayKHR*                               pDisplay);
+#endif /* VK_USE_PLATFORM_WIN32_KHR */
 
 
 static VKAPI_ATTR void VKAPI_CALL CmdSetVertexInputEXT(
@@ -2139,6 +2161,9 @@ static const std::unordered_map<std::string, void*> name_to_funcptr_map = {
     {"vkCmdCopyImageToBuffer2KHR", (void*)CmdCopyImageToBuffer2KHR},
     {"vkCmdBlitImage2KHR", (void*)CmdBlitImage2KHR},
     {"vkCmdResolveImage2KHR", (void*)CmdResolveImage2KHR},
+    {"vkCmdSetLineStippleKHR", (void*)CmdSetLineStippleKHR},
+    {"vkGetPhysicalDeviceCalibrateableTimeDomainsKHR", (void*)GetPhysicalDeviceCalibrateableTimeDomainsKHR},
+    {"vkGetCalibratedTimestampsKHR", (void*)GetCalibratedTimestampsKHR},
     {"vkReleaseDisplayEXT", (void*)ReleaseDisplayEXT},
     {"vkGetPhysicalDeviceSurfaceCapabilities2EXT", (void*)GetPhysicalDeviceSurfaceCapabilities2EXT},
     {"vkDisplayPowerControlEXT", (void*)DisplayPowerControlEXT},
@@ -2164,8 +2189,6 @@ static const std::unordered_map<std::string, void*> name_to_funcptr_map = {
     {"vkGetPhysicalDeviceMultisamplePropertiesEXT", (void*)GetPhysicalDeviceMultisamplePropertiesEXT},
     {"vkGetImageDrmFormatModifierPropertiesEXT", (void*)GetImageDrmFormatModifierPropertiesEXT},
     {"vkGetMemoryHostPointerPropertiesEXT", (void*)GetMemoryHostPointerPropertiesEXT},
-    {"vkGetPhysicalDeviceCalibrateableTimeDomainsEXT", (void*)GetPhysicalDeviceCalibrateableTimeDomainsEXT},
-    {"vkGetCalibratedTimestampsEXT", (void*)GetCalibratedTimestampsEXT},
     {"vkCreateHeadlessSurfaceEXT", (void*)CreateHeadlessSurfaceEXT},
     {"vkCmdSetLineStippleEXT", (void*)CmdSetLineStippleEXT},
     {"vkCmdSetCullModeEXT", (void*)CmdSetCullModeEXT},
@@ -2180,6 +2203,12 @@ static const std::unordered_map<std::string, void*> name_to_funcptr_map = {
     {"vkCmdSetDepthBoundsTestEnableEXT", (void*)CmdSetDepthBoundsTestEnableEXT},
     {"vkCmdSetStencilTestEnableEXT", (void*)CmdSetStencilTestEnableEXT},
     {"vkCmdSetStencilOpEXT", (void*)CmdSetStencilOpEXT},
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+    {"vkAcquireWinrtDisplayNV", (void*)AcquireWinrtDisplayNV},
+#endif
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+    {"vkGetWinrtDisplayNV", (void*)GetWinrtDisplayNV},
+#endif
     {"vkCmdSetVertexInputEXT", (void*)CmdSetVertexInputEXT},
 #ifdef VK_USE_PLATFORM_SCI
     {"vkGetFenceSciSyncFenceNV", (void*)GetFenceSciSyncFenceNV},

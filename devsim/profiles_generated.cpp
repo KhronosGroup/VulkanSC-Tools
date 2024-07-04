@@ -22,7 +22,7 @@
  * - Mike Weiblen
  * - Arda Coskunses
  * - Jeremy Kniager
- 
+
  * This file is ***GENERATED***.  Do Not Edit.
  * See scripts/gen_profiles_layer.py for modifications.
  */
@@ -1247,26 +1247,6 @@ static uint32_t VkStringToUint(const std::string &input_value) {
     return 0;
 }
 
-static VkToolPurposeFlags StringToVkToolPurposeFlags(const std::string &input_value) {
-    static const std::unordered_map<std::string, VkToolPurposeFlags> map = {
-        {"VK_TOOL_PURPOSE_VALIDATION_BIT", VK_TOOL_PURPOSE_VALIDATION_BIT},
-        {"VK_TOOL_PURPOSE_PROFILING_BIT", VK_TOOL_PURPOSE_PROFILING_BIT},
-        {"VK_TOOL_PURPOSE_TRACING_BIT", VK_TOOL_PURPOSE_TRACING_BIT},
-        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT},
-        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT},
-        {"VK_TOOL_PURPOSE_VALIDATION_BIT_EXT", VK_TOOL_PURPOSE_VALIDATION_BIT_EXT},
-        {"VK_TOOL_PURPOSE_PROFILING_BIT_EXT", VK_TOOL_PURPOSE_PROFILING_BIT_EXT},
-        {"VK_TOOL_PURPOSE_TRACING_BIT_EXT", VK_TOOL_PURPOSE_TRACING_BIT_EXT},
-        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT_EXT", VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT_EXT},
-        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT_EXT", VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT_EXT},
-    };
-    const auto it = map.find(input_value);
-    if (it != map.end()) {
-        return it->second;
-    }
-    return VkToolPurposeFlags{};
-}
-
 static VkFormatFeatureFlags StringToVkFormatFeatureFlags(const std::string &input_value) {
     static const std::unordered_map<std::string, VkFormatFeatureFlags> map = {
         {"VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT", VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT},
@@ -1505,24 +1485,6 @@ static VkFormatFeatureFlags2 StringToVkFormatFeatureFlags2(const std::string &in
     return VkFormatFeatureFlags2{};
 }
 
-static VkQueueGlobalPriorityEXT StringToVkQueueGlobalPriorityEXT(const std::string &input_value) {
-    static const std::unordered_map<std::string, VkQueueGlobalPriorityEXT> map = {
-        {"VK_QUEUE_GLOBAL_PRIORITY_LOW_KHR", VK_QUEUE_GLOBAL_PRIORITY_LOW_KHR},
-        {"VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR", VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR},
-        {"VK_QUEUE_GLOBAL_PRIORITY_HIGH_KHR", VK_QUEUE_GLOBAL_PRIORITY_HIGH_KHR},
-        {"VK_QUEUE_GLOBAL_PRIORITY_REALTIME_KHR", VK_QUEUE_GLOBAL_PRIORITY_REALTIME_KHR},
-        {"VK_QUEUE_GLOBAL_PRIORITY_LOW_EXT", VK_QUEUE_GLOBAL_PRIORITY_LOW_EXT},
-        {"VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT", VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT},
-        {"VK_QUEUE_GLOBAL_PRIORITY_HIGH_EXT", VK_QUEUE_GLOBAL_PRIORITY_HIGH_EXT},
-        {"VK_QUEUE_GLOBAL_PRIORITY_REALTIME_EXT", VK_QUEUE_GLOBAL_PRIORITY_REALTIME_EXT},
-    };
-    const auto it = map.find(input_value);
-    if (it != map.end()) {
-        return it->second;
-    }
-    return VkQueueGlobalPriorityEXT{};
-}
-
 // Global constants //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // For new features/functionality, increment the minor level and reset patch level to zero.
@@ -1531,7 +1493,11 @@ static VkQueueGlobalPriorityEXT StringToVkQueueGlobalPriorityEXT(const std::stri
 // layer/VkLayer_khronos_profiles.json.in
 
 const uint32_t kVersionProfilesMajor = 1;
+#ifdef VULKANSC
 const uint32_t kVersionProfilesMinor = 0;
+#else
+const uint32_t kVersionProfilesMinor = 3;
+#endif
 const uint32_t kVersionProfilesPatch = 0;
 const uint32_t kVersionProfilesImplementation =
     VK_MAKE_VERSION(kVersionProfilesMajor, kVersionProfilesMinor, kVersionProfilesPatch);
@@ -1550,6 +1516,13 @@ const VkLayerProperties kLayerProperties[] = {{
     "Khronos Profiles layer"         // description
 }};
 const uint32_t kLayerPropertiesCount = (sizeof(kLayerProperties) / sizeof(kLayerProperties[0]));
+
+#ifndef VULKANSC
+// Instance extensions that this layer provides:
+const VkExtensionProperties kInstanceExtensionProperties[] = {
+    VkExtensionProperties{VK_EXT_LAYER_SETTINGS_EXTENSION_NAME, VK_EXT_LAYER_SETTINGS_SPEC_VERSION}};
+const uint32_t kInstanceExtensionPropertiesCount = static_cast<uint32_t>(std::size(kInstanceExtensionProperties));
+#endif
 
 // Device extensions that this layer provides:
 #ifdef VULKANSC
@@ -1572,23 +1545,23 @@ bool device_has_pvrtc = false;
 
 std::recursive_mutex global_lock;  // Enforce thread-safety for this layer.
 
-#define GET_VALUE(member, name, not_modifiable) GetValue(device_name, parent, member, #name, &dest->name, not_modifiable)
+#define GET_VALUE(member, name, not_modifiable, requested_profile) GetValue(device_name, parent, member, #name, &dest->name, not_modifiable, requested_profile)
 #define GET_ARRAY(member, name, not_modifiable) GetArray(device_name, parent, member, #name, dest->name, not_modifiable)
 
-#define GET_VALUE_WARN(member, name, not_modifiable, warn_func)                     \
-    if (!GetValue(device_name, parent, member, #name, &dest->name, not_modifiable, warn_func)) { \
+#define GET_VALUE_WARN(member, name, not_modifiable, requested_profile, warn_func)                     \
+    if (!GetValue(device_name, parent, member, #name, &dest->name, not_modifiable, requested_profile, warn_func)) { \
         valid = false;                                                              \
     }
-#define GET_VALUE_SIZE_T_WARN(member, name, not_modifiable, warn_func)                   \
-    if (!GetValueSizet(device_name, parent, member, #name, &dest->name, not_modifiable, warn_func)) { \
+#define GET_VALUE_SIZE_T_WARN(member, name, not_modifiable, requested_profile, warn_func)                   \
+    if (!GetValueSizet(device_name, parent, member, #name, &dest->name, not_modifiable, requested_profile, warn_func)) { \
         valid = false;                                                                   \
     }
-#define GET_VALUE_FLAG_WARN(member, name, not_modifiable)                    \
-    if (!GetValueFlag(device_name, parent, member, #name, &dest->name, not_modifiable)) { \
+#define GET_VALUE_FLAG_WARN(member, name, not_modifiable, requested_profile)                    \
+    if (!GetValueFlag(device_name, parent, member, #name, &dest->name, not_modifiable, requested_profile)) { \
         valid = false;                                                       \
     }
-#define GET_VALUE_ENUM_WARN(member, name, not_modifiable, warn_func)                    \
-    if (!GetValueEnum(device_name, parent, member, #name, &dest->name, not_modifiable, warn_func)) { \
+#define GET_VALUE_ENUM_WARN(member, name, not_modifiable, requested_profile, warn_func)                    \
+    if (!GetValueEnum(device_name, parent, member, #name, &dest->name, not_modifiable, requested_profile, warn_func)) { \
         valid = false;                                                                  \
     }
 
@@ -1669,6 +1642,7 @@ class PhysicalDeviceData {
     uint32_t GetEffectiveVersion() {
         return requested_version < physical_device_properties_.apiVersion ? requested_version
                                                                           : physical_device_properties_.apiVersion;
+
     }
 
     VkInstance instance() const { return instance_; }
@@ -1781,9 +1755,8 @@ class PhysicalDeviceData {
     // VK_KHR_shader_clock structs
     VkPhysicalDeviceShaderClockFeaturesKHR physical_device_shader_clock_features_;
 
-    // VK_EXT_vertex_attribute_divisor structs
-    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT physical_device_vertex_attribute_divisor_properties_ext_;
-    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT physical_device_vertex_attribute_divisor_features_;
+    // VK_KHR_global_priority structs
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR physical_device_global_priority_query_features_;
 
     // VK_EXT_pci_bus_info structs
     VkPhysicalDevicePCIBusInfoPropertiesEXT physical_device_pcibus_info_properties_;
@@ -1871,6 +1844,10 @@ class PhysicalDeviceData {
 #ifdef VK_USE_PLATFORM_SCI
     VkPhysicalDeviceExternalSciSync2FeaturesNV physical_device_external_sci_sync_2_features_;
 #endif // VK_USE_PLATFORM_SCI
+
+    // VK_KHR_vertex_attribute_divisor structs
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR physical_device_vertex_attribute_divisor_properties_;
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR physical_device_vertex_attribute_divisor_features_;
 
     // VK_QNX_external_memory_screen_buffer structs
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
@@ -1976,9 +1953,8 @@ class PhysicalDeviceData {
         // VK_KHR_shader_clock structs
         physical_device_shader_clock_features_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR};
 
-        // VK_EXT_vertex_attribute_divisor structs
-        physical_device_vertex_attribute_divisor_properties_ext_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT};
-        physical_device_vertex_attribute_divisor_features_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT};
+        // VK_KHR_global_priority structs
+        physical_device_global_priority_query_features_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR};
 
         // VK_EXT_pci_bus_info structs
         physical_device_pcibus_info_properties_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT};
@@ -2067,6 +2043,10 @@ class PhysicalDeviceData {
         physical_device_external_sci_sync_2_features_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SCI_SYNC_2_FEATURES_NV};
 #endif // VK_USE_PLATFORM_SCI
 
+        // VK_KHR_vertex_attribute_divisor structs
+        physical_device_vertex_attribute_divisor_properties_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_KHR};
+        physical_device_vertex_attribute_divisor_features_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_KHR};
+
         // VK_QNX_external_memory_screen_buffer structs
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
         physical_device_external_memory_screen_buffer_features_ = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX};
@@ -2124,12 +2104,13 @@ class JsonLoader {
         profile_map().erase(instance);
     }
 
+    void LogFoundProfiles();
     const Json::Value& FindRootFromProfileName(const std::string& profile_name) const;
     VkResult LoadProfilesDatabase();
     VkResult LoadFile(const std::string& filename);
     void ReadProfileApiVersion();
     VkResult LoadDevice(const char* device_name, PhysicalDeviceData *pdd);
-    VkResult ReadProfile(const char* device_name, const Json::Value& root, const std::vector<std::vector<std::string>> &capabilities);
+    VkResult ReadProfile(const char* device_name, const Json::Value& root, const std::vector<std::vector<std::string>> &capabilities, bool requested_profile, bool enable_warnings);
     uint32_t GetProfileApiVersion() const { return profile_api_version_; }
     void CollectProfiles(const std::string& profile_name, std::vector<std::string>& results) const;
 
@@ -2157,9 +2138,9 @@ class JsonLoader {
 
     bool WarnDuplicatedFeature(const Json::Value &parent);
     bool WarnDuplicatedProperty(const Json::Value &parent);
-    bool GetFeature(const char *device_name, const Json::Value &features, const std::string &name);
-    bool GetProperty(const char *device_name, const Json::Value &props, const std::string &name);
-    bool GetFormat(const char *device_name, const Json::Value &formats, const std::string &format_name, MapOfVkFormatProperties *dest,
+    bool GetFeature(const char *device_name, bool requested_profile, const Json::Value &features, const std::string &name);
+    bool GetProperty(const char *device_name, bool requested_profile, const Json::Value &props, const std::string &name);
+    bool GetFormat(const char *device_name, bool requested_profile, const Json::Value &formats, const std::string &format_name, MapOfVkFormatProperties *dest,
                    MapOfVkFormatProperties3 *dest3);
     bool CheckVersionSupport(uint32_t version, const std::string &name);
     ExtensionSupport CheckExtensionSupport(const char *extension, const std::string &name);
@@ -2167,313 +2148,358 @@ class JsonLoader {
     bool GetQueueFamilyProperties(const char* device_name, const Json::Value &qf_props, QueueFamilyProperties *dest);
     bool OrderQueueFamilyProperties(ArrayOfVkQueueFamilyProperties *qfp);
     void AddPromotedExtensions(uint32_t api_level);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDriverProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceIDProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMultiviewProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSubgroupProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePointClippingProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSamplerFilterMinmaxProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMaintenance3Properties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMaintenance4Properties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFloatControlsProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDepthStencilResolveProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan11Properties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan12Properties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan13Properties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Properties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePrivateDataFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVariablePointerFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMultiviewFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevice16BitStorageFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSamplerYcbcrConversionFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMaintenance4Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderDrawParameterFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderFloat16Int8Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceHostQueryResetFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevice8BitStorageFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkanMemoryModelFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderAtomicInt64Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceScalarBlockLayoutFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceUniformBufferStandardLayoutFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceBufferDeviceAddressFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceImagelessFramebufferFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePipelineCreationCacheControlFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan11Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan12Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan13Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Features *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDynamicRenderingFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceASTCDecodeFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDiscardRectanglePropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceConservativeRasterizationPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDepthClipEnableFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePerformanceQueryPropertiesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePerformanceQueryFeaturesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSampleLocationsPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalMemoryHostPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderClockFeaturesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePCIBusInfoPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRatePropertiesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRateFeaturesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceLineRasterizationPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceLineRasterizationFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceIndexTypeUint8FeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceRobustness2PropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceRobustness2FeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorPropertiesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSynchronization2FeaturesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceImageRobustnessFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevice4444FormatsFeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDriverProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceIDProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMultiviewProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSubgroupProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePointClippingProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSamplerFilterMinmaxProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMaintenance3Properties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMaintenance4Properties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFloatControlsProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDepthStencilResolveProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan11Properties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan12Properties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan13Properties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Properties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePrivateDataFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVariablePointerFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMultiviewFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevice16BitStorageFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSamplerYcbcrConversionFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMaintenance4Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderDrawParameterFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderFloat16Int8Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceHostQueryResetFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevice8BitStorageFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkanMemoryModelFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderAtomicInt64Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceScalarBlockLayoutFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceUniformBufferStandardLayoutFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceBufferDeviceAddressFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceImagelessFramebufferFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePipelineCreationCacheControlFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan11Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan12Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan13Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Features *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDynamicRenderingFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceASTCDecodeFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDiscardRectanglePropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceConservativeRasterizationPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDepthClipEnableFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePerformanceQueryPropertiesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePerformanceQueryFeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSampleLocationsPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemoryHostPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderClockFeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePCIBusInfoPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRatePropertiesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRateFeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLineRasterizationPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLineRasterizationFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceIndexTypeUint8FeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceRobustness2PropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceRobustness2FeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorPropertiesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSynchronization2FeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceImageRobustnessFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevice4444FormatsFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *dest);
 #ifdef VK_USE_PLATFORM_SCI
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalSciSyncFeaturesNV *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalSciSyncFeaturesNV *dest);
 #endif // VK_USE_PLATFORM_SCI
 #ifdef VK_USE_PLATFORM_SCI
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalMemorySciBufFeaturesNV *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemorySciBufFeaturesNV *dest);
 #endif // VK_USE_PLATFORM_SCI
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceColorWriteEnableFeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceColorWriteEnableFeaturesEXT *dest);
 #ifdef VK_USE_PLATFORM_SCI
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalSciSync2FeaturesNV *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalSciSync2FeaturesNV *dest);
 #endif // VK_USE_PLATFORM_SCI
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR *dest);
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX *dest);
 #endif // VK_USE_PLATFORM_SCREEN_QNX
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFeatures *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetFeaturesKHR *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceLimits *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSparseProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceToolProperties *dest);
-    bool GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetPropertiesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFeatures *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetFeaturesKHR *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLimits *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSparseProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceToolProperties *dest);
+    bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetPropertiesKHR *dest);
 
-    static bool WarnIfNotEqualFloat(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqualFloat(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
         if (std::abs(new_value - old_value) > 0.0001f) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%3.2f) is different from the device (%s) value (%3.2f).\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%3.2f) is different from the device (%s) supported value (%3.2f).\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%3.2f) is different from the device (%s) value (%3.2f)\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%3.2f) is different from the device (%s) supported value (%3.2f)\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqualBool(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const bool new_value, const bool old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqualBool(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const bool new_value, const bool old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%s) is different from the device (%s) value (%s)\n", cap_name, new_value ? "true" : "false", device_name, old_value ? "true" : "false");
-            } else if (new_value) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value is enabled in the profile, but the device (%s) does not support it.\n", cap_name, device_name);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%s) is different from the device (%s) value (%s)\n", cap_name, new_value ? "true" : "false", device_name, old_value ? "true" : "false");
+                } else if (new_value) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value is enabled in the profile, but the device (%s) does not support it\n", cap_name, device_name);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqualEnum(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqualEnum(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqual(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqual(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqual32u(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqual32u(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqual(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const int32_t new_value, const int32_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqual(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const int32_t new_value, const int32_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIi32 ") is different from the device (%s) value (%" PRIi32 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIi32 ") is different from the device (%s) value (%" PRIi32 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIi32 ") is different from the device (%s) value (%" PRIi32 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIi32 ") is different from the device (%s) value (%" PRIi32 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqual64u(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint64_t new_value, const uint64_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqual64u(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint64_t new_value, const uint64_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIu64 ") is different from the device (%s) value (%" PRIu64 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIu64 ") is different from the device (%s) value (%" PRIu64 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIu64 ") is different from the device (%s) value (%" PRIu64 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIu64 ") is different from the device (%s) value (%" PRIu64 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEquali64(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const int64_t new_value, const int64_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEquali64(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const int64_t new_value, const int64_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIi64 ") is different from the device (%s) value (%" PRIi64 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIi64 ") is different from the device (%s) value (%" PRIi64 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIi64 ") is different from the device (%s) value (%" PRIi64 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIi64 ") is different from the device (%s) value (%" PRIi64 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfNotEqualSizet(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const size_t new_value, const size_t old_value, const bool not_modifiable) {
+    static bool WarnIfNotEqualSizet(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const size_t new_value, const size_t old_value, const bool not_modifiable) {
         if (new_value != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIuLEAST64 ") is different from the device (%s) value (%" PRIuLEAST64 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIuLEAST64 ") is different from the device (%s) value (%" PRIuLEAST64 ").\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIuLEAST64 ") is different from the device (%s) value (%" PRIuLEAST64 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIuLEAST64 ") is different from the device (%s) value (%" PRIuLEAST64 ")\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfMissingBit(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
+    static bool WarnIfMissingBit(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint32_t new_value, const uint32_t old_value, const bool not_modifiable) {
         if ((old_value | new_value) != old_value) {
-            if (not_modifiable) {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ").\n", cap_name, new_value, device_name, old_value);
-            } else {
-                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                    "'%s' profile value (%" PRIu32 ") has bits set that the device (%s) value (%" PRIu32 ") does not.\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                if (not_modifiable) {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' is not modifiable but the profile value (%" PRIu32 ") is different from the device (%s) value (%" PRIu32 ")\n", cap_name, new_value, device_name, old_value);
+                } else {
+                    LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                        "'%s' profile value (%" PRIu32 ") has bits set that the device (%s) value (%" PRIu32 ") does not\n", cap_name, new_value, device_name, old_value);
+                }
             }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfGreater(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint64_t new_value, const uint64_t old_value, const bool not_modifiable) {
+    static bool WarnIfGreater(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint64_t new_value, const uint64_t old_value, const bool not_modifiable) {
+        (void)not_modifiable;
+
         if (new_value > old_value) {
-            LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                "'%s' profile value (%" PRIu64 ") is greater than device (%s) value (%" PRIu64 ")\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                    "'%s' profile value (%" PRIu64 ") is greater than device (%s) value (%" PRIu64 ")\n", cap_name, new_value, device_name, old_value);
+            }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfGreaterSizet(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const size_t new_value, const size_t old_value, const bool not_modifiable) {
+    static bool WarnIfGreaterSizet(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const size_t new_value, const size_t old_value, const bool not_modifiable) {
+        (void)not_modifiable;
+
         if (new_value > old_value) {
-            LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                "'%s' profile value (%" PRIuLEAST64 ") is greater than device (%s) value (%" PRIuLEAST64 ")\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                    "'%s' profile value (%" PRIuLEAST64 ") is greater than device (%s) value (%" PRIuLEAST64 ")\n", cap_name, new_value, device_name, old_value);
+            }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfGreaterFloat(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
+    static bool WarnIfGreaterFloat(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
+        (void)not_modifiable;
+
         if (new_value > old_value) {
-            LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                "'%s' profile value (%3.2f) is greater than device (%s) value (%3.2f)\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                    "'%s' profile value (%3.2f) is greater than device (%s) value (%3.2f)\n", cap_name, new_value, device_name, old_value);
+            }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfLesser(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const uint64_t new_value, const uint64_t old_value, const bool not_modifiable) {
+    static bool WarnIfLesser(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const uint64_t new_value, const uint64_t old_value, const bool not_modifiable) {
+        (void)not_modifiable;
+
         if (new_value < old_value) {
-            LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+            if (enable_warnings) {
+                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
                 "'%s' profile value (%" PRIu64 ") is lesser than device (%s) value (%" PRIu64 ")\n", cap_name, new_value, device_name, old_value);
+            }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfLesserSizet(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const size_t new_value, const size_t old_value, const bool not_modifiable) {
+    static bool WarnIfLesserSizet(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const size_t new_value, const size_t old_value, const bool not_modifiable) {
+        (void)not_modifiable;
+
         if (new_value < old_value) {
-            LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                "'%s' profile value (%" PRIuLEAST64 ") is lesser than device (%s) value (%" PRIuLEAST64 ")\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                    "'%s' profile value (%" PRIuLEAST64 ") is lesser than device (%s) value (%" PRIuLEAST64 ")\n", cap_name, new_value, device_name, old_value);
+            }
             return true;
         }
         return false;
     }
 
-    static bool WarnIfLesserFloat(ProfileLayerSettings *layer_settings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
+    static bool WarnIfLesserFloat(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
+        (void)not_modifiable;
+
         if (new_value < old_value) {
-            LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
-                "'%s' profile value (%3.2f) is lesser than device (%s) value (%3.2f)\n", cap_name, new_value, device_name, old_value);
+            if (enable_warnings) {
+                LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
+                    "'%s' profile value (%3.2f) is lesser than device (%s) value (%3.2f)\n", cap_name, new_value, device_name, old_value);
+            }
             return true;
         }
         return false;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, float *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, float, float, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, float *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, float, float, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2489,7 +2515,7 @@ class JsonLoader {
         bool valid = true;
         const float new_value = value.asFloat();
         if (warn_func) {
-            if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+            if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                 valid = false;
             }
         }
@@ -2500,8 +2526,8 @@ class JsonLoader {
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint8_t *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, uint8_t, uint8_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint8_t *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, uint8_t, uint8_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2515,7 +2541,7 @@ class JsonLoader {
         if (value.isBool()) {
             const bool new_value = value.asBool();
             if (warn_func) {
-                if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+                if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                     valid = false;
                 }
             }
@@ -2533,7 +2559,7 @@ class JsonLoader {
         } else if (value.isUInt()) {
             const uint8_t new_value = static_cast<uint8_t>(value.asUInt());
             if (warn_func) {
-                if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+                if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                     valid = false;
                 }
             }
@@ -2544,8 +2570,8 @@ class JsonLoader {
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, int32_t *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, int32_t, int32_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, int32_t *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, int32_t, int32_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2561,7 +2587,7 @@ class JsonLoader {
         bool valid = true;
         const int32_t new_value = value.asInt();
         if (warn_func) {
-            if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+            if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                 valid = false;
             }
         }
@@ -2572,8 +2598,8 @@ class JsonLoader {
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, int64_t *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, int64_t, int64_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, int64_t *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, int64_t, int64_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2589,7 +2615,7 @@ class JsonLoader {
         bool valid = true;
         const int64_t new_value = value.asInt64();
         if (warn_func) {
-            if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+            if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                 valid = false;
             }
         }
@@ -2600,8 +2626,8 @@ class JsonLoader {
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint32_t *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint32_t *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2615,7 +2641,7 @@ class JsonLoader {
         if (value.isBool()) {
             const bool new_value = value.asBool();
             if (warn_func) {
-                if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+                if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                     valid = false;
                 }
             }
@@ -2637,7 +2663,7 @@ class JsonLoader {
         } else if (value.isUInt()) {
             const uint32_t new_value = value.asUInt();
             if (warn_func) {
-                if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+                if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                     valid = false;
                 }
             }
@@ -2649,8 +2675,8 @@ class JsonLoader {
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint64_t *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, uint64_t, uint64_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint64_t *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, uint64_t, uint64_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2666,7 +2692,7 @@ class JsonLoader {
         bool valid = true;
         const uint64_t new_value = value.asUInt64();
         if (warn_func) {
-            if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+            if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                 valid = false;
             }
         }
@@ -2677,8 +2703,8 @@ class JsonLoader {
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &pparent, const std::string &member, const char *name, VkExtent2D *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &pparent, const std::string &member, const char *name, VkExtent2D *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2693,14 +2719,14 @@ class JsonLoader {
         }
         bool valid = true;
         for (const auto &prop : parent.getMemberNames()) {
-            GET_VALUE_WARN(prop, width, not_modifiable, warn_func);
-            GET_VALUE_WARN(prop, height, not_modifiable, warn_func);
+            GET_VALUE_WARN(prop, width, not_modifiable, requested_profile, warn_func);
+            GET_VALUE_WARN(prop, height, not_modifiable, requested_profile, warn_func);
         }
         return valid;
     }
 
-    bool GetValue(const char* device_name, const Json::Value &pparent, const std::string &member, const char *name, VkExtent3D *dest, bool not_modifiable,
-                  std::function<bool(ProfileLayerSettings *, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
+    bool GetValue(const char* device_name, const Json::Value &pparent, const std::string &member, const char *name, VkExtent3D *dest, bool not_modifiable, bool requested_profile,
+                  std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2715,15 +2741,15 @@ class JsonLoader {
         }
         bool valid = true;
         for (const auto &prop : parent.getMemberNames()) {
-            GET_VALUE_WARN(prop, width, not_modifiable, warn_func);
-            GET_VALUE_WARN(prop, height, not_modifiable, warn_func);
-            GET_VALUE_WARN(prop, depth, not_modifiable, warn_func);
+            GET_VALUE_WARN(prop, width, not_modifiable, requested_profile, warn_func);
+            GET_VALUE_WARN(prop, height, not_modifiable, requested_profile, warn_func);
+            GET_VALUE_WARN(prop, depth, not_modifiable, requested_profile, warn_func);
         }
-        return true;
+        return valid;
     }
 
-    bool GetValueSizet(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, size_t *dest, bool not_modifiable,
-                       std::function<bool(ProfileLayerSettings *, const char *, const char *, size_t, size_t, bool)> warn_func = nullptr) {
+    bool GetValueSizet(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, size_t *dest, bool not_modifiable, bool requested_profile,
+                       std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, size_t, size_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2737,7 +2763,7 @@ class JsonLoader {
         if (value.isUInt()) {
             const size_t new_value = value.asUInt();
             if (warn_func) {
-                if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+                if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                     valid = false;
                 }
             }
@@ -2750,8 +2776,8 @@ class JsonLoader {
     }
 
     template <typename T>  // for Vulkan enum types
-    bool GetValueFlag(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, T *dest, bool not_modifiable,
-                      std::function<bool(ProfileLayerSettings *, const char *, const char *, T, T, bool)> warn_func = nullptr) {
+    bool GetValueFlag(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, T *dest, bool not_modifiable, bool requested_profile,
+                      std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, T, T, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2770,7 +2796,7 @@ class JsonLoader {
                 }
             }
         }
-        if (WarnIfMissingBit(&layer_settings, device_name, name, new_value, static_cast<uint32_t>(*dest), not_modifiable)) {
+        if (WarnIfMissingBit(&layer_settings, requested_profile, device_name, name, new_value, static_cast<uint32_t>(*dest), not_modifiable)) {
             valid = false;
         }
 
@@ -2781,8 +2807,8 @@ class JsonLoader {
     }
 
     template <typename T>  // for Vulkan enum types
-    bool GetValueEnum(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, T *dest, bool not_modifiable,
-                      std::function<bool(ProfileLayerSettings *, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
+    bool GetValueEnum(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, T *dest, bool not_modifiable, bool requested_profile,
+                      std::function<bool(ProfileLayerSettings *, bool, const char *, const char *, uint32_t, uint32_t, bool)> warn_func = nullptr) {
         if (member != name) {
             return true;
         }
@@ -2798,11 +2824,11 @@ class JsonLoader {
             new_value = static_cast<T>(VkStringToUint(value.asString()));
         }
         if (warn_func) {
-            if (warn_func(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+            if (warn_func(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                 valid = false;
             }
         } else {
-            if (WarnIfNotEqualEnum(&layer_settings, device_name, name, new_value, *dest, not_modifiable)) {
+            if (WarnIfNotEqualEnum(&layer_settings, requested_profile, device_name, name, new_value, *dest, not_modifiable)) {
                 valid = false;
             }
         }
@@ -2813,7 +2839,10 @@ class JsonLoader {
         return valid;
     }
 
-    int GetArray(const Json::Value &parent, const std::string &member, const char *name, uint8_t *dest, bool not_modifiable) {
+    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint8_t *dest, bool not_modifiable) {
+        (void)not_modifiable;
+        (void)device_name;
+
         if (member != name) {
             return -1;
         }
@@ -2829,7 +2858,10 @@ class JsonLoader {
         return count;
     }
 
-    int GetArray(const Json::Value &parent, const std::string &member, const char *name, uint32_t *dest, bool not_modifiable) {
+    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint32_t *dest, bool not_modifiable) {
+        (void)not_modifiable;
+        (void)device_name;
+
         if (member != name) {
             return -1;
         }
@@ -2845,7 +2877,10 @@ class JsonLoader {
         return count;
     }
 
-    int GetArray(const Json::Value &parent, const std::string &member, const char *name, float *dest, bool not_modifiable) {
+    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, float *dest, bool not_modifiable) {
+        (void)not_modifiable;
+        (void)device_name;
+
         if (member != name) {
             return -1;
         }
@@ -2861,7 +2896,10 @@ class JsonLoader {
         return count;
     }
 
-    int GetArray(const Json::Value &parent, const std::string &member, const char *name, char *dest, bool not_modifiable) {
+    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, char *dest, bool not_modifiable) {
+        (void)not_modifiable;
+        (void)device_name;
+
         if (member != name) {
             return -1;
         }
@@ -2880,7 +2918,10 @@ class JsonLoader {
         return count;
     }
 
-    int GetArray(const Json::Value &parent, const std::string &member, const char *name, VkImageLayout *dest, bool not_modifiable) {
+    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, VkImageLayout *dest, bool not_modifiable) {
+        (void)not_modifiable;
+        (void)device_name;
+
         if (member != name) {
             return -1;
         }
@@ -3047,7 +3088,6 @@ bool JsonLoader::WarnDuplicatedFeature(const Json::Value &parent) {
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDevice8BitStorageFeatures", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceVulkanMemoryModelFeatures", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceShaderAtomicInt64Features", "VkPhysicalDeviceVulkanSC10Features"});
-    valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR", "VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceScalarBlockLayoutFeatures", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceUniformBufferStandardLayoutFeatures", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceBufferDeviceAddressFeatures", "VkPhysicalDeviceVulkanSC10Features"});
@@ -3091,28 +3131,28 @@ bool JsonLoader::WarnDuplicatedProperty(const Json::Value &parent) {
     return valid;
 }
 
-bool JsonLoader::GetFeature(const char *device_name, const Json::Value &features, const std::string &name) {
+bool JsonLoader::GetFeature(const char *device_name, bool requested_profile, const Json::Value &features, const std::string &name) {
     const Json::Value &feature = features[name];
 
     if (name == "VkPhysicalDeviceFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_features_);
     } else if (name == "VkPhysicalDeviceExternalSciBufFeaturesNV" || name == "VkPhysicalDeviceExternalMemorySciBufFeaturesNV") {
 #ifdef VK_USE_PLATFORM_SCI
         auto support = CheckExtensionSupport(VK_NV_EXTERNAL_MEMORY_SCI_BUF_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_external_memory_sci_buf_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_external_memory_sci_buf_features_);
 #else
         return false;
 #endif // VK_USE_PLATFORM_SCI
     } else if (name == "VkPhysicalDevicePrivateDataFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_private_data_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_private_data_features_);
     } else if (name == "VkPhysicalDeviceVariablePointerFeatures" || name == "VkPhysicalDeviceVariablePointersFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_variable_pointer_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_variable_pointer_features_);
     } else if (name == "VkPhysicalDeviceExternalSciSyncFeaturesNV") {
 #ifdef VK_USE_PLATFORM_SCI
         auto support = CheckExtensionSupport(VK_NV_EXTERNAL_SCI_SYNC_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_external_sci_sync_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_external_sci_sync_features_);
 #else
         return false;
 #endif // VK_USE_PLATFORM_SCI
@@ -3120,195 +3160,207 @@ bool JsonLoader::GetFeature(const char *device_name, const Json::Value &features
 #ifdef VK_USE_PLATFORM_SCI
         auto support = CheckExtensionSupport(VK_NV_EXTERNAL_SCI_SYNC_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_external_sci_sync_2_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_external_sci_sync_2_features_);
 #else
         return false;
 #endif // VK_USE_PLATFORM_SCI
     } else if (name == "VkPhysicalDeviceMultiviewFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_multiview_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_multiview_features_);
     } else if (name == "VkPhysicalDevice16BitStorageFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_16_bit_storage_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_16_bit_storage_features_);
     } else if (name == "VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_subgroup_extended_types_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_subgroup_extended_types_features_);
     } else if (name == "VkPhysicalDeviceSamplerYcbcrConversionFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_sampler_ycbcr_conversion_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_sampler_ycbcr_conversion_features_);
     } else if (name == "VkPhysicalDeviceProtectedMemoryFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_protected_memory_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_protected_memory_features_);
     } else if (name == "VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_BLEND_OPERATION_ADVANCED_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_blend_operation_advanced_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_blend_operation_advanced_features_);
     } else if (name == "VkPhysicalDeviceInlineUniformBlockFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_inline_uniform_block_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_inline_uniform_block_features_);
     } else if (name == "VkPhysicalDeviceMaintenance4Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_maintenance_4_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_maintenance_4_features_);
     } else if (name == "VkPhysicalDeviceShaderDrawParameterFeatures" || name == "VkPhysicalDeviceShaderDrawParametersFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_draw_parameter_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_draw_parameter_features_);
     } else if (name == "VkPhysicalDeviceShaderFloat16Int8Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_float_16_int_8_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_float_16_int_8_features_);
     } else if (name == "VkPhysicalDeviceHostQueryResetFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_host_query_reset_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_host_query_reset_features_);
+    } else if (name == "VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR") {
+        auto support = CheckExtensionSupport(VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME, name);
+        if (support != ExtensionSupport::SUPPORTED) return valid(support);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_global_priority_query_features_);
     } else if (name == "VkPhysicalDeviceDescriptorIndexingFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_descriptor_indexing_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_descriptor_indexing_features_);
     } else if (name == "VkPhysicalDeviceTimelineSemaphoreFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_timeline_semaphore_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_timeline_semaphore_features_);
     } else if (name == "VkPhysicalDevice8BitStorageFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_8_bit_storage_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_8_bit_storage_features_);
     } else if (name == "VkPhysicalDeviceVulkanMemoryModelFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_vulkan_memory_model_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vulkan_memory_model_features_);
     } else if (name == "VkPhysicalDeviceShaderAtomicInt64Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_atomic_int_64_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_atomic_int_64_features_);
     } else if (name == "VkPhysicalDeviceShaderAtomicFloatFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_atomic_float_features_);
-    } else if (name == "VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT" || name == "VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR") {
-        auto support = CheckExtensionSupport(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME, name);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_atomic_float_features_);
+    } else if (name == "VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR") {
+        auto support = CheckExtensionSupport(VK_KHR_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_vertex_attribute_divisor_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vertex_attribute_divisor_features_);
     } else if (name == "VkPhysicalDeviceASTCDecodeFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_astcdecode_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_astcdecode_features_);
     } else if (name == "VkPhysicalDeviceScalarBlockLayoutFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_scalar_block_layout_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_scalar_block_layout_features_);
     } else if (name == "VkPhysicalDeviceUniformBufferStandardLayoutFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_uniform_buffer_standard_layout_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_uniform_buffer_standard_layout_features_);
     } else if (name == "VkPhysicalDeviceDepthClipEnableFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_depth_clip_enable_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_depth_clip_enable_features_);
     } else if (name == "VkPhysicalDeviceBufferDeviceAddressFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_buffer_device_address_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_buffer_device_address_features_);
     } else if (name == "VkPhysicalDeviceImagelessFramebufferFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_imageless_framebuffer_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_imageless_framebuffer_features_);
     } else if (name == "VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_texture_compression_astchdrfeatures_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_texture_compression_astchdrfeatures_);
     } else if (name == "VkPhysicalDeviceTextureCompressionASTCHDRFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_texture_compression_astchdrfeatures_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_texture_compression_astchdrfeatures_);
     } else if (name == "VkPhysicalDeviceYcbcrImageArraysFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_YCBCR_IMAGE_ARRAYS_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_ycbcr_image_arrays_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_ycbcr_image_arrays_features_);
     } else if (name == "VkPhysicalDevicePerformanceQueryFeaturesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_performance_query_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_performance_query_features_);
     } else if (name == "VkPhysicalDeviceShaderClockFeaturesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_SHADER_CLOCK_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_clock_features_);
-    } else if (name == "VkPhysicalDeviceIndexTypeUint8FeaturesEXT" || name == "VkPhysicalDeviceIndexTypeUint8FeaturesKHR") {
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_clock_features_);
+    } else if (name == "VkPhysicalDeviceIndexTypeUint8FeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_index_type_uint_8_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_index_type_uint_8_features_);
+    } else if (name == "VkPhysicalDeviceIndexTypeUint8FeaturesKHR") {
+        auto support = CheckExtensionSupport(VK_KHR_INDEX_TYPE_UINT8_EXTENSION_NAME, name);
+        if (support != ExtensionSupport::SUPPORTED) return valid(support);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_index_type_uint_8_features_);
     } else if (name == "VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_fragment_shader_interlock_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_fragment_shader_interlock_features_);
     } else if (name == "VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_separate_depth_stencil_layouts_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_separate_depth_stencil_layouts_features_);
     } else if (name == "VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_demote_to_helper_invocation_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_demote_to_helper_invocation_features_);
     } else if (name == "VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_demote_to_helper_invocation_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_demote_to_helper_invocation_features_);
     } else if (name == "VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_texel_buffer_alignment_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_texel_buffer_alignment_features_);
     } else if (name == "VkPhysicalDeviceSubgroupSizeControlFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_subgroup_size_control_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_subgroup_size_control_features_);
     } else if (name == "VkPhysicalDeviceSubgroupSizeControlFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_subgroup_size_control_features_);
-    } else if (name == "VkPhysicalDeviceLineRasterizationFeaturesEXT" || name == "VkPhysicalDeviceLineRasterizationFeaturesKHR") {
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_subgroup_size_control_features_);
+    } else if (name == "VkPhysicalDeviceLineRasterizationFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_line_rasterization_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_line_rasterization_features_);
+    } else if (name == "VkPhysicalDeviceLineRasterizationFeaturesKHR") {
+        auto support = CheckExtensionSupport(VK_KHR_LINE_RASTERIZATION_EXTENSION_NAME, name);
+        if (support != ExtensionSupport::SUPPORTED) return valid(support);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_line_rasterization_features_);
     } else if (name == "VkPhysicalDevicePipelineCreationCacheControlFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_pipeline_creation_cache_control_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_pipeline_creation_cache_control_features_);
     } else if (name == "VkPhysicalDeviceVulkan11Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_vulkan_11_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vulkan_11_features_);
     } else if (name == "VkPhysicalDeviceVulkan12Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_vulkan_12_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vulkan_12_features_);
     } else if (name == "VkPhysicalDeviceVulkan13Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_vulkan_13_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vulkan_13_features_);
     } else if (name == "VkPhysicalDeviceCustomBorderColorFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_custom_border_color_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_custom_border_color_features_);
     } else if (name == "VkPhysicalDeviceExtendedDynamicStateFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_extended_dynamic_state_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_extended_dynamic_state_features_);
     } else if (name == "VkPhysicalDeviceExtendedDynamicState2FeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_extended_dynamic_state_2_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_extended_dynamic_state_2_features_);
     } else if (name == "VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_zero_initialize_workgroup_memory_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_zero_initialize_workgroup_memory_features_);
     } else if (name == "VkPhysicalDeviceRobustness2FeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_robustness_2_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_robustness_2_features_);
     } else if (name == "VkPhysicalDeviceImageRobustnessFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_image_robustness_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_image_robustness_features_);
     } else if (name == "VkPhysicalDeviceImageRobustnessFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_image_robustness_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_image_robustness_features_);
     } else if (name == "VkPhysicalDevice4444FormatsFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_4444_FORMATS_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_4444_formats_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_4444_formats_features_);
     } else if (name == "VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_image_atomic_int_64_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_image_atomic_int_64_features_);
     } else if (name == "VkPhysicalDeviceFragmentShadingRateFeaturesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_fragment_shading_rate_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_fragment_shading_rate_features_);
     } else if (name == "VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_terminate_invocation_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_terminate_invocation_features_);
     } else if (name == "VkPhysicalDeviceShaderTerminateInvocationFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_terminate_invocation_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_terminate_invocation_features_);
     } else if (name == "VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_vertex_input_dynamic_state_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vertex_input_dynamic_state_features_);
     } else if (name == "VkPhysicalDeviceColorWriteEnableFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_color_write_enable_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_color_write_enable_features_);
     } else if (name == "VkPhysicalDeviceSynchronization2FeaturesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_synchronization_2_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_synchronization_2_features_);
     } else if (name == "VkPhysicalDeviceSynchronization2Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_synchronization_2_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_synchronization_2_features_);
     } else if (name == "VkPhysicalDeviceVulkanSC10Features") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_vulkan_sc_10_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_vulkan_sc_10_features_);
     } else if (name == "VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_YCBCR_2PLANE_444_FORMATS_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_ycbcr_2_plane_444_formats_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_ycbcr_2_plane_444_formats_features_);
     } else if (name == "VkPhysicalDeviceShaderIntegerDotProductFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_shader_integer_dot_product_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_shader_integer_dot_product_features_);
     } else if (name == "VkPhysicalDeviceDynamicRenderingFeatures") {
-        return GetStruct(device_name, feature, &pdd_->physical_device_dynamic_rendering_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_dynamic_rendering_features_);
     } else if (name == "VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX") {
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
         auto support = CheckExtensionSupport(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, feature, &pdd_->physical_device_external_memory_screen_buffer_features_);
+        return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_external_memory_screen_buffer_features_);
 #else
         return false;
 #endif // VK_USE_PLATFORM_SCREEN_QNX
@@ -3317,122 +3369,128 @@ bool JsonLoader::GetFeature(const char *device_name, const Json::Value &features
     return true;
 }
 
-bool JsonLoader::GetProperty(const char *device_name, const Json::Value &props, const std::string &name) {
+bool JsonLoader::GetProperty(const char *device_name, bool requested_profile, const Json::Value &props, const std::string &name) {
     const Json::Value &property = props[name];
 
     if (name == "VkPhysicalDeviceProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_properties_);
     } else if (name == "VkPhysicalDeviceSparseProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_properties_.sparseProperties);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_properties_.sparseProperties);
     } else if (name == "VkPhysicalDeviceLimits") {
-        return GetStruct(device_name, property, &pdd_->physical_device_properties_.limits);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_properties_.limits);
     } else if (name == "VkPhysicalDeviceDriverProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_driver_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_driver_properties_);
     } else if (name == "VkPhysicalDeviceIDProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_idproperties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_idproperties_);
     } else if (name == "VkPhysicalDeviceMultiviewProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_multiview_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_multiview_properties_);
     } else if (name == "VkPhysicalDeviceDiscardRectanglePropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_DISCARD_RECTANGLES_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_discard_rectangle_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_discard_rectangle_properties_);
     } else if (name == "VkPhysicalDeviceSubgroupProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_subgroup_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_subgroup_properties_);
     } else if (name == "VkPhysicalDevicePointClippingProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_point_clipping_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_point_clipping_properties_);
     } else if (name == "VkPhysicalDeviceProtectedMemoryProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_protected_memory_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_protected_memory_properties_);
     } else if (name == "VkPhysicalDeviceSamplerFilterMinmaxProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_sampler_filter_minmax_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_sampler_filter_minmax_properties_);
     } else if (name == "VkPhysicalDeviceSampleLocationsPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_sample_locations_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_sample_locations_properties_);
     } else if (name == "VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_BLEND_OPERATION_ADVANCED_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_blend_operation_advanced_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_blend_operation_advanced_properties_);
     } else if (name == "VkPhysicalDeviceInlineUniformBlockProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_inline_uniform_block_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_inline_uniform_block_properties_);
     } else if (name == "VkPhysicalDeviceMaintenance3Properties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_maintenance_3_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_maintenance_3_properties_);
     } else if (name == "VkPhysicalDeviceMaintenance4Properties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_maintenance_4_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_maintenance_4_properties_);
     } else if (name == "VkPhysicalDeviceFloatControlsProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_float_controls_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_float_controls_properties_);
     } else if (name == "VkPhysicalDeviceExternalMemoryHostPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_external_memory_host_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_external_memory_host_properties_);
     } else if (name == "VkPhysicalDeviceConservativeRasterizationPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_conservative_rasterization_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_conservative_rasterization_properties_);
     } else if (name == "VkPhysicalDeviceDescriptorIndexingProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_descriptor_indexing_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_descriptor_indexing_properties_);
     } else if (name == "VkPhysicalDeviceTimelineSemaphoreProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_timeline_semaphore_properties_);
-    } else if (name == "VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT") {
-        auto support = CheckExtensionSupport(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME, name);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_timeline_semaphore_properties_);
+    } else if (name == "VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR") {
+        auto support = CheckExtensionSupport(VK_KHR_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_vertex_attribute_divisor_properties_ext_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vertex_attribute_divisor_properties_);
     } else if (name == "VkPhysicalDevicePCIBusInfoPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_PCI_BUS_INFO_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_pcibus_info_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_pcibus_info_properties_);
     } else if (name == "VkPhysicalDeviceDepthStencilResolveProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_depth_stencil_resolve_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_depth_stencil_resolve_properties_);
     } else if (name == "VkPhysicalDevicePerformanceQueryPropertiesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_performance_query_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_performance_query_properties_);
     } else if (name == "VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_texel_buffer_alignment_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_texel_buffer_alignment_properties_);
     } else if (name == "VkPhysicalDeviceTexelBufferAlignmentProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_texel_buffer_alignment_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_texel_buffer_alignment_properties_);
     } else if (name == "VkPhysicalDeviceSubgroupSizeControlPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_subgroup_size_control_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_subgroup_size_control_properties_);
     } else if (name == "VkPhysicalDeviceSubgroupSizeControlProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_subgroup_size_control_properties_);
-    } else if (name == "VkPhysicalDeviceLineRasterizationPropertiesEXT" || name == "VkPhysicalDeviceLineRasterizationPropertiesKHR") {
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_subgroup_size_control_properties_);
+    } else if (name == "VkPhysicalDeviceLineRasterizationPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_line_rasterization_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_line_rasterization_properties_);
+    } else if (name == "VkPhysicalDeviceLineRasterizationPropertiesKHR") {
+        auto support = CheckExtensionSupport(VK_KHR_LINE_RASTERIZATION_EXTENSION_NAME, name);
+        if (support != ExtensionSupport::SUPPORTED) return valid(support);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_line_rasterization_properties_);
     } else if (name == "VkPhysicalDeviceVulkan11Properties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_vulkan_11_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_11_properties_);
     } else if (name == "VkPhysicalDeviceVulkan12Properties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_vulkan_12_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_12_properties_);
     } else if (name == "VkPhysicalDeviceVulkan13Properties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_vulkan_13_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_13_properties_);
     } else if (name == "VkPhysicalDeviceToolProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_tool_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_tool_properties_);
     } else if (name == "VkPhysicalDeviceCustomBorderColorPropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_custom_border_color_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_custom_border_color_properties_);
     } else if (name == "VkPhysicalDeviceRobustness2PropertiesEXT") {
         auto support = CheckExtensionSupport(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_robustness_2_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_robustness_2_properties_);
     } else if (name == "VkPhysicalDeviceFragmentShadingRatePropertiesKHR") {
         auto support = CheckExtensionSupport(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
-        return GetStruct(device_name, property, &pdd_->physical_device_fragment_shading_rate_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_fragment_shading_rate_properties_);
     } else if (name == "VkPhysicalDeviceVulkanSC10Properties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_vulkan_sc_10_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_sc_10_properties_);
     } else if (name == "VkPhysicalDeviceShaderIntegerDotProductProperties") {
-        return GetStruct(device_name, property, &pdd_->physical_device_shader_integer_dot_product_properties_);
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_shader_integer_dot_product_properties_);
     }
 
     return true;
 }
 
-bool JsonLoader::GetFormat(const char *device_name, const Json::Value &formats, const std::string &format_name, MapOfVkFormatProperties *dest,
+bool JsonLoader::GetFormat(const char *device_name, bool requested_profile, const Json::Value &formats, const std::string &format_name, MapOfVkFormatProperties *dest,
                            MapOfVkFormatProperties3 *dest3) {
+    (void)requested_profile;
+
     VkFormat format = StringToFormat(format_name);
     VkFormatProperties profile_properties = {};
     VkFormatProperties3 profile_properties_3 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3};
@@ -3597,7 +3655,7 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
             for (const auto &feature : props["queueFlags"]) {
                 dest->properties_2.queueFamilyProperties.queueFlags |= StringToVkQueueFlags(feature.asString());
             }
-            dest->properties_2.queueFamilyProperties.queueCount = props["queueCount"].asInt();
+            dest->properties_2.queueFamilyProperties.queueCount = static_cast<uint32_t>(props["queueCount"].asInt());
             dest->properties_2.queueFamilyProperties.timestampValidBits = props["timestampValidBits"].asUInt();
             const auto &minImagetransferGranularity = props["minImageTransferGranularity"];
             dest->properties_2.queueFamilyProperties.minImageTransferGranularity.width =
@@ -3611,7 +3669,7 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
             for (const auto &feature : props2["queueFlags"]) {
                 dest->properties_2.queueFamilyProperties.queueFlags |= StringToVkQueueFlags(feature.asString());
             }
-            dest->properties_2.queueFamilyProperties.queueCount = props2["queueCount"].asInt();
+            dest->properties_2.queueFamilyProperties.queueCount = static_cast<uint32_t>(props2["queueCount"].asInt());
             dest->properties_2.queueFamilyProperties.timestampValidBits = props2["timestampValidBits"].asUInt();
             const auto &minImagetransferGranularity = props2["minImageTransferGranularity"];
             dest->properties_2.queueFamilyProperties.minImageTransferGranularity.width =
@@ -3620,20 +3678,13 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
                 minImagetransferGranularity["height"].asUInt();
             dest->properties_2.queueFamilyProperties.minImageTransferGranularity.depth =
                 minImagetransferGranularity["depth"].asUInt();
-#ifdef VULKANSC
-        } else if (name == "VkQueueFamilyGlobalPriorityPropertiesEXT") {
-            uint32_t i = 0;
-            for (const auto &feature : props["priorities"]) {
-                dest->global_priority_properties_.priorities[i++] = StringToVkQueueGlobalPriorityEXT(feature.asString());
-            }
-            dest->global_priority_properties_.priorityCount = props["priorityCount"].asUInt();
-#else
         } else if (name == "VkQueueFamilyGlobalPriorityPropertiesKHR" || name == "VkQueueFamilyGlobalPriorityPropertiesEXT") {
             uint32_t i = 0;
             for (const auto &feature : props["priorities"]) {
                 dest->global_priority_properties_.priorities[i++] = StringToVkQueueGlobalPriorityKHR(feature.asString());
             }
             dest->global_priority_properties_.priorityCount = props["priorityCount"].asUInt();
+#ifndef VULKANSC
         } else if (name == "VkQueueFamilyVideoPropertiesKHR") {
             for (const auto &feature : props["videoCodecOperations"]) {
                 dest->video_properties_.videoCodecOperations |= StringToVkVideoCodecOperationFlagsKHR(feature.asString());
@@ -3684,8 +3735,9 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
     }
     if (!supported) {
         std::string message =
-            format("Device has no queue family that supports VkQueueFamilyProperties [queueFlags: %s, queueCount: %" PRIu32
+            format("Device (%s) has no queue family that supports VkQueueFamilyProperties [queueFlags: %s, queueCount: %" PRIu32
                    ", timestampValidBits: %" PRIu32 ", minImageTransferGranularity: [%" PRIu32 ", %" PRIu32 ", %" PRIu32 "]]",
+                   device_name,
                    GetQueueFlagsToString(dest->properties_2.queueFamilyProperties.queueFlags).c_str(),
                    dest->properties_2.queueFamilyProperties.queueCount, dest->properties_2.queueFamilyProperties.timestampValidBits,
                    dest->properties_2.queueFamilyProperties.minImageTransferGranularity.width,
@@ -3835,7 +3887,7 @@ void JsonLoader::AddPromotedExtensions(uint32_t api_version) {
 
 }
 
-VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& root, const std::vector<std::vector<std::string>> &capabilities) {
+VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& root, const std::vector<std::vector<std::string>> &capabilities, bool requested_profile, bool enable_warnings) {
     bool failed = false;
 
     uint32_t properties_api_version = 0;
@@ -3848,14 +3900,14 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
 
             const auto &properties = cap_definision["properties"];
             if (properties.isMember("VkPhysicalDeviceProperties") && properties["VkPhysicalDeviceProperties"].isMember("apiVersion")) {
-                properties_api_version = properties["VkPhysicalDeviceProperties"]["apiVersion"].asInt();
+                properties_api_version = static_cast<uint32_t>(properties["VkPhysicalDeviceProperties"]["apiVersion"].asInt());
                 simulated_version = properties_api_version;
             } else if (layer_settings.simulate.capabilities & SIMULATE_API_VERSION_BIT) {
                 simulated_version = profile_api_version_;
             }
         }
     }
-    if (simulated_version != 0) {
+    if (simulated_version != 0 && requested_profile) {
         AddPromotedExtensions(simulated_version);
     }
 
@@ -3867,7 +3919,8 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
             if (VK_API_VERSION_PATCH(this->profile_api_version_) > VK_API_VERSION_PATCH(pdd_->physical_device_properties_.apiVersion)) {
                 LogMessage(&layer_settings, DEBUG_REPORT_WARNING_BIT,
                     "Profile apiVersion (%" PRIu32 ".%" PRIu32 ".%" PRIu32 ") is greater than the device apiVersion (%" PRIu32 ".%" PRIu32 ".%" PRIu32 ").\n",
-                        VK_API_VERSION_MAJOR(this->profile_api_version_), VK_API_VERSION_MINOR(this->profile_api_version_),
+                        VK_API_VERSION_MAJOR(this->profile_api_version_),
+                        VK_API_VERSION_MINOR(this->profile_api_version_),
                         VK_API_VERSION_PATCH(this->profile_api_version_),
                         VK_API_VERSION_MAJOR(pdd_->physical_device_properties_.apiVersion),
                         VK_API_VERSION_MINOR(pdd_->physical_device_properties_.apiVersion),
@@ -3882,7 +3935,7 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
                 for (const auto &e : extensions.getMemberNames()) {
                     VkExtensionProperties extension;
                     strcpy(extension.extensionName, e.c_str());
-                    extension.specVersion = extensions[e].asInt();
+                    extension.specVersion = static_cast<uint32_t>(extensions[e].asInt());
 
                     bool found = pdd_->map_of_extension_properties_.count(e) > 0;
 
@@ -3923,7 +3976,7 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
                     if (features.isMember("VkPhysicalDeviceVulkan13Features")) {
                         pdd_->vulkan_1_3_features_written_ = true;
                     }
-                    bool success = GetFeature(device_name, features, feature);
+                    bool success = GetFeature(device_name, enable_warnings, features, feature);
                     if (!success) {
                         failed = true;
                     }
@@ -3946,7 +3999,7 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
                     pdd_->vulkan_1_3_properties_written_ = true;
                 }
                 for (const auto &prop : properties.getMemberNames()) {
-                    bool success = GetProperty(device_name, properties, prop);
+                    bool success = GetProperty(device_name, enable_warnings, properties, prop);
                     if (!success) {
                         failed = true;
                     }
@@ -3957,7 +4010,7 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
                 const auto &formats = cap_definision["formats"];
 
                 for (const auto &format : formats.getMemberNames()) {
-                    bool success = GetFormat(device_name, formats, format, &pdd_->map_of_format_properties_, &pdd_->map_of_format_properties_3_);
+                    bool success = GetFormat(device_name, enable_warnings, formats, format, &pdd_->map_of_format_properties_, &pdd_->map_of_format_properties_3_);
                     if (!success) {
                         failed = true;
                     }
@@ -3986,22 +4039,24 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
         }
     }
 
-    if (properties_api_version != 0) {
-        LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
-            "- VkPhysicalDeviceProperties API version: %" PRIu32 ".%" PRIu32 ".%" PRIu32 ". Using the API version specified by the profile VkPhysicalDeviceProperties structure.\n",
-            VK_API_VERSION_MAJOR(properties_api_version), VK_API_VERSION_MINOR(properties_api_version), VK_API_VERSION_PATCH(properties_api_version));
-    } else if (layer_settings.simulate.capabilities & SIMULATE_API_VERSION_BIT) {
-        LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
-            "- VkPhysicalDeviceProperties API version: %" PRIu32 ".%" PRIu32 ".%" PRIu32". Using the API version specified by the profile.\n",
-            VK_API_VERSION_MAJOR(this->profile_api_version_), VK_API_VERSION_MINOR(this->profile_api_version_), VK_API_VERSION_PATCH(this->profile_api_version_));
+    if (requested_profile) {
+        if (properties_api_version != 0) {
+            LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
+                "- VkPhysicalDeviceProperties API version: %" PRIu32 ".%" PRIu32 ".%" PRIu32 ". Using the API version specified by the profile VkPhysicalDeviceProperties structure.\n",
+                VK_API_VERSION_MAJOR(properties_api_version), VK_API_VERSION_MINOR(properties_api_version), VK_API_VERSION_PATCH(properties_api_version));
+        } else if (layer_settings.simulate.capabilities & SIMULATE_API_VERSION_BIT) {
+            LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
+                "- VkPhysicalDeviceProperties API version: %" PRIu32 ".%" PRIu32 ".%" PRIu32". Using the API version specified by the profile.\n",
+                VK_API_VERSION_MAJOR(this->profile_api_version_), VK_API_VERSION_MINOR(this->profile_api_version_), VK_API_VERSION_PATCH(this->profile_api_version_));
 
-        pdd_->physical_device_properties_.apiVersion = this->profile_api_version_;
-    } else {
-        LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
-            "- VkPhysicalDeviceProperties API version: %" PRIu32 ".%" PRIu32 ".%" PRIu32 ". Using the device version.\n",
-                VK_API_VERSION_MAJOR(pdd_->physical_device_properties_.apiVersion),
-                VK_API_VERSION_MINOR(pdd_->physical_device_properties_.apiVersion),
-                VK_API_VERSION_PATCH(pdd_->physical_device_properties_.apiVersion));
+            pdd_->physical_device_properties_.apiVersion = this->profile_api_version_;
+        } else {
+            LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
+                "- VkPhysicalDeviceProperties API version: %" PRIu32 ".%" PRIu32 ".%" PRIu32 ". Using the device version.\n",
+                    VK_API_VERSION_MAJOR(pdd_->physical_device_properties_.apiVersion),
+                    VK_API_VERSION_MINOR(pdd_->physical_device_properties_.apiVersion),
+                    VK_API_VERSION_PATCH(pdd_->physical_device_properties_.apiVersion));
+        }
     }
 
     if (failed && layer_settings.log.debug_fail_on_error) {
@@ -4012,15 +4067,13 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
 }
 
 VkResult JsonLoader::LoadFile(const std::string& filename) {
-    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "JsonLoader::LoadFile(\"%s\")\n", filename.c_str());
-
     if (filename.empty()) {
         return VK_SUCCESS;
     }
     std::ifstream json_file(filename);
     if (!json_file) {
         LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "Fail to open file \"%s\"\n", filename.c_str());
-        return layer_settings.log.debug_fail_on_error ? VK_ERROR_INITIALIZATION_FAILED : VK_SUCCESS;
+        return VK_SUCCESS;
     }
 
     Json::Value root = Json::nullValue;
@@ -4029,14 +4082,28 @@ VkResult JsonLoader::LoadFile(const std::string& filename) {
     bool success = Json::parseFromStream(builder, json_file, &root, &errs);
     if (!success) {
         LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "Fail to parse file \"%s\" {\n%s}\n", filename.c_str(), errs.c_str());
-        return layer_settings.log.debug_fail_on_error ? VK_ERROR_INITIALIZATION_FAILED : VK_SUCCESS;
+        return VK_SUCCESS;
     }
     json_file.close();
 
     if (root.type() != Json::objectValue) {
         LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "Json document root is not an object in file \"%s\"\n", filename.c_str());
-        return layer_settings.log.debug_fail_on_error ? VK_ERROR_INITIALIZATION_FAILED : VK_SUCCESS;
+        return VK_SUCCESS;
     }
+
+#ifndef VULKANSC
+    const Json::Value& schema_node = root["$schema"];
+    if (schema_node == Json::Value::nullSingleton()) {
+        return VK_SUCCESS;
+    }
+
+    const std::string &schema = schema_node.asCString();
+    if (schema.find("https://schema.khronos.org/vulkan/profiles") == std::string::npos) {
+        return VK_SUCCESS;
+    }
+#endif  // VULKANSC
+
+    LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT, "Loading \"%s\"\n", filename.c_str());
 
     if (layer_settings.simulate.profile_validation) {
         JsonValidator validator;
@@ -4072,16 +4139,39 @@ VkResult JsonLoader::LoadProfilesDatabase() {
         const std::string& path = layer_settings.simulate.profile_dirs[i];
 
       for (const auto& entry : fs::directory_iterator(path)) {
-          VkResult result = this->LoadFile(entry.path().generic_string());
+          if (fs::is_directory(entry.path())) {
+              continue;
+          }
+
+          const std::string& file_path = entry.path().generic_string();
+          if (!EndsWith(file_path, ".json")) {
+              continue;
+          }
+
+          VkResult result = this->LoadFile(file_path);
           if (result != VK_SUCCESS) {
               continue;
           }
       }
     }
 
+    LogFoundProfiles();
+
     ReadProfileApiVersion();
 
     return VK_SUCCESS;
+}
+
+void JsonLoader::LogFoundProfiles() {
+    for (const auto& root : this->profiles_file_roots_) {
+        LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT, "Profiles found in '%s' file:\n", root.first.c_str());
+
+        const Json::Value &profiles = root.second["profiles"];
+
+        for (const std::string &profile : profiles.getMemberNames()) {
+            LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT, "- %s\n", profile.c_str());
+        }
+    }
 }
 
 const Json::Value& JsonLoader::FindRootFromProfileName(const std::string& profile_name) const {
@@ -4109,7 +4199,7 @@ void JsonLoader::ReadProfileApiVersion() {
             uint32_t api_major = 0;
             uint32_t api_minor = 0;
             uint32_t api_patch = 0;
-            std::sscanf(version_string.c_str(), "%d.%d.%d", &api_major, &api_minor, &api_patch);
+            std::sscanf(version_string.c_str(), "%u.%u.%u", &api_major, &api_minor, &api_patch);
 #ifdef VULKANSC
             profile_api_version_ = VK_MAKE_API_VERSION(VKSC_API_VARIANT, api_major, api_minor, api_patch);
 #else
@@ -4126,7 +4216,7 @@ void JsonLoader::ReadProfileApiVersion() {
             uint32_t api_major = 0;
             uint32_t api_minor = 0;
             uint32_t api_patch = 0;
-            std::sscanf(version_string.c_str(), "%d.%d.%d", &api_major, &api_minor, &api_patch);
+            std::sscanf(version_string.c_str(), "%u.%u.%u", &api_major, &api_minor, &api_patch);
 #ifdef VULKANSC
             profile_api_version_ = VK_MAKE_API_VERSION(VKSC_API_VARIANT, api_major, api_minor, api_patch);
 #else
@@ -4187,8 +4277,20 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
         const auto& root = FindRootFromProfileName(profile_name);
 
         if (root == Json::Value::nullSingleton()) {
+            if (requested_profile_name == profile_name) {
+                LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "- '%s' profile not found.\n", profile_name.c_str());
+            } else {
+                LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "- '%s' profile required by '%s' not found.\n", profile_name.c_str(), requested_profile_name.c_str());
+            }
+
             result = VK_ERROR_UNKNOWN;
         } else {
+            if (requested_profile_name == profile_name) {
+                LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT, "- Overriding device capabilities with the '%s' profile capabilities.\n", profile_name.c_str());
+            } else {
+                LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT, "- Overriding device capabilities with the '%s' profile capabilities required by the requested '%s' profile.\n", profile_name.c_str(), requested_profile_name.c_str());
+            }
+
             const Json::Value &profiles = root["profiles"];
             std::vector<std::vector<std::string>> capabilities;
 
@@ -4210,8 +4312,6 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
                     }
 
                     found_profile = true;
-                    LogMessage(&layer_settings, DEBUG_REPORT_NOTIFICATION_BIT,
-                        "- Overriding device capabilities with '%s' profile capabilities.\n", profile.c_str());
                     break;  // load a single profile
                 }
             }
@@ -4230,10 +4330,6 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
                         }
                         capabilities.push_back(cap_variants);
                     }
-
-                    LogMessage(&layer_settings, DEBUG_REPORT_WARNING_BIT,
-                        "\"%s\" profile could not be found in \"%s\" file. Loading the default \"%s\" profile of the file.\n",
-                            layer_settings.simulate.profile_name.c_str(), layer_settings.simulate.profile_file.c_str(), profile.c_str());
 
                     break; // Systematically load the first and default profile
                 }
@@ -4263,7 +4359,7 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
             uint32_t version_major = 0;
             uint32_t version_minor = 0;
             uint32_t version_patch = 0;
-            std::sscanf(version.c_str(), "%d.%d.%d", &version_major, &version_minor, &version_patch);
+            std::sscanf(version.c_str(), "%u.%u.%u", &version_major, &version_minor, &version_patch);
             if (VK_HEADER_VERSION < version_patch) {
                 LogMessage(&layer_settings, DEBUG_REPORT_WARNING_BIT,
                     "%s is built against Vulkan Header %d but the profile is written against Vulkan Header %d.\n\t- All newer capabilities in the profile will be ignored by the layer.\n",
@@ -4275,7 +4371,7 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
                 pdd_->simulation_extensions_.clear();
             }
 
-            tmp_result = ReadProfile(device_name, root, capabilities);
+            tmp_result = ReadProfile(device_name, root, capabilities, requested_profile_name == profile_name, required_profiles.size() == 1);
             if (tmp_result != VK_SUCCESS) {
                 result = tmp_result;
             }
@@ -4289,1427 +4385,1535 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
     return result;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDriverProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDriverProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDriverProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_ENUM_WARN(member, driverID, true, WarnIfNotEqualEnum);
-        GetArray(parent, member, "driverName", dest->driverName, true);
-        GetArray(parent, member, "driverInfo", dest->driverInfo, true);
+        GET_VALUE_ENUM_WARN(member, driverID, true, requested_profile, WarnIfNotEqualEnum);
+        GetArray(device_name, parent, member, "driverName", dest->driverName, true);
+        GetArray(device_name, parent, member, "driverInfo", dest->driverInfo, true);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceIDProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceIDProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceIDProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GetArray(parent, member, "deviceUUID", dest->deviceUUID, true);
-        GetArray(parent, member, "driverUUID", dest->driverUUID, true);
-        GetArray(parent, member, "deviceLUID", dest->deviceLUID, true);
-        GET_VALUE_WARN(member, deviceNodeMask, true, WarnIfNotEqual32u);
-        GET_VALUE_WARN(member, deviceLUIDValid, true, WarnIfNotEqualBool);
+        GetArray(device_name, parent, member, "deviceUUID", dest->deviceUUID, true);
+        GetArray(device_name, parent, member, "driverUUID", dest->driverUUID, true);
+        GetArray(device_name, parent, member, "deviceLUID", dest->deviceLUID, true);
+        GET_VALUE_WARN(member, deviceNodeMask, true, requested_profile, WarnIfNotEqual32u);
+        GET_VALUE_WARN(member, deviceLUIDValid, true, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMultiviewProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMultiviewProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceMultiviewProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxMultiviewViewCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxMultiviewInstanceIndex, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxMultiviewViewCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxMultiviewInstanceIndex, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSubgroupProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSubgroupProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSubgroupProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, subgroupSize, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, supportedStages, false);
-        GET_VALUE_FLAG_WARN(member, supportedOperations, false);
-        GET_VALUE_WARN(member, quadOperationsInAllStages, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, subgroupSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, supportedStages, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, supportedOperations, false, requested_profile);
+        GET_VALUE_WARN(member, quadOperationsInAllStages, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePointClippingProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePointClippingProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePointClippingProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_ENUM_WARN(member, pointClippingBehavior, true, WarnIfNotEqualEnum);
+        GET_VALUE_ENUM_WARN(member, pointClippingBehavior, true, requested_profile, WarnIfNotEqualEnum);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceProtectedMemoryProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, protectedNoFault, true, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, protectedNoFault, true, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSamplerFilterMinmaxProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSamplerFilterMinmaxProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSamplerFilterMinmaxProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, filterMinmaxSingleComponentFormats, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, filterMinmaxImageComponentMapping, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, filterMinmaxSingleComponentFormats, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, filterMinmaxImageComponentMapping, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceInlineUniformBlockProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxInlineUniformBlockSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInlineUniformBlocks, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxInlineUniformBlockSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInlineUniformBlocks, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMaintenance3Properties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMaintenance3Properties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceMaintenance3Properties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxPerSetDescriptors, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxMemoryAllocationSize, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerSetDescriptors, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxMemoryAllocationSize, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMaintenance4Properties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMaintenance4Properties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceMaintenance4Properties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxBufferSize, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxBufferSize, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFloatControlsProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFloatControlsProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceFloatControlsProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_ENUM_WARN(member, denormBehaviorIndependence, true, WarnIfNotEqualEnum);
-        GET_VALUE_ENUM_WARN(member, roundingModeIndependence, true, WarnIfNotEqualEnum);
-        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormPreserveFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormPreserveFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormPreserveFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat64, false, WarnIfNotEqualBool);
+        GET_VALUE_ENUM_WARN(member, denormBehaviorIndependence, true, requested_profile, WarnIfNotEqualEnum);
+        GET_VALUE_ENUM_WARN(member, roundingModeIndependence, true, requested_profile, WarnIfNotEqualEnum);
+        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormPreserveFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormPreserveFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormPreserveFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat64, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDescriptorIndexingProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxUpdateAfterBindDescriptorsInAllPools, false, WarnIfGreater);
-        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, robustBufferAccessUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, quadDivergentImplicitLod, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSamplers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindUniformBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSampledImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInputAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageUpdateAfterBindResources, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSamplers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffersDynamic, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffersDynamic, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSampledImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInputAttachments, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxUpdateAfterBindDescriptorsInAllPools, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustBufferAccessUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, quadDivergentImplicitLod, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSamplers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindUniformBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSampledImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageUpdateAfterBindResources, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSamplers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffersDynamic, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffersDynamic, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSampledImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInputAttachments, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceTimelineSemaphoreProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxTimelineSemaphoreValueDifference, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTimelineSemaphoreValueDifference, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDepthStencilResolveProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDepthStencilResolveProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDepthStencilResolveProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_FLAG_WARN(member, supportedDepthResolveModes, false);
-        GET_VALUE_FLAG_WARN(member, supportedStencilResolveModes, false);
-        GET_VALUE_WARN(member, independentResolveNone, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, independentResolve, false, WarnIfNotEqualBool);
+        GET_VALUE_FLAG_WARN(member, supportedDepthResolveModes, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, supportedStencilResolveModes, false, requested_profile);
+        GET_VALUE_WARN(member, independentResolveNone, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, independentResolve, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan11Properties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan11Properties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkan11Properties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GetArray(parent, member, "deviceUUID", dest->deviceUUID, true);
-        GetArray(parent, member, "driverUUID", dest->driverUUID, true);
-        GetArray(parent, member, "deviceLUID", dest->deviceLUID, true);
-        GET_VALUE_WARN(member, deviceNodeMask, true, WarnIfNotEqual32u);
-        GET_VALUE_WARN(member, deviceLUIDValid, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, subgroupSize, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, subgroupSupportedStages, false);
-        GET_VALUE_FLAG_WARN(member, subgroupSupportedOperations, false);
-        GET_VALUE_WARN(member, subgroupQuadOperationsInAllStages, false, WarnIfNotEqualBool);
-        GET_VALUE_ENUM_WARN(member, pointClippingBehavior, true, WarnIfNotEqualEnum);
-        GET_VALUE_WARN(member, maxMultiviewViewCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxMultiviewInstanceIndex, false, WarnIfGreater);
-        GET_VALUE_WARN(member, protectedNoFault, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxPerSetDescriptors, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxMemoryAllocationSize, false, WarnIfGreater);
+        GetArray(device_name, parent, member, "deviceUUID", dest->deviceUUID, true);
+        GetArray(device_name, parent, member, "driverUUID", dest->driverUUID, true);
+        GetArray(device_name, parent, member, "deviceLUID", dest->deviceLUID, true);
+        GET_VALUE_WARN(member, deviceNodeMask, true, requested_profile, WarnIfNotEqual32u);
+        GET_VALUE_WARN(member, deviceLUIDValid, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, subgroupSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, subgroupSupportedStages, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, subgroupSupportedOperations, false, requested_profile);
+        GET_VALUE_WARN(member, subgroupQuadOperationsInAllStages, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_ENUM_WARN(member, pointClippingBehavior, true, requested_profile, WarnIfNotEqualEnum);
+        GET_VALUE_WARN(member, maxMultiviewViewCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxMultiviewInstanceIndex, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, protectedNoFault, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxPerSetDescriptors, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxMemoryAllocationSize, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan12Properties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan12Properties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkan12Properties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_ENUM_WARN(member, driverID, true, WarnIfNotEqualEnum);
-        GetArray(parent, member, "driverName", dest->driverName, true);
-        GetArray(parent, member, "driverInfo", dest->driverInfo, true);
-        GET_VALUE_ENUM_WARN(member, denormBehaviorIndependence, true, WarnIfNotEqualEnum);
-        GET_VALUE_ENUM_WARN(member, roundingModeIndependence, true, WarnIfNotEqualEnum);
-        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormPreserveFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormPreserveFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormPreserveFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxUpdateAfterBindDescriptorsInAllPools, false, WarnIfGreater);
-        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexingNative, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, robustBufferAccessUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, quadDivergentImplicitLod, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSamplers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindUniformBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSampledImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInputAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageUpdateAfterBindResources, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSamplers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffersDynamic, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffersDynamic, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSampledImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInputAttachments, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, supportedDepthResolveModes, false);
-        GET_VALUE_FLAG_WARN(member, supportedStencilResolveModes, false);
-        GET_VALUE_WARN(member, independentResolveNone, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, independentResolve, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, filterMinmaxSingleComponentFormats, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, filterMinmaxImageComponentMapping, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxTimelineSemaphoreValueDifference, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, framebufferIntegerColorSampleCounts, false);
+        GET_VALUE_ENUM_WARN(member, driverID, true, requested_profile, WarnIfNotEqualEnum);
+        GetArray(device_name, parent, member, "driverName", dest->driverName, true);
+        GetArray(device_name, parent, member, "driverInfo", dest->driverInfo, true);
+        GET_VALUE_ENUM_WARN(member, denormBehaviorIndependence, true, requested_profile, WarnIfNotEqualEnum);
+        GET_VALUE_ENUM_WARN(member, roundingModeIndependence, true, requested_profile, WarnIfNotEqualEnum);
+        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSignedZeroInfNanPreserveFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormPreserveFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormPreserveFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormPreserveFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDenormFlushToZeroFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTEFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderRoundingModeRTZFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxUpdateAfterBindDescriptorsInAllPools, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexingNative, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustBufferAccessUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, quadDivergentImplicitLod, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSamplers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindUniformBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindSampledImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindStorageImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageUpdateAfterBindResources, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSamplers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindUniformBuffersDynamic, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageBuffersDynamic, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindSampledImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindStorageImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, supportedDepthResolveModes, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, supportedStencilResolveModes, false, requested_profile);
+        GET_VALUE_WARN(member, independentResolveNone, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, independentResolve, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, filterMinmaxSingleComponentFormats, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, filterMinmaxImageComponentMapping, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxTimelineSemaphoreValueDifference, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, framebufferIntegerColorSampleCounts, false, requested_profile);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan13Properties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan13Properties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkan13Properties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, minSubgroupSize, false, WarnIfLesser);
-        GET_VALUE_WARN(member, maxSubgroupSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxComputeWorkgroupSubgroups, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, requiredSubgroupSizeStages, false);
-        GET_VALUE_WARN(member, maxInlineUniformBlockSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInlineUniformBlocks, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxInlineUniformTotalSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, integerDotProduct8BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct8BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct8BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct16BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct16BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct16BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct32BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct32BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct32BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct64BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct64BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct64BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storageTexelBufferOffsetAlignmentBytes, false, WarnIfLesser);
-        GET_VALUE_WARN(member, storageTexelBufferOffsetSingleTexelAlignment, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformTexelBufferOffsetAlignmentBytes, false, WarnIfLesser);
-        GET_VALUE_WARN(member, uniformTexelBufferOffsetSingleTexelAlignment, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxBufferSize, false, WarnIfGreater);
+        GET_VALUE_WARN(member, minSubgroupSize, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, maxSubgroupSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxComputeWorkgroupSubgroups, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, requiredSubgroupSizeStages, false, requested_profile);
+        GET_VALUE_WARN(member, maxInlineUniformBlockSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUpdateAfterBindInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUpdateAfterBindInlineUniformBlocks, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxInlineUniformTotalSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, integerDotProduct8BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct8BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct8BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct16BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct16BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct16BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct32BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct32BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct32BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct64BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct64BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct64BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageTexelBufferOffsetAlignmentBytes, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, storageTexelBufferOffsetSingleTexelAlignment, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformTexelBufferOffsetAlignmentBytes, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, uniformTexelBufferOffsetSingleTexelAlignment, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxBufferSize, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Properties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Properties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkanSC10Properties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, deviceNoDynamicHostAllocations, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, deviceDestroyFreesMemory, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, commandPoolMultipleCommandBuffersRecording, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, commandPoolResetCommandBuffer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, commandBufferSimultaneousUse, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, secondaryCommandBufferNullOrImagelessFramebuffer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, recycleDescriptorSetMemory, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, recyclePipelineMemory, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxRenderPassSubpasses, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxRenderPassDependencies, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxSubpassInputAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxSubpassPreserveAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFramebufferAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetLayoutBindings, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxQueryFaultCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxCallbackFaultCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxCommandPoolCommandBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxCommandBufferSize, false, WarnIfGreater);
+        GET_VALUE_WARN(member, deviceNoDynamicHostAllocations, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, deviceDestroyFreesMemory, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, commandPoolMultipleCommandBuffersRecording, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, commandPoolResetCommandBuffer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, commandBufferSimultaneousUse, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, secondaryCommandBufferNullOrImagelessFramebuffer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, recycleDescriptorSetMemory, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, recyclePipelineMemory, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxRenderPassSubpasses, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxRenderPassDependencies, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxSubpassInputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxSubpassPreserveAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFramebufferAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetLayoutBindings, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxQueryFaultCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxCallbackFaultCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxCommandPoolCommandBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxCommandBufferSize, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderIntegerDotProductProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, integerDotProduct8BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct8BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct8BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct16BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct16BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct16BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct32BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct32BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct32BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct64BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct64BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProduct64BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitUnsignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitSignedAccelerated, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct8BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct8BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct8BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct4x8BitPackedMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct16BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct16BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct16BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct32BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct32BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct32BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct64BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct64BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProduct64BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitUnsignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitSignedAccelerated, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePrivateDataFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePrivateDataFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePrivateDataFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, privateData, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, privateData, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVariablePointerFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVariablePointerFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVariablePointerFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, variablePointersStorageBuffer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, variablePointers, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, variablePointersStorageBuffer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, variablePointers, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMultiviewFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMultiviewFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceMultiviewFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, multiview, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiviewGeometryShader, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiviewTessellationShader, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiview, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiviewGeometryShader, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiviewTessellationShader, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevice16BitStorageFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevice16BitStorageFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevice16BitStorageFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, storageBuffer16BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformAndStorageBuffer16BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storagePushConstant16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storageInputOutput16, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageBuffer16BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformAndStorageBuffer16BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storagePushConstant16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageInputOutput16, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderSubgroupExtendedTypes, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSubgroupExtendedTypes, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSamplerYcbcrConversionFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSamplerYcbcrConversionFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSamplerYcbcrConversionFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, samplerYcbcrConversion, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, samplerYcbcrConversion, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProtectedMemoryFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceProtectedMemoryFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, protectedMemory, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, protectedMemory, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceInlineUniformBlockFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceInlineUniformBlockFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, inlineUniformBlock, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingInlineUniformBlockUpdateAfterBind, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, inlineUniformBlock, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingInlineUniformBlockUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceMaintenance4Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceMaintenance4Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceMaintenance4Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maintenance4, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maintenance4, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderDrawParameterFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderDrawParameterFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderDrawParameterFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderDrawParameters, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDrawParameters, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderFloat16Int8Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderFloat16Int8Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderFloat16Int8Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInt8, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInt8, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceHostQueryResetFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceHostQueryResetFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceHostQueryResetFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, hostQueryReset, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, hostQueryReset, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDescriptorIndexingFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDescriptorIndexingFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderInputAttachmentArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingUniformBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingSampledImageUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingStorageImageUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingStorageBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingUniformTexelBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingStorageTexelBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingUpdateUnusedWhilePending, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingPartiallyBound, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingVariableDescriptorCount, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, runtimeDescriptorArray, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInputAttachmentArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingUniformBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingSampledImageUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingStorageImageUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingStorageBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingUniformTexelBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingStorageTexelBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingUpdateUnusedWhilePending, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingPartiallyBound, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingVariableDescriptorCount, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, runtimeDescriptorArray, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTimelineSemaphoreFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceTimelineSemaphoreFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, timelineSemaphore, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, timelineSemaphore, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevice8BitStorageFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevice8BitStorageFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevice8BitStorageFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, storageBuffer8BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformAndStorageBuffer8BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storagePushConstant8, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageBuffer8BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformAndStorageBuffer8BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storagePushConstant8, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkanMemoryModelFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkanMemoryModelFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkanMemoryModelFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, vulkanMemoryModel, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vulkanMemoryModelDeviceScope, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vulkanMemoryModelAvailabilityVisibilityChains, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vulkanMemoryModel, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vulkanMemoryModelDeviceScope, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vulkanMemoryModelAvailabilityVisibilityChains, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderAtomicInt64Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderAtomicInt64Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderAtomicInt64Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderBufferInt64Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSharedInt64Atomics, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderBufferInt64Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSharedInt64Atomics, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceScalarBlockLayoutFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceScalarBlockLayoutFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceScalarBlockLayoutFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, scalarBlockLayout, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, scalarBlockLayout, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceUniformBufferStandardLayoutFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceUniformBufferStandardLayoutFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceUniformBufferStandardLayoutFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, uniformBufferStandardLayout, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformBufferStandardLayout, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceBufferDeviceAddressFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceBufferDeviceAddressFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceBufferDeviceAddressFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, bufferDeviceAddress, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, bufferDeviceAddressCaptureReplay, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, bufferDeviceAddressMultiDevice, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bufferDeviceAddress, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bufferDeviceAddressCaptureReplay, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bufferDeviceAddressMultiDevice, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceImagelessFramebufferFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceImagelessFramebufferFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceImagelessFramebufferFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, imagelessFramebuffer, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, imagelessFramebuffer, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, separateDepthStencilLayouts, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, separateDepthStencilLayouts, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePipelineCreationCacheControlFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePipelineCreationCacheControlFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePipelineCreationCacheControlFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, pipelineCreationCacheControl, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, pipelineCreationCacheControl, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan11Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan11Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkan11Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, storageBuffer16BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformAndStorageBuffer16BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storagePushConstant16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storageInputOutput16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiview, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiviewGeometryShader, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiviewTessellationShader, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, variablePointersStorageBuffer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, variablePointers, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, protectedMemory, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, samplerYcbcrConversion, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDrawParameters, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageBuffer16BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformAndStorageBuffer16BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storagePushConstant16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageInputOutput16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiview, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiviewGeometryShader, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiviewTessellationShader, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, variablePointersStorageBuffer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, variablePointers, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, protectedMemory, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, samplerYcbcrConversion, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDrawParameters, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan12Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan12Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkan12Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, samplerMirrorClampToEdge, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, drawIndirectCount, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storageBuffer8BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformAndStorageBuffer8BitAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, storagePushConstant8, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderBufferInt64Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSharedInt64Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderFloat16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInt8, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInputAttachmentArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayNonUniformIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingUniformBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingSampledImageUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingStorageImageUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingStorageBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingUniformTexelBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingStorageTexelBufferUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingUpdateUnusedWhilePending, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingPartiallyBound, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingVariableDescriptorCount, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, runtimeDescriptorArray, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, samplerFilterMinmax, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, scalarBlockLayout, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, imagelessFramebuffer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformBufferStandardLayout, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSubgroupExtendedTypes, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, separateDepthStencilLayouts, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, hostQueryReset, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, timelineSemaphore, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, bufferDeviceAddress, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, bufferDeviceAddressCaptureReplay, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, bufferDeviceAddressMultiDevice, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vulkanMemoryModel, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vulkanMemoryModelDeviceScope, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vulkanMemoryModelAvailabilityVisibilityChains, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderOutputViewportIndex, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderOutputLayer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, subgroupBroadcastDynamicId, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, samplerMirrorClampToEdge, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, drawIndirectCount, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageBuffer8BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformAndStorageBuffer8BitAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storagePushConstant8, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderBufferInt64Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSharedInt64Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderFloat16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInt8, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInputAttachmentArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSampledImageArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInputAttachmentArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformTexelBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageTexelBufferArrayNonUniformIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingUniformBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingSampledImageUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingStorageImageUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingStorageBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingUniformTexelBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingStorageTexelBufferUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingUpdateUnusedWhilePending, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingPartiallyBound, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingVariableDescriptorCount, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, runtimeDescriptorArray, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, samplerFilterMinmax, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, scalarBlockLayout, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, imagelessFramebuffer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformBufferStandardLayout, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSubgroupExtendedTypes, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, separateDepthStencilLayouts, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, hostQueryReset, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, timelineSemaphore, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bufferDeviceAddress, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bufferDeviceAddressCaptureReplay, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bufferDeviceAddressMultiDevice, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vulkanMemoryModel, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vulkanMemoryModelDeviceScope, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vulkanMemoryModelAvailabilityVisibilityChains, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderOutputViewportIndex, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderOutputLayer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, subgroupBroadcastDynamicId, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkan13Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkan13Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkan13Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, robustImageAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, inlineUniformBlock, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, descriptorBindingInlineUniformBlockUpdateAfterBind, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, pipelineCreationCacheControl, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, privateData, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDemoteToHelperInvocation, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderTerminateInvocation, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, subgroupSizeControl, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, computeFullSubgroups, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, synchronization2, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, textureCompressionASTC_HDR, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderZeroInitializeWorkgroupMemory, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, dynamicRendering, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderIntegerDotProduct, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maintenance4, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustImageAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, inlineUniformBlock, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, descriptorBindingInlineUniformBlockUpdateAfterBind, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, pipelineCreationCacheControl, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, privateData, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDemoteToHelperInvocation, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderTerminateInvocation, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, subgroupSizeControl, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, computeFullSubgroups, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, synchronization2, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, textureCompressionASTC_HDR, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderZeroInitializeWorkgroupMemory, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, dynamicRendering, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderIntegerDotProduct, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maintenance4, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderZeroInitializeWorkgroupMemory, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderZeroInitializeWorkgroupMemory, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Features *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVulkanSC10Features *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVulkanSC10Features)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderAtomicInstructions, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderAtomicInstructions, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderIntegerDotProductFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderIntegerDotProductFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderIntegerDotProduct, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderIntegerDotProduct, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDynamicRenderingFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDynamicRenderingFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDynamicRenderingFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, dynamicRendering, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, dynamicRendering, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, textureCompressionASTC_HDR, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, textureCompressionASTC_HDR, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceASTCDecodeFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceASTCDecodeFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceASTCDecodeFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, decodeModeSharedExponent, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, decodeModeSharedExponent, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDiscardRectanglePropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDiscardRectanglePropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDiscardRectanglePropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxDiscardRectangles, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDiscardRectangles, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceConservativeRasterizationPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceConservativeRasterizationPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceConservativeRasterizationPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, primitiveOverestimationSize, true, WarnIfNotEqualFloat);
-        GET_VALUE_WARN(member, maxExtraPrimitiveOverestimationSize, false, WarnIfGreaterFloat);
-        GET_VALUE_WARN(member, extraPrimitiveOverestimationSizeGranularity, false, WarnIfLesserFloat);
-        GET_VALUE_WARN(member, primitiveUnderestimation, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, conservativePointAndLineRasterization, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, degenerateTrianglesRasterized, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, degenerateLinesRasterized, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fullyCoveredFragmentShaderInputVariable, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, conservativeRasterizationPostDepthCoverage, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, primitiveOverestimationSize, true, requested_profile, WarnIfNotEqualFloat);
+        GET_VALUE_WARN(member, maxExtraPrimitiveOverestimationSize, false, requested_profile, WarnIfGreaterFloat);
+        GET_VALUE_WARN(member, extraPrimitiveOverestimationSizeGranularity, false, requested_profile, WarnIfLesserFloat);
+        GET_VALUE_WARN(member, primitiveUnderestimation, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, conservativePointAndLineRasterization, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, degenerateTrianglesRasterized, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, degenerateLinesRasterized, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fullyCoveredFragmentShaderInputVariable, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, conservativeRasterizationPostDepthCoverage, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceDepthClipEnableFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceDepthClipEnableFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceDepthClipEnableFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, depthClipEnable, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, depthClipEnable, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePerformanceQueryPropertiesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePerformanceQueryPropertiesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePerformanceQueryPropertiesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, allowCommandBufferQueryCopies, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, allowCommandBufferQueryCopies, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePerformanceQueryFeaturesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePerformanceQueryFeaturesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePerformanceQueryFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, performanceCounterQueryPools, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, performanceCounterMultipleQueryPools, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, performanceCounterQueryPools, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, performanceCounterMultipleQueryPools, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSampleLocationsPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSampleLocationsPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSampleLocationsPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_FLAG_WARN(member, sampleLocationSampleCounts, false);
-        GET_VALUE_WARN(member, maxSampleLocationGridSize, false, WarnIfGreater);
-        GetArray(parent, member, "sampleLocationCoordinateRange", dest->sampleLocationCoordinateRange, false);
-        GET_VALUE_WARN(member, sampleLocationSubPixelBits, false, WarnIfGreater);
-        GET_VALUE_WARN(member, variableSampleLocations, false, WarnIfNotEqualBool);
+        GET_VALUE_FLAG_WARN(member, sampleLocationSampleCounts, false, requested_profile);
+        GET_VALUE_WARN(member, maxSampleLocationGridSize, false, requested_profile, WarnIfGreater);
+        GetArray(device_name, parent, member, "sampleLocationCoordinateRange", dest->sampleLocationCoordinateRange, false);
+        GET_VALUE_WARN(member, sampleLocationSubPixelBits, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, variableSampleLocations, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, advancedBlendMaxColorAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, advancedBlendIndependentBlend, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, advancedBlendNonPremultipliedSrcColor, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, advancedBlendNonPremultipliedDstColor, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, advancedBlendCorrelatedOverlap, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, advancedBlendAllOperations, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, advancedBlendMaxColorAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, advancedBlendIndependentBlend, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, advancedBlendNonPremultipliedSrcColor, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, advancedBlendNonPremultipliedDstColor, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, advancedBlendCorrelatedOverlap, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, advancedBlendAllOperations, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, advancedBlendCoherentOperations, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, advancedBlendCoherentOperations, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalMemoryHostPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemoryHostPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExternalMemoryHostPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, minImportedHostPointerAlignment, false, WarnIfLesser);
+        GET_VALUE_WARN(member, minImportedHostPointerAlignment, false, requested_profile, WarnIfLesser);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderClockFeaturesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderClockFeaturesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderClockFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderSubgroupClock, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderDeviceClock, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSubgroupClock, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDeviceClock, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *dest) {
     (void)dest;
-    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT)\n");
+    (void)requested_profile;
+    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxVertexAttribDivisor, false, WarnIfGreater);
+        GET_VALUE_WARN(member, globalPriorityQuery, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePCIBusInfoPropertiesEXT *dest) {
     (void)dest;
-    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT)\n");
-    bool valid = true;
-    for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, vertexAttributeInstanceRateDivisor, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vertexAttributeInstanceRateZeroDivisor, false, WarnIfNotEqualBool);
-    }
-    return valid;
-}
-
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePCIBusInfoPropertiesEXT *dest) {
-    (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePCIBusInfoPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, pciDomain, true, WarnIfNotEqual32u);
-        GET_VALUE_WARN(member, pciBus, true, WarnIfNotEqual32u);
-        GET_VALUE_WARN(member, pciDevice, true, WarnIfNotEqual32u);
-        GET_VALUE_WARN(member, pciFunction, true, WarnIfNotEqual32u);
+        GET_VALUE_WARN(member, pciDomain, true, requested_profile, WarnIfNotEqual32u);
+        GET_VALUE_WARN(member, pciBus, true, requested_profile, WarnIfNotEqual32u);
+        GET_VALUE_WARN(member, pciDevice, true, requested_profile, WarnIfNotEqual32u);
+        GET_VALUE_WARN(member, pciFunction, true, requested_profile, WarnIfNotEqual32u);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderTerminateInvocation, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderTerminateInvocation, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSubgroupSizeControlPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, minSubgroupSize, false, WarnIfLesser);
-        GET_VALUE_WARN(member, maxSubgroupSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxComputeWorkgroupSubgroups, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, requiredSubgroupSizeStages, false);
+        GET_VALUE_WARN(member, minSubgroupSize, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, maxSubgroupSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxComputeWorkgroupSubgroups, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, requiredSubgroupSizeStages, false, requested_profile);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSubgroupSizeControlFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSubgroupSizeControlFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, subgroupSizeControl, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, computeFullSubgroups, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, subgroupSizeControl, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, computeFullSubgroups, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRatePropertiesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRatePropertiesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceFragmentShadingRatePropertiesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, minFragmentShadingRateAttachmentTexelSize, false, WarnIfLesser);
-        GET_VALUE_WARN(member, maxFragmentShadingRateAttachmentTexelSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentShadingRateAttachmentTexelSizeAspectRatio, false, WarnIfGreater);
-        GET_VALUE_WARN(member, primitiveFragmentShadingRateWithMultipleViewports, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, layeredShadingRateAttachments, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateNonTrivialCombinerOps, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, maxFragmentSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentSizeAspectRatio, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentShadingRateCoverageSamples, false, WarnIfGreater);
-        GET_VALUE_ENUM_WARN(member, maxFragmentShadingRateRasterizationSamples, false, WarnIfNotEqualEnum);
-        GET_VALUE_WARN(member, fragmentShadingRateWithShaderDepthStencilWrites, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateWithSampleMask, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateWithShaderSampleMask, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateWithConservativeRasterization, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateWithFragmentShaderInterlock, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateWithCustomSampleLocations, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShadingRateStrictMultiplyCombiner, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, minFragmentShadingRateAttachmentTexelSize, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, maxFragmentShadingRateAttachmentTexelSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentShadingRateAttachmentTexelSizeAspectRatio, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, primitiveFragmentShadingRateWithMultipleViewports, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, layeredShadingRateAttachments, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateNonTrivialCombinerOps, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, maxFragmentSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentSizeAspectRatio, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentShadingRateCoverageSamples, false, requested_profile, WarnIfGreater);
+        GET_VALUE_ENUM_WARN(member, maxFragmentShadingRateRasterizationSamples, false, requested_profile, WarnIfNotEqualEnum);
+        GET_VALUE_WARN(member, fragmentShadingRateWithShaderDepthStencilWrites, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateWithSampleMask, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateWithShaderSampleMask, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateWithConservativeRasterization, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateWithFragmentShaderInterlock, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateWithCustomSampleLocations, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShadingRateStrictMultiplyCombiner, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRateFeaturesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFragmentShadingRateFeaturesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceFragmentShadingRateFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, pipelineFragmentShadingRate, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, primitiveFragmentShadingRate, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, attachmentFragmentShadingRate, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, pipelineFragmentShadingRate, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, primitiveFragmentShadingRate, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, attachmentFragmentShadingRate, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderImageInt64Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseImageInt64Atomics, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderImageInt64Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseImageInt64Atomics, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, fragmentShaderSampleInterlock, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShaderPixelInterlock, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentShaderShadingRateInterlock, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShaderSampleInterlock, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShaderPixelInterlock, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentShaderShadingRateInterlock, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceYcbcrImageArraysFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, ycbcrImageArrays, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, ycbcrImageArrays, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceLineRasterizationPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLineRasterizationPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceLineRasterizationPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, lineSubPixelPrecisionBits, false, WarnIfGreater);
+        GET_VALUE_WARN(member, lineSubPixelPrecisionBits, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceLineRasterizationFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLineRasterizationFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceLineRasterizationFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, rectangularLines, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, bresenhamLines, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, smoothLines, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, stippledRectangularLines, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, stippledBresenhamLines, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, stippledSmoothLines, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, rectangularLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, bresenhamLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, smoothLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, stippledRectangularLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, stippledBresenhamLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, stippledSmoothLines, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderAtomicFloatFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderBufferFloat32Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderBufferFloat32AtomicAdd, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderBufferFloat64Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderBufferFloat64AtomicAdd, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSharedFloat32Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSharedFloat32AtomicAdd, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSharedFloat64Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSharedFloat64AtomicAdd, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderImageFloat32Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderImageFloat32AtomicAdd, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseImageFloat32Atomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseImageFloat32AtomicAdd, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderBufferFloat32Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderBufferFloat32AtomicAdd, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderBufferFloat64Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderBufferFloat64AtomicAdd, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSharedFloat32Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSharedFloat32AtomicAdd, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSharedFloat64Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSharedFloat64AtomicAdd, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderImageFloat32Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderImageFloat32AtomicAdd, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseImageFloat32Atomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseImageFloat32AtomicAdd, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceIndexTypeUint8FeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceIndexTypeUint8FeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceIndexTypeUint8FeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, indexTypeUint8, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, indexTypeUint8, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExtendedDynamicStateFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, extendedDynamicState, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, extendedDynamicState, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, shaderDemoteToHelperInvocation, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderDemoteToHelperInvocation, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, storageTexelBufferOffsetAlignmentBytes, false, WarnIfLesser);
-        GET_VALUE_WARN(member, storageTexelBufferOffsetSingleTexelAlignment, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, uniformTexelBufferOffsetAlignmentBytes, false, WarnIfLesser);
-        GET_VALUE_WARN(member, uniformTexelBufferOffsetSingleTexelAlignment, true, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, storageTexelBufferOffsetAlignmentBytes, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, storageTexelBufferOffsetSingleTexelAlignment, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, uniformTexelBufferOffsetAlignmentBytes, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, uniformTexelBufferOffsetSingleTexelAlignment, true, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, texelBufferAlignment, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, texelBufferAlignment, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceRobustness2PropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceRobustness2PropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceRobustness2PropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, robustStorageBufferAccessSizeAlignment, false, WarnIfLesser);
-        GET_VALUE_WARN(member, robustUniformBufferAccessSizeAlignment, false, WarnIfLesser);
+        GET_VALUE_WARN(member, robustStorageBufferAccessSizeAlignment, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, robustUniformBufferAccessSizeAlignment, false, requested_profile, WarnIfLesser);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceRobustness2FeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceRobustness2FeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceRobustness2FeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, robustBufferAccess2, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, robustImageAccess2, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, nullDescriptor, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustBufferAccess2, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustImageAccess2, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, nullDescriptor, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorPropertiesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorPropertiesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceCustomBorderColorPropertiesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxCustomBorderColorSamplers, false, WarnIfGreater);
+        GET_VALUE_WARN(member, maxCustomBorderColorSamplers, false, requested_profile, WarnIfGreater);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceCustomBorderColorFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceCustomBorderColorFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, customBorderColors, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, customBorderColorWithoutFormat, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, customBorderColors, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, customBorderColorWithoutFormat, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSynchronization2FeaturesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSynchronization2FeaturesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSynchronization2FeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, synchronization2, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, synchronization2, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, ycbcr2plane444Formats, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, ycbcr2plane444Formats, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceImageRobustnessFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceImageRobustnessFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceImageRobustnessFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, robustImageAccess, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustImageAccess, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevice4444FormatsFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevice4444FormatsFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevice4444FormatsFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, formatA4R4G4B4, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, formatA4B4G4R4, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, formatA4R4G4B4, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, formatA4B4G4R4, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, vertexInputDynamicState, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vertexInputDynamicState, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 #ifdef VK_USE_PLATFORM_SCI
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalSciSyncFeaturesNV *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalSciSyncFeaturesNV *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExternalSciSyncFeaturesNV)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, sciSyncFence, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciSyncSemaphore, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciSyncImport, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciSyncExport, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncFence, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncSemaphore, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncImport, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncExport, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 #endif // VK_USE_PLATFORM_SCI
 #ifdef VK_USE_PLATFORM_SCI
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalMemorySciBufFeaturesNV *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemorySciBufFeaturesNV *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExternalMemorySciBufFeaturesNV)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, sciBufImport, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciBufExport, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciBufImport, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciBufExport, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 #endif // VK_USE_PLATFORM_SCI
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExtendedDynamicState2FeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, extendedDynamicState2, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, extendedDynamicState2LogicOp, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, extendedDynamicState2PatchControlPoints, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, extendedDynamicState2, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, extendedDynamicState2LogicOp, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, extendedDynamicState2PatchControlPoints, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceColorWriteEnableFeaturesEXT *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceColorWriteEnableFeaturesEXT *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceColorWriteEnableFeaturesEXT)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, colorWriteEnable, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, colorWriteEnable, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 #ifdef VK_USE_PLATFORM_SCI
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalSciSync2FeaturesNV *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalSciSync2FeaturesNV *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExternalSciSync2FeaturesNV)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, sciSyncFence, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciSyncSemaphore2, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciSyncImport, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sciSyncExport, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncFence, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncSemaphore2, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncImport, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sciSyncExport, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 #endif // VK_USE_PLATFORM_SCI
-#ifdef VK_USE_PLATFORM_SCREEN_QNX
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR *dest) {
     (void)dest;
+    (void)requested_profile;
+    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR)\n");
+    bool valid = true;
+    for (const auto &member : parent.getMemberNames()) {
+        GET_VALUE_WARN(member, maxVertexAttribDivisor, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, supportsNonZeroFirstInstance, false, requested_profile, WarnIfNotEqualBool);
+    }
+    return valid;
+}
+
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR *dest) {
+    (void)dest;
+    (void)requested_profile;
+    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR)\n");
+    bool valid = true;
+    for (const auto &member : parent.getMemberNames()) {
+        GET_VALUE_WARN(member, vertexAttributeInstanceRateDivisor, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vertexAttributeInstanceRateZeroDivisor, false, requested_profile, WarnIfNotEqualBool);
+    }
+    return valid;
+}
+
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX *dest) {
+    (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, screenBufferImport, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, screenBufferImport, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 #endif // VK_USE_PLATFORM_SCREEN_QNX
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceFeatures *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFeatures *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceFeatures)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, robustBufferAccess, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fullDrawIndexUint32, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, imageCubeArray, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, independentBlend, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, geometryShader, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, tessellationShader, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sampleRateShading, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, dualSrcBlend, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, logicOp, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiDrawIndirect, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, drawIndirectFirstInstance, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, depthClamp, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, depthBiasClamp, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fillModeNonSolid, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, depthBounds, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, wideLines, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, largePoints, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, alphaToOne, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, multiViewport, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, samplerAnisotropy, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, textureCompressionETC2, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, textureCompressionASTC_LDR, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, textureCompressionBC, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, occlusionQueryPrecise, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, pipelineStatisticsQuery, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, vertexPipelineStoresAndAtomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, fragmentStoresAndAtomics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderTessellationAndGeometryPointSize, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderImageGatherExtended, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageExtendedFormats, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageMultisample, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageReadWithoutFormat, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageWriteWithoutFormat, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderUniformBufferArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderSampledImageArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageBufferArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderStorageImageArrayDynamicIndexing, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderClipDistance, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderCullDistance, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderFloat64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInt64, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderInt16, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderResourceResidency, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, shaderResourceMinLod, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseBinding, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidencyBuffer, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidencyImage2D, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidencyImage3D, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidency2Samples, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidency4Samples, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidency8Samples, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidency16Samples, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, sparseResidencyAliased, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, variableMultisampleRate, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, inheritedQueries, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, robustBufferAccess, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fullDrawIndexUint32, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, imageCubeArray, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, independentBlend, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, geometryShader, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, tessellationShader, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sampleRateShading, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, dualSrcBlend, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, logicOp, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiDrawIndirect, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, drawIndirectFirstInstance, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, depthClamp, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, depthBiasClamp, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fillModeNonSolid, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, depthBounds, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, wideLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, largePoints, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, alphaToOne, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multiViewport, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, samplerAnisotropy, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, textureCompressionETC2, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, textureCompressionASTC_LDR, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, textureCompressionBC, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, occlusionQueryPrecise, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, pipelineStatisticsQuery, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vertexPipelineStoresAndAtomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, fragmentStoresAndAtomics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderTessellationAndGeometryPointSize, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderImageGatherExtended, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageExtendedFormats, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageMultisample, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageReadWithoutFormat, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageWriteWithoutFormat, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderUniformBufferArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSampledImageArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageBufferArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderStorageImageArrayDynamicIndexing, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderClipDistance, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderCullDistance, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderFloat64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInt64, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderInt16, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderResourceResidency, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderResourceMinLod, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseBinding, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidencyBuffer, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidencyImage2D, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidencyImage3D, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidency2Samples, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidency4Samples, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidency8Samples, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidency16Samples, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, sparseResidencyAliased, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, variableMultisampleRate, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, inheritedQueries, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetFeaturesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetFeaturesKHR *dest) {
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePortabilitySubsetFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
@@ -5730,194 +5934,197 @@ bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, V
             dest->triangleFans = layer_settings.portability.triangleFans;
             dest->vertexAttributeAccessBeyondStride = layer_settings.portability.vertexAttributeAccessBeyondStride;
         } else {
-            GET_VALUE_WARN(member, constantAlphaColorBlendFactors, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, events, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, imageViewFormatReinterpretation, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, imageViewFormatSwizzle, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, imageView2DOn3DImage, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, multisampleArrayImage, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, mutableComparisonSamplers, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, pointPolygons, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, samplerMipLodBias, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, separateStencilMaskRef, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, shaderSampleRateInterpolationFunctions, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, tessellationIsolines, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, tessellationPointMode, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, triangleFans, false, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, vertexAttributeAccessBeyondStride, false, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, constantAlphaColorBlendFactors, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, events, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, imageViewFormatReinterpretation, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, imageViewFormatSwizzle, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, imageView2DOn3DImage, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, multisampleArrayImage, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, mutableComparisonSamplers, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, pointPolygons, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, samplerMipLodBias, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, separateStencilMaskRef, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, shaderSampleRateInterpolationFunctions, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, tessellationIsolines, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, tessellationPointMode, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, triangleFans, false, requested_profile, WarnIfNotEqualBool);
+            GET_VALUE_WARN(member, vertexAttributeAccessBeyondStride, false, requested_profile, WarnIfNotEqualBool);
         }
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProperties *dest) {
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceProperties)\n");
     bool valid = true;
-    if (!GetStruct(device_name, parent["limits"], &dest->limits)) {
+    if (!GetStruct(device_name, requested_profile, parent["limits"], &dest->limits)) {
         valid = false;
     }
-    if (!GetStruct(device_name, parent["sparseProperties"], &dest->sparseProperties)) {
+    if (!GetStruct(device_name, requested_profile, parent["sparseProperties"], &dest->sparseProperties)) {
         valid = false;
     }
     for (const auto &prop : parent.getMemberNames()) {
-        GET_VALUE(prop, apiVersion, false);
-        GET_VALUE(prop, driverVersion, true);
-        GET_VALUE(prop, vendorID, true);
-        GET_VALUE(prop, deviceID, true);
-        GET_VALUE_ENUM_WARN(prop, deviceType, true, WarnIfNotEqualEnum);
-        GetArray(parent, prop, "deviceName", dest->deviceName, true);         // size < VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
-        GetArray(parent, prop, "pipelineCacheUUID", dest->pipelineCacheUUID, true);  // size == VK_UUID_SIZE*/
+        GET_VALUE(prop, apiVersion, false, requested_profile);
+        GET_VALUE(prop, driverVersion, true, requested_profile);
+        GET_VALUE(prop, vendorID, true, requested_profile);
+        GET_VALUE(prop, deviceID, true, requested_profile);
+        GET_VALUE_ENUM_WARN(prop, deviceType, true, requested_profile, WarnIfNotEqualEnum);
+        GetArray(device_name, parent, prop, "deviceName", dest->deviceName, true);         // size < VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
+        GetArray(device_name, parent, prop, "pipelineCacheUUID", dest->pipelineCacheUUID, true);  // size == VK_UUID_SIZE*/
     }
     return valid;
 }
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceLimits *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLimits *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceLimits)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, maxImageDimension1D, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxImageDimension2D, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxImageDimension3D, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxImageDimensionCube, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxImageArrayLayers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTexelBufferElements, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxUniformBufferRange, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxStorageBufferRange, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPushConstantsSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxMemoryAllocationCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxSamplerAllocationCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, bufferImageGranularity, false, WarnIfLesser);
-        GET_VALUE_WARN(member, sparseAddressSpaceSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxBoundDescriptorSets, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorSamplers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorUniformBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorStorageBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorSampledImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorStorageImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageDescriptorInputAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxPerStageResources, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetSamplers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUniformBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetUniformBuffersDynamic, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetStorageBuffers, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetStorageBuffersDynamic, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetSampledImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetStorageImages, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDescriptorSetInputAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxVertexInputAttributes, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxVertexInputBindings, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxVertexInputAttributeOffset, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxVertexInputBindingStride, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxVertexOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationGenerationLevel, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationPatchSize, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationControlPerVertexInputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationControlPerVertexOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationControlPerPatchOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationControlTotalOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationEvaluationInputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxTessellationEvaluationOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxGeometryShaderInvocations, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxGeometryInputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxGeometryOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxGeometryOutputVertices, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxGeometryTotalOutputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentInputComponents, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentOutputAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentDualSrcAttachments, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFragmentCombinedOutputResources, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxComputeSharedMemorySize, false, WarnIfGreater);
-        GetArray(parent, member, "maxComputeWorkGroupCount", dest->maxComputeWorkGroupCount, false);
-        GET_VALUE_WARN(member, maxComputeWorkGroupInvocations, false, WarnIfGreater);
-        GetArray(parent, member, "maxComputeWorkGroupSize", dest->maxComputeWorkGroupSize, false);
-        GET_VALUE_WARN(member, subPixelPrecisionBits, false, WarnIfGreater);
-        GET_VALUE_WARN(member, subTexelPrecisionBits, false, WarnIfGreater);
-        GET_VALUE_WARN(member, mipmapPrecisionBits, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDrawIndexedIndexValue, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxDrawIndirectCount, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxSamplerLodBias, false, WarnIfGreaterFloat);
-        GET_VALUE_WARN(member, maxSamplerAnisotropy, false, WarnIfGreaterFloat);
-        GET_VALUE_WARN(member, maxViewports, false, WarnIfGreater);
-        GetArray(parent, member, "maxViewportDimensions", dest->maxViewportDimensions, false);
-        GetArray(parent, member, "viewportBoundsRange", dest->viewportBoundsRange, false);
-        GET_VALUE_WARN(member, viewportSubPixelBits, false, WarnIfGreater);
-        GET_VALUE_SIZE_T_WARN(member, minMemoryMapAlignment, false, WarnIfLesserSizet);
-        GET_VALUE_WARN(member, minTexelBufferOffsetAlignment, false, WarnIfLesser);
-        GET_VALUE_WARN(member, minUniformBufferOffsetAlignment, false, WarnIfLesser);
-        GET_VALUE_WARN(member, minStorageBufferOffsetAlignment, false, WarnIfLesser);
-        GET_VALUE_WARN(member, minTexelOffset, false, WarnIfLesser);
-        GET_VALUE_WARN(member, maxTexelOffset, false, WarnIfGreater);
-        GET_VALUE_WARN(member, minTexelGatherOffset, false, WarnIfLesser);
-        GET_VALUE_WARN(member, maxTexelGatherOffset, false, WarnIfGreater);
-        GET_VALUE_WARN(member, minInterpolationOffset, false, WarnIfLesserFloat);
-        GET_VALUE_WARN(member, maxInterpolationOffset, false, WarnIfGreaterFloat);
-        GET_VALUE_WARN(member, subPixelInterpolationOffsetBits, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFramebufferWidth, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFramebufferHeight, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxFramebufferLayers, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, framebufferColorSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, framebufferDepthSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, framebufferStencilSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, framebufferNoAttachmentsSampleCounts, false);
-        GET_VALUE_WARN(member, maxColorAttachments, false, WarnIfGreater);
-        GET_VALUE_FLAG_WARN(member, sampledImageColorSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, sampledImageIntegerSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, sampledImageDepthSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, sampledImageStencilSampleCounts, false);
-        GET_VALUE_FLAG_WARN(member, storageImageSampleCounts, false);
-        GET_VALUE_WARN(member, maxSampleMaskWords, false, WarnIfGreater);
-        GET_VALUE_WARN(member, timestampComputeAndGraphics, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, timestampPeriod, true, WarnIfNotEqualFloat);
-        GET_VALUE_WARN(member, maxClipDistances, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxCullDistances, false, WarnIfGreater);
-        GET_VALUE_WARN(member, maxCombinedClipAndCullDistances, false, WarnIfGreater);
-        GET_VALUE_WARN(member, discreteQueuePriorities, false, WarnIfGreater);
-        GetArray(parent, member, "pointSizeRange", dest->pointSizeRange, false);
-        GetArray(parent, member, "lineWidthRange", dest->lineWidthRange, false);
-        GET_VALUE_WARN(member, pointSizeGranularity, false, WarnIfLesserFloat);
-        GET_VALUE_WARN(member, lineWidthGranularity, false, WarnIfLesserFloat);
-        GET_VALUE_WARN(member, strictLines, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, standardSampleLocations, true, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, optimalBufferCopyOffsetAlignment, false, WarnIfLesser);
-        GET_VALUE_WARN(member, optimalBufferCopyRowPitchAlignment, false, WarnIfLesser);
-        GET_VALUE_WARN(member, nonCoherentAtomSize, false, WarnIfLesser);
+        GET_VALUE_WARN(member, maxImageDimension1D, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxImageDimension2D, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxImageDimension3D, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxImageDimensionCube, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxImageArrayLayers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTexelBufferElements, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxUniformBufferRange, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxStorageBufferRange, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPushConstantsSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxMemoryAllocationCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxSamplerAllocationCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, bufferImageGranularity, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, sparseAddressSpaceSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxBoundDescriptorSets, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorSamplers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorUniformBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorStorageBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorSampledImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorStorageImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageDescriptorInputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxPerStageResources, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetSamplers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUniformBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetUniformBuffersDynamic, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetStorageBuffers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetStorageBuffersDynamic, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetSampledImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetStorageImages, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDescriptorSetInputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxVertexInputAttributes, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxVertexInputBindings, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxVertexInputAttributeOffset, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxVertexInputBindingStride, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxVertexOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationGenerationLevel, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationPatchSize, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationControlPerVertexInputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationControlPerVertexOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationControlPerPatchOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationControlTotalOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationEvaluationInputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxTessellationEvaluationOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxGeometryShaderInvocations, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxGeometryInputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxGeometryOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxGeometryOutputVertices, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxGeometryTotalOutputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentInputComponents, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentOutputAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentDualSrcAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFragmentCombinedOutputResources, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxComputeSharedMemorySize, false, requested_profile, WarnIfGreater);
+        GetArray(device_name, parent, member, "maxComputeWorkGroupCount", dest->maxComputeWorkGroupCount, false);
+        GET_VALUE_WARN(member, maxComputeWorkGroupInvocations, false, requested_profile, WarnIfGreater);
+        GetArray(device_name, parent, member, "maxComputeWorkGroupSize", dest->maxComputeWorkGroupSize, false);
+        GET_VALUE_WARN(member, subPixelPrecisionBits, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, subTexelPrecisionBits, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, mipmapPrecisionBits, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDrawIndexedIndexValue, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxDrawIndirectCount, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxSamplerLodBias, false, requested_profile, WarnIfGreaterFloat);
+        GET_VALUE_WARN(member, maxSamplerAnisotropy, false, requested_profile, WarnIfGreaterFloat);
+        GET_VALUE_WARN(member, maxViewports, false, requested_profile, WarnIfGreater);
+        GetArray(device_name, parent, member, "maxViewportDimensions", dest->maxViewportDimensions, false);
+        GetArray(device_name, parent, member, "viewportBoundsRange", dest->viewportBoundsRange, false);
+        GET_VALUE_WARN(member, viewportSubPixelBits, false, requested_profile, WarnIfGreater);
+        GET_VALUE_SIZE_T_WARN(member, minMemoryMapAlignment, false, requested_profile, WarnIfLesserSizet);
+        GET_VALUE_WARN(member, minTexelBufferOffsetAlignment, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, minUniformBufferOffsetAlignment, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, minStorageBufferOffsetAlignment, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, minTexelOffset, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, maxTexelOffset, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, minTexelGatherOffset, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, maxTexelGatherOffset, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, minInterpolationOffset, false, requested_profile, WarnIfLesserFloat);
+        GET_VALUE_WARN(member, maxInterpolationOffset, false, requested_profile, WarnIfGreaterFloat);
+        GET_VALUE_WARN(member, subPixelInterpolationOffsetBits, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFramebufferWidth, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFramebufferHeight, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxFramebufferLayers, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, framebufferColorSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, framebufferDepthSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, framebufferStencilSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, framebufferNoAttachmentsSampleCounts, false, requested_profile);
+        GET_VALUE_WARN(member, maxColorAttachments, false, requested_profile, WarnIfGreater);
+        GET_VALUE_FLAG_WARN(member, sampledImageColorSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, sampledImageIntegerSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, sampledImageDepthSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, sampledImageStencilSampleCounts, false, requested_profile);
+        GET_VALUE_FLAG_WARN(member, storageImageSampleCounts, false, requested_profile);
+        GET_VALUE_WARN(member, maxSampleMaskWords, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, timestampComputeAndGraphics, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, timestampPeriod, true, requested_profile, WarnIfNotEqualFloat);
+        GET_VALUE_WARN(member, maxClipDistances, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxCullDistances, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, maxCombinedClipAndCullDistances, false, requested_profile, WarnIfGreater);
+        GET_VALUE_WARN(member, discreteQueuePriorities, false, requested_profile, WarnIfGreater);
+        GetArray(device_name, parent, member, "pointSizeRange", dest->pointSizeRange, false);
+        GetArray(device_name, parent, member, "lineWidthRange", dest->lineWidthRange, false);
+        GET_VALUE_WARN(member, pointSizeGranularity, false, requested_profile, WarnIfLesserFloat);
+        GET_VALUE_WARN(member, lineWidthGranularity, false, requested_profile, WarnIfLesserFloat);
+        GET_VALUE_WARN(member, strictLines, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, standardSampleLocations, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, optimalBufferCopyOffsetAlignment, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, optimalBufferCopyRowPitchAlignment, false, requested_profile, WarnIfLesser);
+        GET_VALUE_WARN(member, nonCoherentAtomSize, false, requested_profile, WarnIfLesser);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceSparseProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSparseProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceSparseProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, residencyStandard2DBlockShape, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, residencyStandard2DMultisampleBlockShape, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, residencyStandard3DBlockShape, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, residencyAlignedMipSize, false, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, residencyNonResidentStrict, false, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, residencyStandard2DBlockShape, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, residencyStandard2DMultisampleBlockShape, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, residencyStandard3DBlockShape, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, residencyAlignedMipSize, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, residencyNonResidentStrict, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDeviceToolProperties *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceToolProperties *dest) {
     (void)dest;
+    (void)requested_profile;
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceToolProperties)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GetArray(parent, member, "name", dest->name, true);
-        GetArray(parent, member, "version", dest->version, true);
-        GetArray(parent, member, "description", dest->description, true);
-        GetArray(parent, member, "layer", dest->layer, true);
+        GetArray(device_name, parent, member, "name", dest->name, true);
+        GetArray(device_name, parent, member, "version", dest->version, true);
+        GetArray(device_name, parent, member, "description", dest->description, true);
+        GetArray(device_name, parent, member, "layer", dest->layer, true);
     }
     return valid;
 }
 
 
-bool JsonLoader::GetStruct(const char* device_name, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetPropertiesKHR *dest) {
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetPropertiesKHR *dest) {
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePortabilitySubsetPropertiesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        GET_VALUE_WARN(member, minVertexInputBindingStrideAlignment, false, WarnIfLesser);
+        GET_VALUE_WARN(member, minVertexInputBindingStrideAlignment, false, requested_profile, WarnIfLesser);
     }
     return valid;
 }
@@ -5977,8 +6184,9 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(const VkInstanceCreateInfo *pCreat
         }
     }
 
+
     bool changed_version = false;
-    if (!layer_settings->simulate.profile_file.empty() || layer_settings->simulate.profile_dirs.empty()) {
+    if (!layer_settings->simulate.profile_file.empty() || !layer_settings->simulate.profile_dirs.empty()) {
         const uint32_t profile_api_version = json_loader.GetProfileApiVersion();
         if (VK_API_VERSION_MAJOR(requested_version) < VK_API_VERSION_MAJOR(profile_api_version) ||
             VK_API_VERSION_MINOR(requested_version) < VK_API_VERSION_MINOR(profile_api_version)) {
@@ -6639,19 +6847,11 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
                     data->pNext = pNext;
                 }
                 break;
-            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT:
-                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME))) {
-                    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT *data = (VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT *)place;
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR:
+                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME))) {
+                    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *data = (VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *)place;
                     void *pNext = data->pNext;
-                    *data = physicalDeviceData->physical_device_vertex_attribute_divisor_properties_ext_;
-                    data->pNext = pNext;
-                }
-                break;
-            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT:
-                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME))) {
-                    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT *data = (VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT *)place;
-                    void *pNext = data->pNext;
-                    *data = physicalDeviceData->physical_device_vertex_attribute_divisor_features_;
+                    *data = physicalDeviceData->physical_device_global_priority_query_features_;
                     data->pNext = pNext;
                 }
                 break;
@@ -6728,7 +6928,7 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
                 }
                 break;
             case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT:
-                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME))) {
+                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME) || PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_LINE_RASTERIZATION_EXTENSION_NAME))) {
                     VkPhysicalDeviceLineRasterizationPropertiesEXT *data = (VkPhysicalDeviceLineRasterizationPropertiesEXT *)place;
                     void *pNext = data->pNext;
                     *data = physicalDeviceData->physical_device_line_rasterization_properties_;
@@ -6736,7 +6936,7 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
                 }
                 break;
             case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
-                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME))) {
+                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME) || PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_LINE_RASTERIZATION_EXTENSION_NAME))) {
                     VkPhysicalDeviceLineRasterizationFeaturesEXT *data = (VkPhysicalDeviceLineRasterizationFeaturesEXT *)place;
                     void *pNext = data->pNext;
                     *data = physicalDeviceData->physical_device_line_rasterization_features_;
@@ -6752,7 +6952,7 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
                 }
                 break;
             case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT:
-                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME))) {
+                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME) || PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_INDEX_TYPE_UINT8_EXTENSION_NAME))) {
                     VkPhysicalDeviceIndexTypeUint8FeaturesEXT *data = (VkPhysicalDeviceIndexTypeUint8FeaturesEXT *)place;
                     void *pNext = data->pNext;
                     *data = physicalDeviceData->physical_device_index_type_uint_8_features_;
@@ -6909,6 +7109,22 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
                 }
                 break;
 #endif // VK_USE_PLATFORM_SCI
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_KHR:
+                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME))) {
+                    VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR *data = (VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR *)place;
+                    void *pNext = data->pNext;
+                    *data = physicalDeviceData->physical_device_vertex_attribute_divisor_properties_;
+                    data->pNext = pNext;
+                }
+                break;
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_KHR:
+                if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME))) {
+                    VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR *data = (VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR *)place;
+                    void *pNext = data->pNext;
+                    *data = physicalDeviceData->physical_device_vertex_attribute_divisor_features_;
+                    data->pNext = pNext;
+                }
+                break;
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
             case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX:
                 if ((PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME))) {
@@ -6934,6 +7150,12 @@ void FillQueueFamilyPropertiesPNextChain(PhysicalDeviceData *physicalDeviceData,
             VkBaseOutStructure *structure = (VkBaseOutStructure *)place;
 
             switch (structure->sType) {
+                case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+                    VkQueueFamilyGlobalPriorityPropertiesKHR *data = (VkQueueFamilyGlobalPriorityPropertiesKHR *)place;
+                    void *pNext = data->pNext;
+                    *data = physicalDeviceData->arrayof_queue_family_properties_[i].global_priority_properties_;
+                    data->pNext = pNext;
+                } break;
                 case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: {
                     VkQueueFamilyCheckpointProperties2NV *data = (VkQueueFamilyCheckpointProperties2NV *)place;
                     void *pNext = data->pNext;
@@ -7037,7 +7259,11 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumerateInstanceLayerProperties(uint32_t *pCount
 VKAPI_ATTR VkResult VKAPI_CALL EnumerateInstanceExtensionProperties(const char *pLayerName, uint32_t *pCount,
                                                                     VkExtensionProperties *pProperties) {
     if (pLayerName && !strcmp(pLayerName, kLayerName)) {
+#ifdef VULKANSC
         return EnumerateProperties(0, (VkExtensionProperties*)nullptr, pCount, pProperties);
+#else
+        return EnumerateProperties(kInstanceExtensionPropertiesCount, kInstanceExtensionProperties, pCount, pProperties);
+#endif
     }
     return VK_ERROR_LAYER_NOT_PRESENT;
 }
@@ -7875,13 +8101,10 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                     feature_chain.pNext = &(pdd.physical_device_shader_clock_features_);
                 }
 
-                if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME)) {
-                    pdd.physical_device_vertex_attribute_divisor_properties_ext_.pNext = property_chain.pNext;
+                if (PhysicalDeviceData::HasExtension(&pdd, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME)) {
+                    pdd.physical_device_global_priority_query_features_.pNext = feature_chain.pNext;
 
-                    property_chain.pNext = &(pdd.physical_device_vertex_attribute_divisor_properties_ext_);
-                    pdd.physical_device_vertex_attribute_divisor_features_.pNext = feature_chain.pNext;
-
-                    feature_chain.pNext = &(pdd.physical_device_vertex_attribute_divisor_features_);
+                    feature_chain.pNext = &(pdd.physical_device_global_priority_query_features_);
                 }
 
                 if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_PCI_BUS_INFO_EXTENSION_NAME)) {
@@ -7932,7 +8155,7 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                     feature_chain.pNext = &(pdd.physical_device_ycbcr_image_arrays_features_);
                 }
 
-                if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME)) {
+                if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME) || PhysicalDeviceData::HasExtension(&pdd, VK_KHR_LINE_RASTERIZATION_EXTENSION_NAME)) {
                     pdd.physical_device_line_rasterization_properties_.pNext = property_chain.pNext;
 
                     property_chain.pNext = &(pdd.physical_device_line_rasterization_properties_);
@@ -7947,7 +8170,7 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                     feature_chain.pNext = &(pdd.physical_device_shader_atomic_float_features_);
                 }
 
-                if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME)) {
+                if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME) || PhysicalDeviceData::HasExtension(&pdd, VK_KHR_INDEX_TYPE_UINT8_EXTENSION_NAME)) {
                     pdd.physical_device_index_type_uint_8_features_.pNext = feature_chain.pNext;
 
                     feature_chain.pNext = &(pdd.physical_device_index_type_uint_8_features_);
@@ -8057,6 +8280,15 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                     feature_chain.pNext = &(pdd.physical_device_external_sci_sync_2_features_);
                 }
 #endif // VK_USE_PLATFORM_SCI
+
+                if (PhysicalDeviceData::HasExtension(&pdd, VK_KHR_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME)) {
+                    pdd.physical_device_vertex_attribute_divisor_properties_.pNext = property_chain.pNext;
+
+                    property_chain.pNext = &(pdd.physical_device_vertex_attribute_divisor_properties_);
+                    pdd.physical_device_vertex_attribute_divisor_features_.pNext = feature_chain.pNext;
+
+                    feature_chain.pNext = &(pdd.physical_device_vertex_attribute_divisor_features_);
+                }
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
 
                 if (PhysicalDeviceData::HasExtension(&pdd, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
@@ -8379,9 +8611,9 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                 pdd.physical_device_memory_properties_ = memory_chain.memoryProperties;
             }
 
-            ::device_has_astc = pdd.physical_device_features_.textureCompressionASTC_LDR;
-            ::device_has_bc = pdd.physical_device_features_.textureCompressionBC;
-            ::device_has_etc2 = pdd.physical_device_features_.textureCompressionETC2;
+            ::device_has_astc = pdd.physical_device_features_.textureCompressionASTC_LDR == VK_TRUE;
+            ::device_has_bc = pdd.physical_device_features_.textureCompressionBC == VK_TRUE;
+            ::device_has_etc2 = pdd.physical_device_features_.textureCompressionETC2 == VK_TRUE;
 
             if (layer_settings->simulate.capabilities & SIMULATE_FORMATS_BIT) {
                 LoadDeviceFormats(instance, &pdd, physical_device, &pdd.device_formats_, &pdd.device_formats_3_);

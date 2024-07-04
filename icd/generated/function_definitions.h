@@ -377,7 +377,16 @@ static VKAPI_ATTR VkResult VKAPI_CALL QueueSubmit(
     const VkSubmitInfo*                         pSubmits,
     VkFence                                     fence)
 {
-//Not a CREATE or DESTROY function
+    // Special way to cause DEVICE_LOST
+    // Picked VkExportFenceCreateInfo because needed some struct that wouldn't get cleared by validation Safe Struct
+    // ... TODO - It would be MUCH nicer to have a layer or other setting control when this occured
+    // For now this is used to allow Validation Layers test reacting to device losts
+    if (submitCount > 0 && pSubmits) {
+        auto pNext = reinterpret_cast<const VkBaseInStructure *>(pSubmits[0].pNext);
+        if (pNext && pNext->sType == VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO && pNext->pNext == nullptr) {
+            return VK_ERROR_DEVICE_LOST;
+        }
+    }
     return VK_SUCCESS;
 }
 
@@ -3577,9 +3586,8 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties2KHR
 {
     auto *external_image_prop = lvl_find_mod_in_chain<VkExternalImageFormatProperties>(pImageFormatProperties->pNext);
     auto *external_image_format = lvl_find_in_chain<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo->pNext);
-    if (external_image_prop && external_image_format && external_image_format->handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
+    if (external_image_prop && external_image_format) {
         external_image_prop->externalMemoryProperties.externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT | VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT;
-        external_image_prop->externalMemoryProperties.compatibleHandleTypes = external_image_format->handleType;
         external_image_prop->externalMemoryProperties.compatibleHandleTypes = external_image_format->handleType;
     }
 
@@ -3748,7 +3756,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetMemoryWin32HandlePropertiesKHR(
     HANDLE                                      handle,
     VkMemoryWin32HandlePropertiesKHR*           pMemoryWin32HandleProperties)
 {
-//Not a CREATE or DESTROY function
+    pMemoryWin32HandleProperties->memoryTypeBits = 0xFFFF;
     return VK_SUCCESS;
 }
 #endif /* VK_USE_PLATFORM_WIN32_KHR */
@@ -7518,6 +7526,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetDynamicRenderingTilePropertiesQCOM(
 
 
 
+
 static VKAPI_ATTR VkResult VKAPI_CALL SetLatencySleepModeNV(
     VkDevice                                    device,
     VkSwapchainKHR                              swapchain,
@@ -7584,6 +7593,9 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetScreenBufferPropertiesQNX(
     return VK_SUCCESS;
 }
 #endif /* VK_USE_PLATFORM_SCREEN_QNX */
+
+
+
 
 
 

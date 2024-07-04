@@ -207,6 +207,10 @@ void DumpSurfaceCapabilities(Printer &p, AppInstance &inst, AppGpu &gpu, AppSurf
 #ifndef VULKANSC
             if (err == VK_SUCCESS) {
                 ObjectWrapper present_mode_obj(p, VkPresentModeKHRString(mode));
+
+                p.PrintKeyValue("minImageCount", surface_caps2.surfaceCapabilities.minImageCount);
+                p.PrintKeyValue("maxImageCount", surface_caps2.surfaceCapabilities.maxImageCount);
+
                 DumpVkSurfacePresentScalingCapabilitiesEXT(p, "VkSurfacePresentScalingCapabilitiesEXT",
                                                            SurfacePresentScalingCapabilitiesEXT);
                 DumpVkSurfacePresentModeCompatibilityEXT(p, "VkSurfacePresentModeCompatibilityEXT",
@@ -712,7 +716,6 @@ void DumpGpuProfileCapabilities(Printer &p, AppGpu &gpu) {
 #endif  // VULKANSC
                 void *place = gpu.props2.pNext;
                 chain_iterator_phys_device_props2(p, gpu.inst, gpu, place);
-                GetAndDumpHostImageCopyPropertiesEXT(p, gpu);
             }
         }
         {

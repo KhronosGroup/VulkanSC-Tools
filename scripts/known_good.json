@@ -7,7 +7,7 @@
             "sub_dir": "Vulkan-Headers",
             "build_dir": "Vulkan-Headers/build",
             "install_dir": "Vulkan-Headers/build/install",
-            "commit": "v1.3.278"
+            "commit": "v1.3.285"
         },
         {
             "name": "Vulkan-Headers",
@@ -19,7 +19,7 @@
             "cmake_options": [
                 "-DGEN_VULKANSC_COMBINED=ON"
             ],
-            "commit": "fb874b731b9097af396411c0d19362419f798200"
+            "commit": "vksc1.0.15"
         },
         {
             "name": "Vulkan-Utility-Libraries",
@@ -28,7 +28,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "7dc142c45f5a37e2b0e60c202863579b33443052",
+            "commit": "vksc1.0.15",
             "deps": [
                 {
                     "var_name": "VULKAN_HEADERS_INSTALL_DIR",
@@ -42,7 +42,7 @@
             "sub_dir": "MoltenVK",
             "build_dir": "MoltenVK",
             "install_dir": "MoltenVK",
-            "commit": "v1.2.7",
+            "commit": "v1.2.8",
             "custom_build": [
                 "./fetchDependencies --macos",
                 "xcodebuild -project MoltenVKPackaging.xcodeproj GCC_PREPROCESSOR_DEFINITIONS='$GCC_PREPROCESSOR_DEFINITIONS MVK_CONFIG_LOG_LEVEL=1' -scheme \"MoltenVK Package (macOS only)\" build"
@@ -61,7 +61,7 @@
             "cmake_options": [
                 "-DVOLK_INSTALL=ON"
             ],
-            "commit": "vulkan-sdk-1.3.275",
+            "commit": "vulkan-sdk-1.3.283",
             "deps": [
                 {
                     "var_name": "VULKAN_HEADERS_INSTALL_DIR",
@@ -126,7 +126,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "v1.3.278",
+            "commit": "v1.3.285",
             "build_platforms": [
                 "windows",
                 "linux",
@@ -149,7 +149,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "86492711fec3dcc37fc38b14fbad2bcff3042ad6",
+            "commit": "vksc1.0.15",
             "build_platforms": [
                 "windows",
                 "linux",

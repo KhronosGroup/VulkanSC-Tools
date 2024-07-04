@@ -531,9 +531,8 @@ CUSTOM_C_INTERCEPTS = {
 'vkGetPhysicalDeviceImageFormatProperties2KHR': '''
     auto *external_image_prop = lvl_find_mod_in_chain<VkExternalImageFormatProperties>(pImageFormatProperties->pNext);
     auto *external_image_format = lvl_find_in_chain<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo->pNext);
-    if (external_image_prop && external_image_format && external_image_format->handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
+    if (external_image_prop && external_image_format) {
         external_image_prop->externalMemoryProperties.externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT | VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT;
-        external_image_prop->externalMemoryProperties.compatibleHandleTypes = external_image_format->handleType;
         external_image_prop->externalMemoryProperties.compatibleHandleTypes = external_image_format->handleType;
     }
 
@@ -1654,6 +1653,23 @@ CUSTOM_C_INTERCEPTS = {
     *pFence = (VkFence)global_unique_handle++;
     return VK_SUCCESS;
 ''',
+'vkQueueSubmit': '''
+    // Special way to cause DEVICE_LOST
+    // Picked VkExportFenceCreateInfo because needed some struct that wouldn't get cleared by validation Safe Struct
+    // ... TODO - It would be MUCH nicer to have a layer or other setting control when this occured
+    // For now this is used to allow Validation Layers test reacting to device losts
+    if (submitCount > 0 && pSubmits) {
+        auto pNext = reinterpret_cast<const VkBaseInStructure *>(pSubmits[0].pNext);
+        if (pNext && pNext->sType == VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO && pNext->pNext == nullptr) {
+            return VK_ERROR_DEVICE_LOST;
+        }
+    }
+    return VK_SUCCESS;
+''',
+'vkGetMemoryWin32HandlePropertiesKHR': '''
+    pMemoryWin32HandleProperties->memoryTypeBits = 0xFFFF;
+    return VK_SUCCESS;
+'''
 }
 
 CUSTOM_VKSC_INTERCEPT_RENAMES = {
@@ -1782,14 +1798,6 @@ CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
             pProperties->properties.limits.maxDescriptorSetInputAttachments;
     }
 
-    auto *props_13 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan13Properties>(pProperties->pNext);
-    if (props_13) {
-        props_13->storageTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
-        props_13->uniformTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
-        props_13->storageTexelBufferOffsetAlignmentBytes = 16;
-        props_13->uniformTexelBufferOffsetAlignmentBytes = 16;
-    }
-
     auto *protected_memory_props = lvl_find_mod_in_chain<VkPhysicalDeviceProtectedMemoryProperties>(pProperties->pNext);
     if (protected_memory_props) {
         protected_memory_props->protectedNoFault = VK_FALSE;
@@ -1827,7 +1835,7 @@ CUSTOM_VKSC_INTERCEPT_OVERRIDES = {
         blend_op_advanced_props->advancedBlendAllOperations = VK_FALSE;
     }
 
-    auto *vertex_attrib_div_props = lvl_find_mod_in_chain<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT>(pProperties->pNext);
+    auto *vertex_attrib_div_props = lvl_find_mod_in_chain<VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR>(pProperties->pNext);
     if (vertex_attrib_div_props) {
         vertex_attrib_div_props->maxVertexAttribDivisor = 65535;
     }

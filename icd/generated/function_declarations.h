@@ -284,7 +284,7 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_QCOM_render_pass_store_ops", 2},
     {"VK_NV_cuda_kernel_launch", 2},
     {"VK_NV_low_latency", 1},
-    {"VK_EXT_metal_objects", 1},
+    {"VK_EXT_metal_objects", 2},
     {"VK_KHR_synchronization2", 1},
     {"VK_EXT_descriptor_buffer", 1},
     {"VK_EXT_graphics_pipeline_library", 1},
@@ -363,7 +363,7 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_EXT_shader_module_identifier", 1},
     {"VK_EXT_rasterization_order_attachment_access", 1},
     {"VK_NV_optical_flow", 1},
-    {"VK_EXT_legacy_dithering", 1},
+    {"VK_EXT_legacy_dithering", 2},
     {"VK_EXT_pipeline_protected_access", 1},
     {"VK_ANDROID_external_format_resolve", 1},
     {"VK_KHR_maintenance5", 1},
@@ -375,6 +375,7 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_NV_ray_tracing_invocation_reorder", 1},
     {"VK_NV_extended_sparse_address_space", 1},
     {"VK_EXT_mutable_descriptor_type", 1},
+    {"VK_EXT_legacy_vertex_attributes", 1},
     {"VK_ARM_shader_core_builtins", 2},
     {"VK_EXT_pipeline_library_group_handles", 1},
     {"VK_EXT_dynamic_rendering_unused_attachments", 1},
@@ -400,7 +401,10 @@ static const std::unordered_map<std::string, uint32_t> device_extension_map = {
     {"VK_KHR_shader_expect_assume", 1},
     {"VK_KHR_maintenance6", 1},
     {"VK_NV_descriptor_pool_overallocation", 1},
+    {"VK_NV_raw_access_chains", 1},
     {"VK_NV_shader_atomic_float16_vector", 1},
+    {"VK_NV_ray_tracing_validation", 1},
+    {"VK_MESA_image_alignment_control", 1},
 };
 
 
@@ -4303,6 +4307,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetDynamicRenderingTilePropertiesQCOM(
 
 
 
+
 static VKAPI_ATTR VkResult VKAPI_CALL SetLatencySleepModeNV(
     VkDevice                                    device,
     VkSwapchainKHR                              swapchain,
@@ -4345,6 +4350,9 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetScreenBufferPropertiesQNX(
     const struct _screen_buffer*                buffer,
     VkScreenBufferPropertiesQNX*                pProperties);
 #endif /* VK_USE_PLATFORM_SCREEN_QNX */
+
+
+
 
 
 

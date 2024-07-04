@@ -150,6 +150,8 @@ target_sources(DevSimLayer PRIVATE
     profiles_json.h
     profiles_util.cpp
     profiles_util.h
+    profiles_interface.cpp
+    profiles_interface.h
     profiles_generated.cpp
     profiles.h
     vk_layer_table.cpp

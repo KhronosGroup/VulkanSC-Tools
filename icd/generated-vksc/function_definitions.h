@@ -386,7 +386,16 @@ static VKAPI_ATTR VkResult VKAPI_CALL QueueSubmit(
     const VkSubmitInfo*                         pSubmits,
     VkFence                                     fence)
 {
-//Not a CREATE or DESTROY function
+    // Special way to cause DEVICE_LOST
+    // Picked VkExportFenceCreateInfo because needed some struct that wouldn't get cleared by validation Safe Struct
+    // ... TODO - It would be MUCH nicer to have a layer or other setting control when this occured
+    // For now this is used to allow Validation Layers test reacting to device losts
+    if (submitCount > 0 && pSubmits) {
+        auto pNext = reinterpret_cast<const VkBaseInStructure *>(pSubmits[0].pNext);
+        if (pNext && pNext->sType == VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO && pNext->pNext == nullptr) {
+            return VK_ERROR_DEVICE_LOST;
+        }
+    }
     return VK_SUCCESS;
 }
 
@@ -1669,14 +1678,6 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2(
             pProperties->properties.limits.maxDescriptorSetInputAttachments;
     }
 
-    auto *props_13 = lvl_find_mod_in_chain<VkPhysicalDeviceVulkan13Properties>(pProperties->pNext);
-    if (props_13) {
-        props_13->storageTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
-        props_13->uniformTexelBufferOffsetSingleTexelAlignment = VK_TRUE;
-        props_13->storageTexelBufferOffsetAlignmentBytes = 16;
-        props_13->uniformTexelBufferOffsetAlignmentBytes = 16;
-    }
-
     auto *protected_memory_props = lvl_find_mod_in_chain<VkPhysicalDeviceProtectedMemoryProperties>(pProperties->pNext);
     if (protected_memory_props) {
         protected_memory_props->protectedNoFault = VK_FALSE;
@@ -1714,7 +1715,7 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2(
         blend_op_advanced_props->advancedBlendAllOperations = VK_FALSE;
     }
 
-    auto *vertex_attrib_div_props = lvl_find_mod_in_chain<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT>(pProperties->pNext);
+    auto *vertex_attrib_div_props = lvl_find_mod_in_chain<VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR>(pProperties->pNext);
     if (vertex_attrib_div_props) {
         vertex_attrib_div_props->maxVertexAttribDivisor = 65535;
     }
@@ -2814,6 +2815,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetDisplayPlaneCapabilities2KHR(
 
 
 
+
 static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceFragmentShadingRatesKHR(
     VkPhysicalDevice                            physicalDevice,
     uint32_t*                                   pFragmentShadingRateCount,
@@ -2965,6 +2967,43 @@ static VKAPI_ATTR void VKAPI_CALL CmdResolveImage2KHR(
     const VkResolveImageInfo2*                  pResolveImageInfo)
 {
 //Not a CREATE or DESTROY function
+}
+
+
+
+
+static VKAPI_ATTR void VKAPI_CALL CmdSetLineStippleKHR(
+    VkCommandBuffer                             commandBuffer,
+    uint32_t                                    lineStippleFactor,
+    uint16_t                                    lineStipplePattern)
+{
+//Not a CREATE or DESTROY function
+}
+
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsKHR(
+    VkPhysicalDevice                            physicalDevice,
+    uint32_t*                                   pTimeDomainCount,
+    VkTimeDomainKHR*                            pTimeDomains)
+{
+    if (!pTimeDomains) {
+        *pTimeDomainCount = 1;
+    } else {
+        // arbitrary
+        *pTimeDomains = VK_TIME_DOMAIN_DEVICE_KHR;
+    }
+    return VK_SUCCESS;
+}
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetCalibratedTimestampsKHR(
+    VkDevice                                    device,
+    uint32_t                                    timestampCount,
+    const VkCalibratedTimestampInfoKHR*         pTimestampInfos,
+    uint64_t*                                   pTimestamps,
+    uint64_t*                                   pMaxDeviation)
+{
+//Not a CREATE or DESTROY function
+    return VK_SUCCESS;
 }
 
 
@@ -3190,7 +3229,6 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetImageDrmFormatModifierPropertiesEXT(
 
 
 
-
 static VKAPI_ATTR VkResult VKAPI_CALL GetMemoryHostPointerPropertiesEXT(
     VkDevice                                    device,
     VkExternalMemoryHandleTypeFlagBits          handleType,
@@ -3200,33 +3238,6 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetMemoryHostPointerPropertiesEXT(
     pMemoryHostPointerProperties->memoryTypeBits = 1 << 5; // DEVICE_LOCAL only type
     return VK_SUCCESS;
 }
-
-
-static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceCalibrateableTimeDomainsEXT(
-    VkPhysicalDevice                            physicalDevice,
-    uint32_t*                                   pTimeDomainCount,
-    VkTimeDomainKHR*                            pTimeDomains)
-{
-    if (!pTimeDomains) {
-        *pTimeDomainCount = 1;
-    } else {
-        // arbitrary
-        *pTimeDomains = VK_TIME_DOMAIN_DEVICE_EXT;
-    }
-    return VK_SUCCESS;
-}
-
-static VKAPI_ATTR VkResult VKAPI_CALL GetCalibratedTimestampsEXT(
-    VkDevice                                    device,
-    uint32_t                                    timestampCount,
-    const VkCalibratedTimestampInfoKHR*         pTimestampInfos,
-    uint64_t*                                   pTimestamps,
-    uint64_t*                                   pMaxDeviation)
-{
-//Not a CREATE or DESTROY function
-    return VK_SUCCESS;
-}
-
 
 
 
@@ -3360,6 +3371,26 @@ static VKAPI_ATTR void VKAPI_CALL CmdSetStencilOpEXT(
 
 
 
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+
+static VKAPI_ATTR VkResult VKAPI_CALL AcquireWinrtDisplayNV(
+    VkPhysicalDevice                            physicalDevice,
+    VkDisplayKHR                                display)
+{
+//Not a CREATE or DESTROY function
+    return VK_SUCCESS;
+}
+
+static VKAPI_ATTR VkResult VKAPI_CALL GetWinrtDisplayNV(
+    VkPhysicalDevice                            physicalDevice,
+    uint32_t                                    deviceRelativeId,
+    VkDisplayKHR*                               pDisplay)
+{
+//Not a CREATE or DESTROY function
+    return VK_SUCCESS;
+}
+#endif /* VK_USE_PLATFORM_WIN32_KHR */
 
 
 static VKAPI_ATTR void VKAPI_CALL CmdSetVertexInputEXT(
