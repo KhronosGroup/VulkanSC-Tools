@@ -93,7 +93,7 @@ void DumpLayers(Printer &p, std::vector<LayerExtensionList> layers, const std::v
                 ObjectWrapper obj(p, header);
                 DumpExtensions(p, "Layer Extensions", layer.extension_properties);
 
-                ArrayWrapper arr_devices(p, "Devices", gpus.size());
+                ObjectWrapper arr_devices(p, "Devices", gpus.size());
                 for (auto &gpu : gpus) {
                     p.SetValueDescription(std::string(gpu->props.deviceName)).PrintKeyValue("GPU id", gpu->id);
                     auto exts = gpu->inst.AppGetPhysicalDeviceLayerExtensions(gpu->phys_device, props.layerName);
@@ -353,31 +353,7 @@ void DumpGroups(Printer &p, AppInstance &inst) {
     }
 }
 
-void GetAndDumpHostImageCopyPropertiesEXT(Printer &p, AppGpu &gpu) {
-#ifndef VULKANSC
-    if (!gpu.CheckPhysicalDeviceExtensionIncluded("VK_EXT_host_image_copy")) {
-        return;
-    }
-
-    // Manually implement VkPhysicalDeviceHostImageCopyPropertiesEXT due to it needing to be called twice
-    VkPhysicalDeviceHostImageCopyPropertiesEXT host_image_copy_properties_ext{};
-    host_image_copy_properties_ext.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES_EXT;
-    VkPhysicalDeviceProperties2KHR props2{};
-    props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-    props2.pNext = static_cast<void *>(&host_image_copy_properties_ext);
-    vkGetPhysicalDeviceProperties2KHR(gpu.phys_device, &props2);
-    std::vector<VkImageLayout> src_layouts(host_image_copy_properties_ext.copySrcLayoutCount);
-    host_image_copy_properties_ext.pCopySrcLayouts = src_layouts.data();
-    std::vector<VkImageLayout> dst_layouts(host_image_copy_properties_ext.copyDstLayoutCount);
-    host_image_copy_properties_ext.pCopyDstLayouts = dst_layouts.data();
-    vkGetPhysicalDeviceProperties2KHR(gpu.phys_device, &props2);
-    p.SetSubHeader();
-    DumpVkPhysicalDeviceHostImageCopyPropertiesEXT(p, "VkPhysicalDeviceHostImageCopyPropertiesEXT", host_image_copy_properties_ext);
-    p.AddNewline();
-#endif  // VULKANSC
-}
-
-void GpuDumpProps(Printer &p, AppGpu &gpu) {
+void GpuDumpProps(Printer &p, AppGpu &gpu, bool show_promoted_structs) {
     auto props = gpu.GetDeviceProperties();
     p.SetSubHeader();
     {
@@ -408,8 +384,7 @@ void GpuDumpProps(Printer &p, AppGpu &gpu) {
     if (gpu.inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
 #endif  // VULKANSC
         void *place = gpu.props2.pNext;
-        chain_iterator_phys_device_props2(p, gpu.inst, gpu, place);
-        GetAndDumpHostImageCopyPropertiesEXT(p, gpu);
+        chain_iterator_phys_device_props2(p, gpu.inst, gpu, show_promoted_structs, place);
     }
 }
 
@@ -554,7 +529,7 @@ void GpuDumpMemoryProps(Printer &p, AppGpu &gpu) {
     p.AddNewline();
 }
 
-void GpuDumpFeatures(Printer &p, AppGpu &gpu) {
+void GpuDumpFeatures(Printer &p, AppGpu &gpu, bool show_promoted_structs) {
     p.SetHeader();
     DumpVkPhysicalDeviceFeatures(p, "VkPhysicalDeviceFeatures", gpu.features);
     p.AddNewline();
@@ -564,7 +539,7 @@ void GpuDumpFeatures(Printer &p, AppGpu &gpu) {
     if (gpu.inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
 #endif  // VULKANSC
         void *place = gpu.features2.pNext;
-        chain_iterator_phys_device_features2(p, gpu, place);
+        chain_iterator_phys_device_features2(p, gpu, show_promoted_structs, place);
     }
 }
 
@@ -653,11 +628,11 @@ void GpuDevDump(Printer &p, AppGpu &gpu) {
 
 // Print gpu info for text, html, & vkconfig_output
 // Uses a separate function than schema-json for clarity
-void DumpGpu(Printer &p, AppGpu &gpu, bool show_tooling_info, bool show_formats) {
+void DumpGpu(Printer &p, AppGpu &gpu, bool show_tooling_info, bool show_formats, bool show_promoted_structs) {
     ObjectWrapper obj_gpu(p, "GPU" + std::to_string(gpu.id));
     IndentWrapper indent(p);
 
-    GpuDumpProps(p, gpu);
+    GpuDumpProps(p, gpu, show_promoted_structs);
     DumpExtensions(p, "Device Extensions", gpu.device_extensions);
     p.AddNewline();
     {
@@ -668,7 +643,7 @@ void DumpGpu(Printer &p, AppGpu &gpu, bool show_tooling_info, bool show_formats)
         }
     }
     GpuDumpMemoryProps(p, gpu);
-    GpuDumpFeatures(p, gpu);
+    GpuDumpFeatures(p, gpu, show_promoted_structs);
     if (show_tooling_info) {
         GpuDumpToolingInfo(p, gpu);
     }
@@ -688,7 +663,7 @@ void DumpGpuProfileCapabilities(Printer &p, AppGpu &gpu) {
         DumpExtensions(p, "extensions", gpu.device_extensions);
         {
             ObjectWrapper obj(p, "features");
-            GpuDumpFeatures(p, gpu);
+            GpuDumpFeatures(p, gpu, false);
         }
         {
             ObjectWrapper obj(p, "properties");
@@ -715,7 +690,7 @@ void DumpGpuProfileCapabilities(Printer &p, AppGpu &gpu) {
             if (gpu.inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
 #endif  // VULKANSC
                 void *place = gpu.props2.pNext;
-                chain_iterator_phys_device_props2(p, gpu.inst, gpu, place);
+                chain_iterator_phys_device_props2(p, gpu.inst, gpu, false, place);
             }
         }
         {
@@ -955,28 +930,36 @@ static void ConsoleEnlarge() {
 enum class OutputCategory { text, html, profile_json, vkconfig_output, summary };
 const char *help_message_body =
     "OPTIONS:\n"
-    "[-h, --help]        Print this help.\n"
-    "[--summary]         Show a summary of the instance and GPU's on a system.\n"
+    "[-h, --help]         Print this help.\n"
+    "[--summary]          Show a summary of the instance and GPU's on a system.\n"
     "[-o <filename>, --output <filename>]\n"
-    "                    Print output to a new file whose name is specified by filename.\n"
-    "                    File will be written to the current working directory.\n"
-    "[--text]            Produce a text version of " APP_SHORT_NAME " output to stdout. This is\n"
-    "                    the default output.\n"
-    "[--html]            Produce an html version of " APP_SHORT_NAME " output, saved as\n"
-    "                    \"" APP_SHORT_NAME ".html\" in the directory in which the command\n"
-    "                    is run.\n"
-    "[-j, --json]        Produce a json version of " APP_SHORT_NAME " output conforming to the Vulkan\n"
-    "                    Profiles schema, saved as \n"
-    "                     \"VP_" APP_UPPER_CASE_NAME "_[DEVICE_NAME]_[DRIVER_VERSION].json\"\n"
+    "                     Print output to a new file whose name is specified by filename.\n"
+    "                     File will be written to the current working directory.\n"
+    "[--text]             Produce a text version of " APP_SHORT_NAME
+    " output to stdout. This is\n"
+    "                     the default output.\n"
+    "[--html]             Produce an html version of " APP_SHORT_NAME
+    " output, saved as\n"
+    "                     \"" APP_SHORT_NAME
+    ".html\" in the directory in which the command\n"
+    "                     is run.\n"
+    "[-j, --json]         Produce a json version of " APP_SHORT_NAME
+    " output conforming to the Vulkan\n"
+    "                     Profiles schema, saved as \n"
+    "                     \"VP_" APP_UPPER_CASE_NAME
+    "_[DEVICE_NAME]_[DRIVER_VERSION].json\"\n"
     "                     of the first gpu in the system.\n"
     "[-j=<gpu-number>, --json=<gpu-number>]\n"
-    "                    For a multi-gpu system, a single gpu can be targetted by\n"
-    "                    specifying the gpu-number associated with the gpu of \n"
-    "                    interest. This number can be determined by running\n"
-    "                    " APP_SHORT_NAME " without any options specified.\n"
-    "[--show-tool-props] Show the active VkPhysicalDeviceToolPropertiesEXT that " APP_SHORT_NAME " finds.\n"
-    "[--show-formats]    Display the format properties of each physical device.\n"
-    "                    Note: This only affects text output.\n";
+    "                     For a multi-gpu system, a single gpu can be targetted by\n"
+    "                     specifying the gpu-number associated with the gpu of \n"
+    "                     interest. This number can be determined by running\n"
+    "                     " APP_SHORT_NAME
+    " without any options specified.\n"
+    "[--show-tool-props]  Show the active VkPhysicalDeviceToolPropertiesEXT that " APP_SHORT_NAME
+    " finds.\n"
+    "[--show-formats]     Display the format properties of each physical device.\n"
+    "                     Note: This only affects text output.\n"
+    "[--show-promoted-structs] Include structs promoted to core in pNext Chains.\n";
 
 void print_usage(const std::string &executable_name) {
     std::cout << "\n" APP_SHORT_NAME " - Summarize " API_NAME " information in relation to the current environment.\n\n";
@@ -988,6 +971,7 @@ void print_usage(const std::string &executable_name) {
     std::cout << "    " << executable_name << " --html\n";
     std::cout << "    " << executable_name << " --show-formats\n";
     std::cout << "    " << executable_name << " --show-tool-props\n";
+    std::cout << "    " << executable_name << " --show-promoted-structs\n";
     std::cout << "\n" << help_message_body << std::endl;
 }
 
@@ -997,6 +981,7 @@ struct ParsedResults {
     bool has_selected_gpu;  // differentiate between selecting the 0th gpu and using the default 0th value
     bool show_tool_props;
     bool show_formats;
+    bool show_promoted_structs;
     bool print_to_file;
     std::string filename;  // set if explicitely given, or if vkconfig_output has a <path> argument
     std::string default_filename;
@@ -1047,6 +1032,8 @@ util::vulkaninfo_optional<ParsedResults> parse_arguments(int argc, char **argv, 
             results.show_tool_props = true;
         } else if (strcmp(argv[i], "--show-formats") == 0) {
             results.show_formats = true;
+        } else if (strcmp(argv[i], "--show-promoted-structs") == 0) {
+            results.show_promoted_structs = true;
         } else if ((strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0) && argc > (i + 1)) {
             if (argv[i + 1][0] == '-') {
                 std::cout << "-o or --output must be followed by a filename\n";
@@ -1134,7 +1121,7 @@ void RunPrinter(Printer &p, ParsedResults parse_data, AppInstance &instance, std
         IndentWrapper indent(p);
 
         for (auto &gpu : gpus) {
-            DumpGpu(p, *(gpu.get()), parse_data.show_tool_props, parse_data.show_formats);
+            DumpGpu(p, *(gpu.get()), parse_data.show_tool_props, parse_data.show_formats, parse_data.show_promoted_structs);
         }
     }
 }
@@ -1166,7 +1153,7 @@ int main(int argc, char **argv) {
     if (!parsing_return) return 1;
     ParsedResults parse_data = parsing_return.value();
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
@@ -1206,7 +1193,8 @@ int main(int argc, char **argv) {
 
         uint32_t gpu_counter = 0;
         for (auto &phys_device : phys_devices) {
-            gpus.push_back(std::unique_ptr<AppGpu>(new AppGpu(instance, gpu_counter++, phys_device)));
+            gpus.push_back(
+                std::unique_ptr<AppGpu>(new AppGpu(instance, gpu_counter++, phys_device, parse_data.show_promoted_structs)));
         }
 
         std::vector<std::unique_ptr<AppSurface>> surfaces;

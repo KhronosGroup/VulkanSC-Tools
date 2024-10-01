@@ -48,6 +48,11 @@ option(BUILD_VKSC_DEVSIM "Build Vulkan SC device simulation layer" ON)
 option(BUILD_CUBE "Build cube" ON)
 option(BUILD_VULKANINFO "Build vulkaninfo" ON)
 option(BUILD_ICD "Build icd" ON)
+option(BUILD_TESTS "Build the tests")
+option(BUILD_WERROR "Treat compiler warnings as errors")
+# NOTE: Our custom code generation target isn't desirable for system package managers or add_subdirectory users.
+# So this target needs to be off by default to avoid obtuse build errors or patches.
+option(TOOLS_CODEGEN "Enable helper codegen target")
 
 if(VULKANSC)
     set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
@@ -65,9 +70,11 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-find_package(VulkanHeaders QUIET CONFIG)
-find_package(VulkanLoader QUIET CONFIG)
-find_package(volk QUIET CONFIG)
+find_package(VulkanHeaders QUIET REQUIRED CONFIG)
+find_package(volk QUIET REQUIRED CONFIG)
+if ((APPLE OR BUILD_TESTS) AND NOT ANDROID)
+    find_package(VulkanLoader QUIET REQUIRED CONFIG)
+endif()
 
 if(VULKANSC)
     find_package(VulkanUtilityLibraries REQUIRED CONFIG QUIET)
@@ -75,7 +82,6 @@ endif()
 
 include(GNUInstallDirs)
 
-option(BUILD_WERROR "Treat compiler warnings as errors")
 if (BUILD_WERROR)
     add_compile_options("$<IF:$<CXX_COMPILER_ID:MSVC>,/WX,-Werror>")
 endif()
@@ -115,7 +121,6 @@ elseif(MSVC)
     add_compile_options("/w34245")
 endif()
 
-option(TOOLS_CODEGEN "Enable helper codegen target")
 if (TOOLS_CODEGEN)
     find_package(Python3 REQUIRED QUIET)
     add_custom_target(tools_codegen
@@ -167,7 +172,6 @@ endif()
 
 add_subdirectory(windows-runtime-installer)
 
-option(BUILD_TESTS "Build the tests")
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

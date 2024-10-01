@@ -41,6 +41,9 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #define VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_TYPESAFE_CONVERSION 1
+
+// Volk requires VK_NO_PROTOTYPES before including vulkan.hpp
+#define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.hpp>
 
 #define VOLK_IMPLEMENTATION
@@ -3384,7 +3387,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
     return static_cast<int>(msg.wParam);
 }
 
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__)
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__) || defined(__GNU__)
 
 int main(int argc, char **argv) {
     Demo demo;

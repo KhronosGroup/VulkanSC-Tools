@@ -115,33 +115,38 @@ EXTENSION_CATEGORIES = OrderedDict((
          'type': EXTENSION_TYPE_BOTH,
          'holder_type': 'VkPhysicalDeviceProperties2',
          'print_iterator': True,
-        'exclude': ['VkPhysicalDeviceHostImageCopyPropertiesEXT']}),
+         'can_show_promoted_structs': True}),
     ('phys_device_mem_props2',
         {'extends': 'VkPhysicalDeviceMemoryProperties2',
-        'type': EXTENSION_TYPE_DEVICE,
-        'holder_type':'VkPhysicalDeviceMemoryProperties2',
-        'print_iterator': False}),
+         'type': EXTENSION_TYPE_DEVICE,
+         'holder_type':'VkPhysicalDeviceMemoryProperties2',
+         'print_iterator': False,
+         'can_show_promoted_structs': False}),
     ('phys_device_features2',
         {'extends': 'VkPhysicalDeviceFeatures2,VkDeviceCreateInfo',
-        'type': EXTENSION_TYPE_DEVICE,
-        'holder_type': 'VkPhysicalDeviceFeatures2',
-        'print_iterator': True}),
+         'type': EXTENSION_TYPE_DEVICE,
+         'holder_type': 'VkPhysicalDeviceFeatures2',
+         'print_iterator': True,
+         'can_show_promoted_structs': True}),
     ('surface_capabilities2',
         {'extends': 'VkSurfaceCapabilities2KHR',
-        'type': EXTENSION_TYPE_BOTH,
-        'holder_type': 'VkSurfaceCapabilities2KHR',
-        'print_iterator': True,
-        'exclude': ['VkSurfacePresentScalingCapabilitiesEXT', 'VkSurfacePresentModeCompatibilityEXT']}),
+         'type': EXTENSION_TYPE_BOTH,
+         'holder_type': 'VkSurfaceCapabilities2KHR',
+         'print_iterator': True,
+         'can_show_promoted_structs': False,
+         'exclude': ['VkSurfacePresentScalingCapabilitiesEXT', 'VkSurfacePresentModeCompatibilityEXT']}),
     ('format_properties2',
         {'extends': 'VkFormatProperties2',
-        'type': EXTENSION_TYPE_DEVICE,
-        'holder_type':'VkFormatProperties2',
-        'print_iterator': True}),
+         'type': EXTENSION_TYPE_DEVICE,
+         'holder_type':'VkFormatProperties2',
+         'print_iterator': True,
+         'can_show_promoted_structs': False}),
     ('queue_properties2',
         {'extends': 'VkQueueFamilyProperties2',
-        'type': EXTENSION_TYPE_DEVICE,
-        'holder_type': 'VkQueueFamilyProperties2',
-        'print_iterator': True})
+         'type': EXTENSION_TYPE_DEVICE,
+         'holder_type': 'VkQueueFamilyProperties2',
+         'print_iterator': True,
+         'can_show_promoted_structs': False})
                                    ))
 class VulkanInfoGeneratorOptions(GeneratorOptions):
     def __init__(self,
@@ -318,7 +323,7 @@ class VulkanInfoGenerator(OutputGenerator):
                     out += PrintBitMaskToString(bitmask, flag.name, self)
 
         for s in (x for x in self.all_structures if x.name in types_to_gen and x.name not in STRUCT_BLACKLIST):
-            out += PrintStructure(s, types_to_gen)
+            out += PrintStructure(s)
 
         for key, value in EXTENSION_CATEGORIES.items():
             out += PrintChainStruct(key, self.extension_sets[key], self.all_structures, value, self.extTypes, self.aliases, self.vulkan_versions)
@@ -600,7 +605,7 @@ def PrintBitMaskToString(bitmask, name, generator):
     return out
 
 
-def PrintStructure(struct, types_to_gen):
+def PrintStructure(struct):
     if len(struct.members) == 0:
         return ''
     out = ''
@@ -655,21 +660,12 @@ def PrintStructure(struct, types_to_gen):
                 out += f'        for (uint32_t i = 0; i < {v.arrayLength}; i++) {{ p.PrintElement(obj.{v.name}[i]); }}\n'
                 out += '    }\n'
             else:  # dynamic array length based on other member
-                out += f'    if (obj.{v.arrayLength} == 0) {{\n'
+                out += f'    if (obj.{v.arrayLength} == 0 || obj.{v.name} == nullptr) {{\n'
                 out += f'        p.PrintKeyString("{v.name}", "NULL");\n'
                 out += '    } else {\n'
                 out += f'        ArrayWrapper arr(p,"{v.name}", obj.{v.arrayLength});\n'
                 out += f'        for (uint32_t i = 0; i < obj.{v.arrayLength}; i++) {{\n'
-                if v.typeID in types_to_gen:
-                    out += f'            if (obj.{v.name} != nullptr) {{\n'
-                    out += '                p.SetElementIndex(i);\n'
-                    out += '                if (p.Type() == OutputType::json)\n'
-                    out += f'                    p.PrintString(std::string("VK_") + {v.typeID}String(obj.{v.name}[i]));\n'
-                    out += '                else\n'
-                    out += f'                    p.PrintString({v.typeID}String(obj.{v.name}[i]));\n'
-                    out += '            }\n'
-                else:
-                    out += f'            p.PrintElement(obj.{v.name}[i]);\n'
+                out += f'            Dump{v.typeID}(p, std::to_string(i), obj.{v.name}[i]);\n'
                 out += '        }\n'
                 out += '    }\n'
         elif v.typeID == 'VkBool32':
@@ -750,12 +746,18 @@ def PrintChainStruct(listName, structures, all_structures, chain_details, extTyp
             # members which don't exist.
             if s.name in ['VkPhysicalDeviceShaderIntegerDotProductFeatures', 'VkPhysicalDeviceHostImageCopyFeaturesEXT']:
                 out += f'    char {s.name}_padding[64];\n'
+            if s.hasLengthmember:
+                for member in s.members:
+                    if member.lengthMember:
+                        out += f'    std::vector<{member.typeID}> {s.name}_{member.name};\n'
         out += AddGuardFooter(s)
     out += '    void initialize_chain('
     if chain_details.get('type') in [EXTENSION_TYPE_INSTANCE, EXTENSION_TYPE_BOTH]:
         out += 'AppInstance &inst, '
     if chain_details.get('type') in [EXTENSION_TYPE_DEVICE, EXTENSION_TYPE_BOTH]:
         out += 'AppGpu &gpu '
+    if chain_details.get('can_show_promoted_structs'):
+        out += ', bool show_promoted_structs'
     out += ') noexcept {\n'
     for s in structs_to_print:
         if s.name in STRUCT_BLACKLIST:
@@ -805,12 +807,13 @@ def PrintChainStruct(listName, structures, all_structures, chain_details, extTyp
                     else:
                         assert False, 'Should never get here'
             if has_version:
+                str_show_promoted_structs = '|| show_promoted_structs' if chain_details.get('can_show_promoted_structs') else ''
                 if s.name in STRUCT_1_1_LIST:
-                    out += f'{version_desc} == {version.constant}'
+                    out += f'{version_desc} == {version.constant} {str_show_promoted_structs}'
                 elif has_printed_condition:
-                    out += f')\n            && {version_desc} < {version.constant}'
+                    out += f')\n            && ({version_desc} < {version.constant} {str_show_promoted_structs})'
                 else:
-                    out += f'{version_desc} >= {version.constant}'
+                    out += f'({version_desc} >= {version.constant})'
             out += ')\n            '
         else:
             out += '        '
@@ -824,6 +827,9 @@ def PrintChainStruct(listName, structures, all_structures, chain_details, extTyp
     if chain_details.get('type') in [EXTENSION_TYPE_DEVICE, EXTENSION_TYPE_BOTH]:
         chain_param_list.append('AppGpu &gpu')
         chain_arg_list.append('gpu')
+    if chain_details.get('can_show_promoted_structs'):
+        chain_param_list.append('bool show_promoted_structs')
+        chain_arg_list.append('show_promoted_structs')
 
     out += f'''
         if (!chain_members.empty()) {{
@@ -847,6 +853,8 @@ void setup_{listName}_chain({chain_details['holder_type']}& start, std::unique_p
             out += 'AppInstance &inst, '
         if chain_details.get('type') in [EXTENSION_TYPE_DEVICE, EXTENSION_TYPE_BOTH]:
             out += 'AppGpu &gpu, '
+        if chain_details.get('can_show_promoted_structs'):
+            out += 'bool show_promoted_structs, '
         out += 'void * place) {\n'
         out += '    while (place) {\n'
         out += '        struct VkBaseOutStructure *structure = (struct VkBaseOutStructure *)place;\n'
@@ -878,32 +886,6 @@ void setup_{listName}_chain({chain_details['holder_type']}& start, std::unique_p
                     out += ' && p.Type() != OutputType::json'
                 has_version = version is not None
                 has_extNameStr = len(extEnables) > 0 or s.name in aliases.keys()
-
-                if has_version or has_extNameStr:
-                    out += ' &&\n           ('
-                    has_printed_condition = False
-                    if has_extNameStr:
-                        for key, value in extEnables.items():
-                            if has_printed_condition:
-                                out += ' || '
-                            else:
-                                has_printed_condition = True
-                                if has_version:
-                                    out += '('
-                            if value == EXTENSION_TYPE_DEVICE:
-                                out += f'gpu.CheckPhysicalDeviceExtensionIncluded({key})'
-                            elif value == EXTENSION_TYPE_INSTANCE:
-                                out += f'inst.CheckExtensionEnabled({key})'
-                            else:
-                                assert False, 'Should never get here'
-                    if has_version:
-                        if s.name in STRUCT_1_1_LIST:
-                            out += f'{version_desc} == {version.constant}'
-                        elif has_printed_condition:
-                            out += f') &&\n            {version_desc} < {version.constant}'
-                        else:
-                            out += f'{version_desc} >= {version.constant}'
-                    out += ')'
                 out += ') {\n'
                 out += f'            {s.name}* props = ({s.name}*)structure;\n'
                 out += f'            Dump{s.name}(p, '
@@ -918,6 +900,25 @@ void setup_{listName}_chain({chain_details['holder_type']}& start, std::unique_p
         out += '        place = structure->pNext;\n'
         out += '    }\n'
         out += '}\n'
+
+    out += '\n'
+    out += f'bool prepare_{listName}_twocall_chain_vectors(std::unique_ptr<{listName}_chain>& chain) {{\n'
+    out += '    (void)chain;\n'
+    is_twocall = False
+    for s in structs_to_print:
+        if not s.hasLengthmember:
+            continue
+        if s.name in STRUCT_BLACKLIST:
+            continue
+        out += AddGuardHeader(s)
+        for member in s.members:
+            if member.lengthMember:
+                out += f'    chain->{s.name}_{member.name}.resize(chain->{s.name[2:]}.{member.arrayLength});\n'
+                out += f'    chain->{s.name[2:]}.{member.name} = chain->{s.name}_{member.name}.data();\n'
+        out += AddGuardFooter(s)
+        is_twocall = True
+    out += f'    return {"true" if is_twocall else "false"};\n'
+    out += '}\n'
 
     return out
 
@@ -1112,11 +1113,17 @@ class VulkanStructure:
         self.guard = None
         self.sTypeName = None
         self.extendsStruct = rootNode.get('structextends')
+        self.hasLengthmember = False
 
         for node in rootNode.findall('member'):
             if node.get('values') is not None:
                 self.sTypeName = node.get('values')
             self.members.append(VulkanVariable(node, constants))
+
+        for member in self.members:
+            if member.lengthMember:
+                self.hasLengthmember = True
+                break
 
         for k, elem in extTypes.items():
             if k == self.name:

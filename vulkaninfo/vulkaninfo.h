@@ -70,10 +70,6 @@
 #endif
 #endif  // _WIN32
 
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__)
-#include <dlfcn.h>
-#endif
-
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
 #include <X11/Xutil.h>
 #endif
@@ -277,15 +273,17 @@ struct AppInstance;
 struct AppGpu;
 
 void setup_phys_device_props2_chain(VkPhysicalDeviceProperties2 &start, std::unique_ptr<phys_device_props2_chain> &chain,
-                                    AppInstance &inst, AppGpu &gpu);
+                                    AppInstance &inst, AppGpu &gpu, bool show_promoted_structs);
 void setup_phys_device_mem_props2_chain(VkPhysicalDeviceMemoryProperties2 &start,
                                         std::unique_ptr<phys_device_mem_props2_chain> &chain, AppGpu &gpu);
 void setup_phys_device_features2_chain(VkPhysicalDeviceFeatures2 &start, std::unique_ptr<phys_device_features2_chain> &chain,
-                                       AppGpu &gpu);
+                                       AppGpu &gpu, bool show_promoted_structs);
 void setup_surface_capabilities2_chain(VkSurfaceCapabilities2KHR &start, std::unique_ptr<surface_capabilities2_chain> &chain,
                                        AppInstance &inst, AppGpu &gpu);
 void setup_format_properties2_chain(VkFormatProperties2 &start, std::unique_ptr<format_properties2_chain> &chain, AppGpu &gpu);
 void setup_queue_properties2_chain(VkQueueFamilyProperties2 &start, std::unique_ptr<queue_properties2_chain> &chain, AppGpu &gpu);
+
+bool prepare_phys_device_props2_twocall_chain_vectors(std::unique_ptr<phys_device_props2_chain> &chain);
 
 /* An ptional contains either a value or nothing. The optional asserts if a value is trying to be gotten but none exist.
  * The interface is taken from C++17's <optional> with many aspects removed.
@@ -380,7 +378,9 @@ class APIVersion {
     uint32_t api_version_;
 };
 
-std::ostream &operator<<(std::ostream &out, const APIVersion &v) { return out << v.Major() << "." << v.Minor() << "." << v.Patch(); }
+std::ostream &operator<<(std::ostream &out, const APIVersion &v) {
+    return out << v.Major() << "." << v.Minor() << "." << v.Patch();
+}
 
 struct AppInstance {
     VkInstance instance;
@@ -489,7 +489,8 @@ struct AppInstance {
         VkResult err = vkCreateInstance(&inst_info, nullptr, &instance);
         if (err == VK_ERROR_INCOMPATIBLE_DRIVER) {
             std::cerr << "Cannot create " API_NAME " instance.\n";
-            std::cerr << "This problem is often caused by a faulty installation of the " API_NAME " driver or attempting to use a GPU "
+            std::cerr << "This problem is often caused by a faulty installation of the " API_NAME
+                         " driver or attempting to use a GPU "
                          "that does not support " API_NAME ".\n";
             THROW_VK_ERR("vkCreateInstance", err);
         } else if (err) {
@@ -537,6 +538,15 @@ struct AppInstance {
         global_extensions = AppGetGlobalLayerExtensions(nullptr);
     }
     void AppCompileInstanceExtensionsToEnable() {
+#if defined(VK_USE_PLATFORM_MACOS_MVK) || defined(VK_USE_PLATFORM_IOS_MVK)
+        bool metal_surface_available = false;
+        for (const auto &ext : global_extensions) {
+            if (strcmp("VK_EXT_metal_surface", ext.extensionName) == 0) {
+                metal_surface_available = true;
+            }
+        }
+#endif
+
         for (const auto &ext : global_extensions) {
             if (strcmp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
@@ -561,12 +571,12 @@ struct AppInstance {
             }
 #endif
 #ifdef VK_USE_PLATFORM_IOS_MVK
-            if (strcmp(VK_MVK_IOS_SURFACE_EXTENSION_NAME, ext.extensionName) == 0) {
+            if (strcmp(VK_MVK_IOS_SURFACE_EXTENSION_NAME, ext.extensionName) == 0 && !metal_surface_available) {
                 inst_extensions.push_back(ext.extensionName);
             }
 #endif
 #ifdef VK_USE_PLATFORM_MACOS_MVK
-            if (strcmp(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, ext.extensionName) == 0) {
+            if (strcmp(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, ext.extensionName) == 0 && !metal_surface_available) {
                 inst_extensions.push_back(ext.extensionName);
             }
 #endif
@@ -1119,7 +1129,7 @@ void SetupWindowExtensions(AppInstance &inst) {
 //--MACOS--
 #ifdef VK_USE_PLATFORM_MACOS_MVK
     SurfaceExtension surface_ext_macos;
-    if (inst.CheckExtensionEnabled(VK_MVK_MACOS_SURFACE_EXTENSION_NAME)) {
+    if (inst.CheckExtensionEnabled(VK_MVK_MACOS_SURFACE_EXTENSION_NAME) && !inst.CheckExtensionEnabled("VK_EXT_metal_surface")) {
         surface_ext_macos.name = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
         surface_ext_macos.create_window = AppCreateMacOSWindow;
         surface_ext_macos.create_surface = AppCreateMacOSSurface;
@@ -1503,7 +1513,8 @@ struct AppGpu {
     std::unique_ptr<phys_device_features2_chain> chain_for_phys_device_features2;
     std::vector<std::unique_ptr<queue_properties2_chain>> chain_for_queue_props2;
 
-    AppGpu(AppInstance &inst, uint32_t id, VkPhysicalDevice phys_device) : inst(inst), id(id), phys_device(phys_device) {
+    AppGpu(AppInstance &inst, uint32_t id, VkPhysicalDevice phys_device, bool show_promoted_structs)
+        : inst(inst), id(id), phys_device(phys_device) {
         vkGetPhysicalDeviceProperties(phys_device, &props);
 
         // needs to find the minimum of the instance and device version, and use that to print the device info
@@ -1527,8 +1538,10 @@ struct AppGpu {
 #endif  // VULKANSC
         // VkPhysicalDeviceProperties2
             props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-            setup_phys_device_props2_chain(props2, chain_for_phys_device_props2, inst, *this);
+            setup_phys_device_props2_chain(props2, chain_for_phys_device_props2, inst, *this, show_promoted_structs);
 
+            vkGetPhysicalDeviceProperties2KHR(phys_device, &props2);
+            prepare_phys_device_props2_twocall_chain_vectors(chain_for_phys_device_props2);
             vkGetPhysicalDeviceProperties2KHR(phys_device, &props2);
 
             // VkPhysicalDeviceMemoryProperties2
@@ -1539,7 +1552,7 @@ struct AppGpu {
 
             // VkPhysicalDeviceFeatures2
             features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
-            setup_phys_device_features2_chain(features2, chain_for_phys_device_features2, *this);
+            setup_phys_device_features2_chain(features2, chain_for_phys_device_features2, *this, show_promoted_structs);
 
             vkGetPhysicalDeviceFeatures2KHR(phys_device, &features2);
 

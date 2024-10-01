@@ -109,7 +109,9 @@ void LogMessage(ProfileLayerSettings *layer_settings, DebugReportBits report, co
     assert(layer_settings);
 #endif
 
-    if (!(layer_settings->log.debug_reports & report)) return;
+    if (!(layer_settings->log.debug_reports & report)) {
+        return;
+    }
 
     std::size_t const STRING_BUFFER(4096);
 
@@ -123,7 +125,7 @@ void LogMessage(ProfileLayerSettings *layer_settings, DebugReportBits report, co
     va_list list;
 
     va_start(list, message);
-    vsnprintf(log + len, STRING_BUFFER, message, list);
+    vsnprintf(log + len, STRING_BUFFER - len, message, list);
     va_end(list);
 
     if (layer_settings->log.debug_actions & DEBUG_ACTION_STDOUT_BIT) {
@@ -206,6 +208,9 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
     assert(layer_settings != nullptr);
 
 #ifdef VULKANSC  // We use a simplified configuration interface for Vulkan SC
+    (void)pCreateInfo;
+    (void)pAllocator;
+
     const char *devsim_profile_file = std::getenv("VKSC_DEVSIM_PROFILE_FILE");
 
     if (devsim_profile_file) {
