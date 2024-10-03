@@ -4061,7 +4061,7 @@ void chain_iterator_phys_device_props2(Printer &p, AppInstance &inst, AppGpu &gp
     }
 }
 
-void prepare_phys_device_props2_twocall_chain_vectors(std::unique_ptr<phys_device_props2_chain>& chain) {
+bool prepare_phys_device_props2_twocall_chain_vectors(std::unique_ptr<phys_device_props2_chain>& chain) {
     chain->VkPhysicalDeviceHostImageCopyPropertiesEXT_pCopySrcLayouts.resize(chain->PhysicalDeviceHostImageCopyPropertiesEXT.copySrcLayoutCount);
     chain->PhysicalDeviceHostImageCopyPropertiesEXT.pCopySrcLayouts = chain->VkPhysicalDeviceHostImageCopyPropertiesEXT_pCopySrcLayouts.data();
     chain->VkPhysicalDeviceHostImageCopyPropertiesEXT_pCopyDstLayouts.resize(chain->PhysicalDeviceHostImageCopyPropertiesEXT.copyDstLayoutCount);
