@@ -3556,6 +3556,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL CreateSemaphoreSciSyncPoolNV(
 }
 #endif /* VK_USE_PLATFORM_SCI */
 
+
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
 
 static VKAPI_ATTR VkResult VKAPI_CALL GetScreenBufferPropertiesQNX(

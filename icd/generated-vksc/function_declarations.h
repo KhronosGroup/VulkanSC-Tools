@@ -43,6 +43,7 @@ static const std::unordered_map<std::string, uint32_t> instance_extension_map = 
     {"VK_EXT_validation_features", 6},
     {"VK_EXT_headless_surface", 1},
     {"VK_EXT_application_parameters", 1},
+    {"VK_EXT_layer_settings", 2},
 };
 // Map of device extension name to version
 static const std::unordered_map<std::string, uint32_t> device_extension_map = {
@@ -1894,6 +1895,7 @@ static VKAPI_ATTR VkResult VKAPI_CALL CreateSemaphoreSciSyncPoolNV(
     const VkAllocationCallbacks*                pAllocator,
     VkSemaphoreSciSyncPoolNV*                   pSemaphorePool);
 #endif /* VK_USE_PLATFORM_SCI */
+
 
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
 

@@ -3223,6 +3223,15 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_DEVICE_SEMAPHORE_SCI_SYNC_POOL_
 };
 
 #endif // VK_USE_PLATFORM_SCI
+// Map type VkLayerSettingsCreateInfoEXT to id VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT
+template <> struct LvlTypeMap<VkLayerSettingsCreateInfoEXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT;
+};
+
+template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT> {
+    typedef VkLayerSettingsCreateInfoEXT Type;
+};
+
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
 // Map type VkScreenBufferPropertiesQNX to id VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX
 template <> struct LvlTypeMap<VkScreenBufferPropertiesQNX> {

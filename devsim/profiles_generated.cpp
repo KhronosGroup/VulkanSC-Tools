@@ -1577,7 +1577,8 @@ static bool IsInstanceExtension(const char* name) {
           "VK_EXT_debug_utils",
           "VK_EXT_validation_features",
           "VK_EXT_headless_surface",
-          "VK_EXT_application_parameters"
+          "VK_EXT_application_parameters",
+          "VK_EXT_layer_settings"
      };
 
      bool result = false;
