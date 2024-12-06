@@ -170,8 +170,6 @@ if(VULKANSC AND BUILD_VKSC_DEVSIM)
     add_subdirectory(devsim)
 endif()
 
-add_subdirectory(windows-runtime-installer)
-
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

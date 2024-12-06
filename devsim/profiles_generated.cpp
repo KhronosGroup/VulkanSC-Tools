@@ -2841,7 +2841,6 @@ class JsonLoader {
     }
 
     int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint8_t *dest, bool not_modifiable) {
-        (void)not_modifiable;
         (void)device_name;
 
         if (member != name) {
@@ -2853,14 +2852,15 @@ class JsonLoader {
             return -1;
         }
         const int count = static_cast<int>(value.size());
-        for (int i = 0; i < count; ++i) {
-            dest[i] = static_cast<uint8_t>(value[i].asUInt());
+        if (!not_modifiable) {
+            for (int i = 0; i < count; ++i) {
+                dest[i] = static_cast<uint8_t>(value[i].asUInt());
+            }
         }
         return count;
     }
 
     int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, uint32_t *dest, bool not_modifiable) {
-        (void)not_modifiable;
         (void)device_name;
 
         if (member != name) {
@@ -2872,14 +2872,15 @@ class JsonLoader {
             return -1;
         }
         const int count = static_cast<int>(value.size());
-        for (int i = 0; i < count; ++i) {
-            dest[i] = static_cast<uint32_t>(value[i].asUInt());
+        if (!not_modifiable) {
+            for (int i = 0; i < count; ++i) {
+                dest[i] = static_cast<uint32_t>(value[i].asUInt());
+            }
         }
         return count;
     }
 
     int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, float *dest, bool not_modifiable) {
-        (void)not_modifiable;
         (void)device_name;
 
         if (member != name) {
@@ -2891,14 +2892,15 @@ class JsonLoader {
             return -1;
         }
         const int count = static_cast<int>(value.size());
-        for (int i = 0; i < count; ++i) {
-            dest[i] = value[i].asFloat();
+        if (!not_modifiable) {
+            for (int i = 0; i < count; ++i) {
+                dest[i] = value[i].asFloat();
+            }
         }
         return count;
     }
 
     int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, char *dest, bool not_modifiable) {
-        (void)not_modifiable;
         (void)device_name;
 
         if (member != name) {
@@ -2911,16 +2913,17 @@ class JsonLoader {
         }
         const char *new_value = value.asCString();
         int count = 0;
-        dest[0] = '\0';
-        if (new_value) {
-            count = static_cast<int>(strlen(new_value));
-            strcpy(dest, new_value);
+        if (!not_modifiable) {
+            dest[0] = '\0';
+            if (new_value) {
+                count = static_cast<int>(strlen(new_value));
+                strcpy(dest, new_value);
+            }
         }
         return count;
     }
 
     int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, VkImageLayout *dest, bool not_modifiable) {
-        (void)not_modifiable;
         (void)device_name;
 
         if (member != name) {
@@ -2932,8 +2935,10 @@ class JsonLoader {
             return -1;
         }
         const int count = static_cast<int>(value.size());
-        for (int i = 0; i < count; ++i) {
-            dest[i] = StringToImageLayout(value[i].asCString());
+        if (!not_modifiable) {
+            for (int i = 0; i < count; ++i) {
+                dest[i] = StringToImageLayout(value[i].asCString());
+            }
         }
         return count;
     }
@@ -6269,21 +6274,6 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(const VkInstanceCreateInfo *pCreat
         }
     }
 
-    // Add VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
-    VkApplicationInfo new_app_info;
-    if (app_info) {
-        new_app_info.sType = app_info->sType;
-        new_app_info.pNext = app_info->pNext;
-        new_app_info.pApplicationName = app_info->pApplicationName;
-        new_app_info.applicationVersion = app_info->applicationVersion;
-        new_app_info.pEngineName = app_info->pEngineName;
-        new_app_info.engineVersion = app_info->engineVersion;
-        new_app_info.apiVersion = requested_version;
-    } else {
-        new_app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        new_app_info.apiVersion = requested_version;
-    }
-
     VkInstanceCreateInfo create_info;
     create_info.sType = pCreateInfo->sType;
     create_info.pNext = pCreateInfo->pNext;
@@ -6292,13 +6282,29 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(const VkInstanceCreateInfo *pCreat
         create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
     }
 
+    VkApplicationInfo new_app_info;
     if (changed_version) {
+        if (app_info) {
+            new_app_info.sType = app_info->sType;
+            new_app_info.pNext = app_info->pNext;
+            new_app_info.pApplicationName = app_info->pApplicationName;
+            new_app_info.applicationVersion = app_info->applicationVersion;
+            new_app_info.pEngineName = app_info->pEngineName;
+            new_app_info.engineVersion = app_info->engineVersion;
+            new_app_info.apiVersion = requested_version;
+        } else {
+            new_app_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
+            new_app_info.apiVersion = requested_version;
+        }
+
         create_info.pApplicationInfo = &new_app_info;
     } else {
         create_info.pApplicationInfo = app_info;
     }
     create_info.enabledLayerCount = pCreateInfo->enabledLayerCount;
     create_info.ppEnabledLayerNames = pCreateInfo->ppEnabledLayerNames;
+
+    // Add VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
     std::vector<const char *> extension_names;
     if (!get_physical_device_properties2_active) {
         create_info.enabledExtensionCount = pCreateInfo->enabledExtensionCount + 1;
@@ -7160,12 +7166,6 @@ void FillQueueFamilyPropertiesPNextChain(PhysicalDeviceData *physicalDeviceData,
                     VkQueueFamilyGlobalPriorityPropertiesKHR *data = (VkQueueFamilyGlobalPriorityPropertiesKHR *)place;
                     void *pNext = data->pNext;
                     *data = physicalDeviceData->arrayof_queue_family_properties_[i].global_priority_properties_;
-                    data->pNext = pNext;
-                } break;
-                case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: {
-                    VkQueueFamilyCheckpointProperties2NV *data = (VkQueueFamilyCheckpointProperties2NV *)place;
-                    void *pNext = data->pNext;
-                    *data = physicalDeviceData->arrayof_queue_family_properties_[i].checkpoint_properties_2_;
                     data->pNext = pNext;
                 } break;
                 default:

@@ -2388,24 +2388,6 @@ template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_REFRESH_OBJECT_LIST_KHR> {
     typedef VkRefreshObjectListKHR Type;
 };
 
-// Map type VkQueueFamilyCheckpointProperties2NV to id VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV
-template <> struct LvlTypeMap<VkQueueFamilyCheckpointProperties2NV> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV;
-};
-
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV> {
-    typedef VkQueueFamilyCheckpointProperties2NV Type;
-};
-
-// Map type VkCheckpointData2NV to id VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV
-template <> struct LvlTypeMap<VkCheckpointData2NV> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV;
-};
-
-template <> struct LvlSTypeMap<VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV> {
-    typedef VkCheckpointData2NV Type;
-};
-
 // Map type VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_KHR
 template <> struct LvlTypeMap<VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR> {
     static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_KHR;
