@@ -161,6 +161,17 @@
                     "repo_name": "Vulkan-Headers"
                 }
             ]
+        },
+        {
+            "name": "stb",
+            "api": "vulkansc",
+            "url": "https://github.com/nothings/stb.git",
+            "sub_dir": "stb",
+            "build_dir": "stb",
+            "install_dir": "stb",
+            "build_step": "skip",
+            "custom_build": "",
+            "commit": "5c205738c191bcb0abc65c4febfa9bd25ff35234"
         }
     ],
     "install_names": {
@@ -171,6 +182,7 @@
         "googletest": "GOOGLETEST_INSTALL_DIR",
         "jsoncpp": "JSONCPP_INSTALL_DIR",
         "valijson": "VALIJSON_INSTALL_DIR",
-        "Vulkan-Loader": "VULKAN_LOADER_INSTALL_DIR"
+        "Vulkan-Loader": "VULKAN_LOADER_INSTALL_DIR",
+        "stb": "STB_INSTALL_DIR"
     }
 }

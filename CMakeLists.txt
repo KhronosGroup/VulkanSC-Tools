@@ -54,9 +54,7 @@ option(BUILD_WERROR "Treat compiler warnings as errors")
 # So this target needs to be off by default to avoid obtuse build errors or patches.
 option(TOOLS_CODEGEN "Enable helper codegen target")
 
-if(VULKANSC)
-    set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
-else()
+if(NOT VULKANSC)
     set(BUILD_VKSC_DEVSIM OFF CACHE BOOL "Vulkan SC device simulation layer is not supported for Vulkan" FORCE)
 endif()
 
@@ -155,7 +153,11 @@ if (GIT_FOUND AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/.git/HEAD")
 endif()
 
 if(BUILD_CUBE)
-    add_subdirectory(cube)
+    if(VULKANSC)
+        add_subdirectory(sccube)
+    else()
+        add_subdirectory(cube)
+    endif()
 endif()
 
 if(BUILD_VULKANINFO)
