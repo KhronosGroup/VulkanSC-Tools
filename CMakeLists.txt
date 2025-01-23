@@ -1,7 +1,7 @@
 # ~~~
 # Copyright (c) 2014-2023 Valve Corporation
 # Copyright (c) 2014-2023 LunarG, Inc.
-# Copyright (c) 2023-2023 RasterGrid Kft.
+# Copyright (c) 2023-2025 RasterGrid Kft.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(BUILD_VKSC_DEVSIM "Build Vulkan SC device simulation layer" ON)
 
-option(BUILD_CUBE "Build cube" ON)
+option(BUILD_CUBE "Build cube" OFF)
 option(BUILD_VULKANINFO "Build vulkaninfo" ON)
 option(BUILD_ICD "Build icd" ON)
 option(BUILD_TESTS "Build the tests")
@@ -54,9 +54,7 @@ option(BUILD_WERROR "Treat compiler warnings as errors")
 # So this target needs to be off by default to avoid obtuse build errors or patches.
 option(TOOLS_CODEGEN "Enable helper codegen target")
 
-if(VULKANSC)
-    set(BUILD_CUBE OFF CACHE BOOL "cube sample is not currently supported for Vulkan SC" FORCE)
-else()
+if(NOT VULKANSC)
     set(BUILD_VKSC_DEVSIM OFF CACHE BOOL "Vulkan SC device simulation layer is not supported for Vulkan" FORCE)
 endif()
 
@@ -155,7 +153,11 @@ if (GIT_FOUND AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/.git/HEAD")
 endif()
 
 if(BUILD_CUBE)
-    add_subdirectory(cube)
+    if(VULKANSC)
+        add_subdirectory(cube-vksc)
+    else()
+        add_subdirectory(cube)
+    endif()
 endif()
 
 if(BUILD_VULKANINFO)
