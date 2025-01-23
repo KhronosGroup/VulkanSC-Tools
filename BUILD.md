@@ -31,6 +31,17 @@ cmake --build build --target tools_codegen
 
 NOTE: `TOOLS_CODEGEN` is `OFF` by default.
 
+### Custom pipeline cache compiler
+
+The Vulkan SC version of the cube sample (`vksccube`) much like all Vulkan SC applications requires an extra toolchain
+component to execute properly: a pipeline cache compiler (PCC). For convenience sake, the sample embeds a pre-compiled
+pipeline cache using Khronos' Vulkan SC Emulation ICD PCC (`pcconvk`).
+
+If you want to run the application using any other ICD, you'll need to compile the pipline cache JSON
+(`cube-vksc/cube.pc.json`) offline and specify it during run-time, for eg. `vksccube --pipeline-cache <pipeline.bin>`
+or have CMake embed the pipeline cache binary using the compiler of your choice instead of the Emulation ICD's PCC by adding the configuration-time option
+`-D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path_to_pcc>`.
+
 ## Building Overview
 
 The following will be enough for most people, for more detailed instructions, see below.
