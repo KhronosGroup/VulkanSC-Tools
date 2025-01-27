@@ -38,9 +38,19 @@ component to execute properly: a pipeline cache compiler (PCC). For convenience 
 pipeline cache using Khronos' Vulkan SC Emulation ICD PCC (`pcconvk`).
 
 If you want to run the application using any other ICD, you'll need to compile the pipline cache JSON
-(`cube-vksc/cube.pc.json`) offline and specify it during run-time, for eg. `vksccube --pipeline-cache <pipeline.bin>`
-or have CMake embed the pipeline cache binary using the compiler of your choice instead of the Emulation ICD's PCC by adding the configuration-time option
-`-D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path_to_pcc>`.
+(`cube-vksc/cube.pc.json`) offline and specify the built pipeline cache binary at run-time, e.g.:
+
+```
+<path-to-pcc> --path <VulkanSC-Tools-path>/cube-vksc --prefix cube.pc --out pipeline_cache.bin
+vksccube --pipeline-cache pipeline_cache.bin
+```
+
+Alternatively, you can embed into `vksccube` the pipeline cache binary using the pipeline cache compiler of your choice
+instead of the Vulkan SC EMulation ICD's PCC by adding the `VKSC_PIPELINE_CACHE_COMPILER` configuration-time option:
+
+```
+cmake ... -D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path-to-pcc>
+```
 
 ## Building Overview
 

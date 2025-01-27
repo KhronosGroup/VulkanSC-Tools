@@ -2850,7 +2850,22 @@ static void demo_create_device(struct demo *demo) {
         device.queueCreateInfoCount = 2;
     }
     err = vkCreateDevice(demo->gpu, &device, NULL, &demo->device);
-    assert(!err);
+    if (err == VK_ERROR_INVALID_PIPELINE_CACHE_DATA) {
+        if (demo->pipeline_cache_path == NULL) {
+            ERR_EXIT(
+                "vkCreateDevice failed with VK_ERROR_INVALID_PIPELINE_CACHE_DATA.\n\n"
+                "The pipeline cache data built into vksccube is likely incompatible with the target device.\n"
+                "Please specify the pipeline cache binary compatible with the target device using the --pipeline-cache option.\n",
+                "vkCreateDevice Failure");
+        } else {
+            ERR_EXIT(
+                "vkCreateDevice failed with VK_ERROR_INVALID_PIPELINE_CACHE_DATA.\n\n"
+                "The pipeline cache data provided using the --pipeline-cache option is likely incompatible with the target device.\n",
+                "vkCreateDevice Failure");
+        }
+    } else if (err) {
+        ERR_EXIT("vkCreateDevice failed.\n", "vkCreateDevice Failure");
+    }
 }
 
 static void demo_create_surface(struct demo *demo) {
@@ -3109,6 +3124,7 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
 
         char *message =
             "Usage:\n  %s\t[--use_staging] [--validate]\n"
+            "\t[--pipeline-cache <file>]\n"
             "\t[--break] [--c <framecount>] [--suppress_popups]\n"
             "\t[--incremental_present] [--display_timing]\n"
             "\t[--gpu_number <index of physical device>]\n"
