@@ -9,16 +9,12 @@ This project provides Vulkan SC tools and utilities that can assist development 
 The following components are available in this repository:
 
 - [*Mock ICD*](icd/)
-- [*Vkcube and Vkcube++ Demo*](cube/)
-- [*VulkanInfo*](vulkaninfo/)
-- [*Windows Runtime*](windows-runtime-installer/)
+- [*Vulkan SC Cube Demo*](cube-vksc/)
+- [*Vulkan SC Info*](vulkaninfo/)
 
 In addition, the following Vulkan SC specific components are available in this repository:
 
 - [*Vulkan SC Device Simulation Layer*](devsim/)
-
-## Contact Information
-* [Charles Giessen](mailto:charles@lunarg.com)
 
 ## Information for Developing or Contributing:
 
