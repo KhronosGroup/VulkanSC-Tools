@@ -19,6 +19,7 @@
 
 option(BUILD_WSI_DISPLAY_SUPPORT "Build DISPLAY WSI support" ON)
 set(VKSC_PIPELINE_CACHE_COMPILER "" CACHE FILEPATH "Path to the Vulkan SC pipeline cache compiler")
+set(VKSC_PIPELINE_CACHE_FLAGS "" CACHE STRING "Additional flags to pass to the pipeline cache compiler")
 
 if(NOT VKSC_PIPELINE_CACHE_COMPILER)
     message(STATUS "Using self-hosted Vulkan SC Emulation ICD pipeline cache. Provide a pipeline cache compile via VKSC_PIPELINE_CACHE_COMPILER should a different one be needed.")
@@ -60,6 +61,7 @@ if (COMPILE_CUBE_SHADERS)
 endif()
 
 if(VKSC_PIPELINE_CACHE_COMPILER)
+    separate_arguments(VKSC_PIPELINE_CACHE_FLAGS NATIVE_COMMAND "${VKSC_PIPELINE_CACHE_FLAGS}")
     add_custom_command(COMMENT "Compiling pipeline cache binary header"
                     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache.h
                     BYPRODUCTS
@@ -68,6 +70,7 @@ if(VKSC_PIPELINE_CACHE_COMPILER)
                     COMMAND ${VKSC_PIPELINE_CACHE_COMPILER} --path ${CMAKE_CURRENT_SOURCE_DIR}
                         --out ${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache.h.bin
                         --log ${CMAKE_CURRENT_BINARY_DIR}/cube.pc.json.log
+                        ${VKSC_PIPELINE_CACHE_FLAGS}
                     COMMAND ${CMAKE_COMMAND} -D INPUT:FILEPATH=${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache.h.bin
                         -D OUTPUT:FILEPATH=${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache.h
                         -P ${CMAKE_CURRENT_SOURCE_DIR}/bin_to_c_hex_array.cmake

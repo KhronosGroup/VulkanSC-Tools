@@ -41,15 +41,16 @@ If you want to run the application using any other ICD, you'll need to compile t
 (`cube-vksc/cube.pc.json`) offline and specify the built pipeline cache binary at run-time, e.g.:
 
 ```
-<path-to-pcc> --path <VulkanSC-Tools-path>/cube-vksc --prefix cube.pc --out pipeline_cache.bin
+<path-to-pcc> --path <VulkanSC-Tools-path>/cube-vksc --prefix cube.pc --out pipeline_cache.bin <additional-args>
 vksccube --pipeline-cache pipeline_cache.bin
 ```
 
 Alternatively, you can embed into `vksccube` the pipeline cache binary using the pipeline cache compiler of your choice
-instead of the Vulkan SC EMulation ICD's PCC by adding the `VKSC_PIPELINE_CACHE_COMPILER` configuration-time option:
+instead of the Vulkan SC EMulation ICD's PCC by adding the `VKSC_PIPELINE_CACHE_COMPILER` (and potentially 
+`VKSC_PIPELINE_CACHE_FLAGS`) configuration-time option(s):
 
 ```
-cmake ... -D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path-to-pcc>
+cmake ... -D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path-to-pcc> -D VKSC_PIPELINE_CACHE_FLAGS=<additional-args>
 ```
 
 ## Building Overview
