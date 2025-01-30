@@ -3,6 +3,7 @@
 1. [Requirements](#requirements)
 1. [Building Overview](#building-overview)
 1. [Generated source code](#generated-source-code)
+1. [Custom pipeline cache compiler](#custom-pipeline-cache-compiler)
 1. [Dependencies](#dependencies)
 1. [Linux Build](#building-on-linux)
 1. [Windows Build](#building-on-windows)
@@ -33,25 +34,10 @@ NOTE: `TOOLS_CODEGEN` is `OFF` by default.
 
 ### Custom pipeline cache compiler
 
-The Vulkan SC version of the cube sample (`vksccube`) much like all Vulkan SC applications requires an extra toolchain
-component to execute properly: a pipeline cache compiler (PCC). For convenience sake, the sample embeds a pre-compiled
-pipeline cache using Khronos' Vulkan SC Emulation ICD PCC (`pcconvk`).
-
-If you want to run the application using any other ICD, you'll need to compile the pipline cache JSON
-(`cube-vksc/cube.pc.json`) offline and specify the built pipeline cache binary at run-time, e.g.:
-
-```
-<path-to-pcc> --path <VulkanSC-Tools-path>/cube-vksc --prefix cube.pc --out pipeline_cache.bin <additional-args>
-vksccube --pipeline-cache pipeline_cache.bin
-```
-
-Alternatively, you can embed into `vksccube` the pipeline cache binary using the pipeline cache compiler of your choice
-instead of the Vulkan SC EMulation ICD's PCC by adding the `VKSC_PIPELINE_CACHE_COMPILER` (and potentially 
-`VKSC_PIPELINE_CACHE_FLAGS`) configuration-time option(s):
-
-```
-cmake ... -D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path-to-pcc> -D VKSC_PIPELINE_CACHE_FLAGS=<additional-args>
-```
+The Vulkan SC version of the cube demo (`vksccube`) includes an embedded pipeline cache binary built using the Vulkan SC
+Emulation PCC, by default. The used pipeline cache compiler and its flags can be changed with the
+`VKSC_PIPELINE_CACHE_COMPILER` and `VKSC_PIPELINE_CACHE_FLAGS` configuration-time options, respectively, as described
+in the [Vulkan SC Cube Demo's documentation](cube-vksc/README.md).
 
 ## Building Overview
 
