@@ -4,7 +4,7 @@
             "sType": "VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO",
             "pNext": "NULL",
             "flags": "0",
-            "attachmentCount": 1,
+            "attachmentCount": 2,
             "pAttachments": [
                 {
                     "flags": "0",
@@ -78,11 +78,7 @@
             {
                 "2": {
                     "sType": "VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO",
-                    "pNext": {
-                        "sType": "VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO",
-                        "pNext": "NULL",
-                        "bindingCount": 2
-                    },
+                    "pNext": "NULL",
                     "flags": "0",
                     "bindingCount": 2,
                     "pBindings": [
