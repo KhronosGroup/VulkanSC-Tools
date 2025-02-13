@@ -134,12 +134,23 @@ else()
     message(FATAL_ERROR "Unsupported Platform!")
 endif()
 
+# We have to manually search for VulkanSC library, due to currently lacking a `Vulkan::Vulkan` equivalent target in Vulkan SC.
+if(WIN32)
+  set(_VulkanSC_library_name vulkansc-1)
+else()
+  set(_VulkanSC_library_name vulkansc)
+endif()
+find_library(VulkanSC_LIBRARY
+  NAMES ${_VulkanSC_library_name}
+)
+mark_as_advanced(VulkanSC_LIBRARY)
+
 target_compile_definitions(vkcube PRIVATE ${ENABLED_CUBE_PLATFORMS})
 target_include_directories(vkcube PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR} # xyz_loader.h, linmath.h, etc.
     ${CMAKE_CURRENT_BINARY_DIR} # pipeline_offline_info.h
 )
-target_link_libraries(vkcube PRIVATE Vulkan::Headers Vulkan::Loader)
+target_link_libraries(vkcube PRIVATE Vulkan::Headers "${VulkanSC_LIBRARY}")
 set_target_properties(vkcube PROPERTIES OUTPUT_NAME vksccube)
 
 install(TARGETS vkcube)
