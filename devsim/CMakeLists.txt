@@ -40,23 +40,10 @@ elseif(MSVC)
     # Merge duplicate data/functions
     add_link_options("$<$<CONFIG:Release>:/OPT:ICF>")
 
-    add_compile_options(/W4 /WX)
-    add_link_options(/WX)
-    # Ignore some warnings that we know we'll generate.  In the future the
-    # code that generates these warnings should be fixed properly.
-    # vk_layer_logging.h provokes:
-    #    warning C4100: 'default_flag_is_spec': unreferenced formal parameter
-    # vk_loader_platform.h provokes:
-    #    warning C4505: unreferenced local function has been removed
-    # jsoncpp.cpp provokes:
-    #    warning C4702: unreachable code
-    # gtest.h provokes:
-    #    warning C4389: '==': signed/unsigned mismatch
-    #    warning C4018: '>=': signed/unsigned mismatch
-    # vulkan_profiles.hpp provokes:
-    #    warning C4245: '=': conversion from 'int' to 'uint64_t', signed/unsigned mismatch
-    #    warning C4305: '=': truncation from 'double' to 'float'
-    add_compile_options(/wd4100 /wd4505 /wd4702 /wd4389 /wd4245 /wd4305 /wd4018)
+    # Ignore some warnings that trigger due to inheriting source files with less strict warning requirements
+    #    warning C4305: 'initializing': truncation from 'unsigned __int64' to 'size_t'
+    #    warning C4309: 'initializing': truncation of constant value
+    set_source_files_properties(profiles_generated.cpp PROPERTIES COMPILE_OPTIONS "/wd4305;/wd4309")
 endif()
 
 find_package(VulkanHeaders REQUIRED CONFIG QUIET)

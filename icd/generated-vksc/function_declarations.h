@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2015-2024 The Khronos Group Inc.
+** Copyright (c) 2015-2025 The Khronos Group Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -1210,6 +1210,89 @@ static VKAPI_ATTR void VKAPI_CALL GetDeviceImageSparseMemoryRequirements(
     VkSparseImageMemoryRequirements2*           pSparseMemoryRequirements);
 
 
+static VKAPI_ATTR void VKAPI_CALL CmdSetLineStipple(
+    VkCommandBuffer                             commandBuffer,
+    uint32_t                                    lineStippleFactor,
+    uint16_t                                    lineStipplePattern);
+
+static VKAPI_ATTR VkResult VKAPI_CALL MapMemory2(
+    VkDevice                                    device,
+    const VkMemoryMapInfo*                      pMemoryMapInfo,
+    void**                                      ppData);
+
+static VKAPI_ATTR VkResult VKAPI_CALL UnmapMemory2(
+    VkDevice                                    device,
+    const VkMemoryUnmapInfo*                    pMemoryUnmapInfo);
+
+static VKAPI_ATTR void VKAPI_CALL CmdBindIndexBuffer2(
+    VkCommandBuffer                             commandBuffer,
+    VkBuffer                                    buffer,
+    VkDeviceSize                                offset,
+    VkDeviceSize                                size,
+    VkIndexType                                 indexType);
+
+static VKAPI_ATTR void VKAPI_CALL GetRenderingAreaGranularity(
+    VkDevice                                    device,
+    const VkRenderingAreaInfo*                  pRenderingAreaInfo,
+    VkExtent2D*                                 pGranularity);
+
+static VKAPI_ATTR void VKAPI_CALL GetDeviceImageSubresourceLayout(
+    VkDevice                                    device,
+    const VkDeviceImageSubresourceInfo*         pInfo,
+    VkSubresourceLayout2*                       pLayout);
+
+static VKAPI_ATTR void VKAPI_CALL GetImageSubresourceLayout2(
+    VkDevice                                    device,
+    VkImage                                     image,
+    const VkImageSubresource2*                  pSubresource,
+    VkSubresourceLayout2*                       pLayout);
+
+static VKAPI_ATTR void VKAPI_CALL CmdPushDescriptorSet(
+    VkCommandBuffer                             commandBuffer,
+    VkPipelineBindPoint                         pipelineBindPoint,
+    VkPipelineLayout                            layout,
+    uint32_t                                    set,
+    uint32_t                                    descriptorWriteCount,
+    const VkWriteDescriptorSet*                 pDescriptorWrites);
+
+static VKAPI_ATTR void VKAPI_CALL CmdSetRenderingAttachmentLocations(
+    VkCommandBuffer                             commandBuffer,
+    const VkRenderingAttachmentLocationInfo*    pLocationInfo);
+
+static VKAPI_ATTR void VKAPI_CALL CmdSetRenderingInputAttachmentIndices(
+    VkCommandBuffer                             commandBuffer,
+    const VkRenderingInputAttachmentIndexInfo*  pInputAttachmentIndexInfo);
+
+static VKAPI_ATTR void VKAPI_CALL CmdBindDescriptorSets2(
+    VkCommandBuffer                             commandBuffer,
+    const VkBindDescriptorSetsInfo*             pBindDescriptorSetsInfo);
+
+static VKAPI_ATTR void VKAPI_CALL CmdPushConstants2(
+    VkCommandBuffer                             commandBuffer,
+    const VkPushConstantsInfo*                  pPushConstantsInfo);
+
+static VKAPI_ATTR void VKAPI_CALL CmdPushDescriptorSet2(
+    VkCommandBuffer                             commandBuffer,
+    const VkPushDescriptorSetInfo*              pPushDescriptorSetInfo);
+
+static VKAPI_ATTR VkResult VKAPI_CALL CopyMemoryToImage(
+    VkDevice                                    device,
+    const VkCopyMemoryToImageInfo*              pCopyMemoryToImageInfo);
+
+static VKAPI_ATTR VkResult VKAPI_CALL CopyImageToMemory(
+    VkDevice                                    device,
+    const VkCopyImageToMemoryInfo*              pCopyImageToMemoryInfo);
+
+static VKAPI_ATTR VkResult VKAPI_CALL CopyImageToImage(
+    VkDevice                                    device,
+    const VkCopyImageToImageInfo*               pCopyImageToImageInfo);
+
+static VKAPI_ATTR VkResult VKAPI_CALL TransitionImageLayout(
+    VkDevice                                    device,
+    uint32_t                                    transitionCount,
+    const VkHostImageLayoutTransitionInfo*      pTransitions);
+
+
 static VKAPI_ATTR void VKAPI_CALL GetCommandPoolMemoryConsumption(
     VkDevice                                    device,
     VkCommandPool                               commandPool,
@@ -2093,6 +2176,23 @@ static const std::unordered_map<std::string, void*> name_to_funcptr_map = {
     {"vkGetDeviceBufferMemoryRequirements", (void*)GetDeviceBufferMemoryRequirements},
     {"vkGetDeviceImageMemoryRequirements", (void*)GetDeviceImageMemoryRequirements},
     {"vkGetDeviceImageSparseMemoryRequirements", (void*)GetDeviceImageSparseMemoryRequirements},
+    {"vkCmdSetLineStipple", (void*)CmdSetLineStipple},
+    {"vkMapMemory2", (void*)MapMemory2},
+    {"vkUnmapMemory2", (void*)UnmapMemory2},
+    {"vkCmdBindIndexBuffer2", (void*)CmdBindIndexBuffer2},
+    {"vkGetRenderingAreaGranularity", (void*)GetRenderingAreaGranularity},
+    {"vkGetDeviceImageSubresourceLayout", (void*)GetDeviceImageSubresourceLayout},
+    {"vkGetImageSubresourceLayout2", (void*)GetImageSubresourceLayout2},
+    {"vkCmdPushDescriptorSet", (void*)CmdPushDescriptorSet},
+    {"vkCmdSetRenderingAttachmentLocations", (void*)CmdSetRenderingAttachmentLocations},
+    {"vkCmdSetRenderingInputAttachmentIndices", (void*)CmdSetRenderingInputAttachmentIndices},
+    {"vkCmdBindDescriptorSets2", (void*)CmdBindDescriptorSets2},
+    {"vkCmdPushConstants2", (void*)CmdPushConstants2},
+    {"vkCmdPushDescriptorSet2", (void*)CmdPushDescriptorSet2},
+    {"vkCopyMemoryToImage", (void*)CopyMemoryToImage},
+    {"vkCopyImageToMemory", (void*)CopyImageToMemory},
+    {"vkCopyImageToImage", (void*)CopyImageToImage},
+    {"vkTransitionImageLayout", (void*)TransitionImageLayout},
     {"vkGetCommandPoolMemoryConsumption", (void*)GetCommandPoolMemoryConsumption},
     {"vkGetFaultData", (void*)GetFaultData},
     {"vkDestroySurfaceKHR", (void*)DestroySurfaceKHR},
