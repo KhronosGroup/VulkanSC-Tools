@@ -1801,13 +1801,10 @@ static VkPipelineOfflineCreateInfo demo_get_pipeline_offline_info() {
     const VkPipelineOfflineCreateInfo result = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_OFFLINE_CREATE_INFO,
         .pNext = NULL,
-        .pipelineIdentifier = {
-#include "pipeline_offline_info.h"
-        },
+        .pipelineIdentifier = {245, 154, 136, 152, 244, 195, 139, 123, 0, 0, 0, 0, 0, 0, 0, 0},
         .matchControl = VK_PIPELINE_MATCH_CONTROL_APPLICATION_UUID_EXACT_MATCH,
         // We assume no pipeline entry is greater than 1MB
-        .poolEntrySize = MAX_PIPELINE_POOL_SIZE
-    };
+        .poolEntrySize = MAX_PIPELINE_POOL_SIZE};
     return result;
 }
 
@@ -2225,6 +2222,7 @@ static VkResult demo_create_display_surface(struct demo *demo) {
 
     demo->display = display_props.display;
 
+#ifdef VK_USE_PLATFORM_WIN32_KHR
     // If we can, and need to, acquire the display if supported
     if (demo->VK_NV_acquire_winrt_display_supported) {
         err = pfnAcquireWinrtDisplayNV(demo->gpu, demo->display);
@@ -2232,6 +2230,7 @@ static VkResult demo_create_display_surface(struct demo *demo) {
             ERR_EXIT("Failed to get acqurie display", "vkAcquireWinrtDisplayNV Failure");
         }
     }
+#endif
 
     // Get the first mode of the display
     err = vkGetDisplayModePropertiesKHR(demo->gpu, demo->display, &mode_count, NULL);
@@ -2696,10 +2695,12 @@ static void demo_init_vk(struct demo *demo) {
                 swapchainExtFound = 1;
                 demo->extension_names[demo->enabled_extension_count++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
             }
+#ifdef VK_USE_PLATFORM_WIN32_KHR
             if (!strcmp(VK_NV_ACQUIRE_WINRT_DISPLAY_EXTENSION_NAME, device_extensions[i].extensionName)) {
                 acquireDispExtFound = 1;
                 demo->extension_names[demo->enabled_extension_count++] = VK_NV_ACQUIRE_WINRT_DISPLAY_EXTENSION_NAME;
             }
+#endif
         }
 
         if (demo->VK_KHR_incremental_present_enabled) {
@@ -3117,9 +3118,9 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
         memset(available_wsi_platforms, 0, MAX_STR_LEN);
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
         if (strlen(available_wsi_platforms) > 0) {
-            strncat(available_wsi_platforms, "|", MAX_STR_LEN);
+            strncat(available_wsi_platforms, "|", MAX_STR_LEN - 1);
         }
-        strncat(available_wsi_platforms, "display", MAX_STR_LEN);
+        strncat(available_wsi_platforms, "display", MAX_STR_LEN - 1);
 #endif
 
         char *message =

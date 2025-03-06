@@ -83,16 +83,6 @@ if(VKSC_PIPELINE_CACHE_COMPILER)
                         ${VKSC_PIPELINE_CACHE_COMPILER}
                         ${CMAKE_CURRENT_SOURCE_DIR}/bin_to_c_hex_array.cmake)
 endif()
-add_custom_command(COMMENT "Compiling pipeline cache UUID header"
-                OUTPUT pipeline_offline_info.h
-                COMMAND ${CMAKE_COMMAND} -D INPUT:FILEPATH=${CMAKE_CURRENT_SOURCE_DIR}/cube.pc.json
-                    -D OUTPUT:FILEPATH=${CMAKE_CURRENT_BINARY_DIR}/pipeline_offline_info.h
-                    -P ${CMAKE_CURRENT_SOURCE_DIR}/uuid_from_json.cmake
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                MAIN_DEPENDENCY cube.pc.json
-                DEPENDS
-                    cube.pc.json
-                    ${CMAKE_CURRENT_SOURCE_DIR}/uuid_from_json.cmake)
 
 if(WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -119,7 +109,6 @@ target_sources(vkcube PRIVATE
     cube.frag
     cube.pc.json
     pipeline_cache.h
-    ${CMAKE_CURRENT_BINARY_DIR}/pipeline_offline_info.h
 )
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
@@ -148,7 +137,6 @@ mark_as_advanced(VulkanSC_LIBRARY)
 target_compile_definitions(vkcube PRIVATE ${ENABLED_CUBE_PLATFORMS})
 target_include_directories(vkcube PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR} # xyz_loader.h, linmath.h, etc.
-    ${CMAKE_CURRENT_BINARY_DIR} # pipeline_offline_info.h
 )
 target_link_libraries(vkcube PRIVATE Vulkan::Headers "${VulkanSC_LIBRARY}")
 set_target_properties(vkcube PROPERTIES OUTPUT_NAME vksccube)
