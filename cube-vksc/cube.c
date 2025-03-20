@@ -2112,11 +2112,6 @@ static void demo_prepare(struct demo *demo) {
 
     demo_prepare_framebuffers(demo);
 
-    for (uint32_t i = 0; i < demo->swapchainImageCount; i++) {
-        demo->current_buffer = i;
-        demo_draw_build_cmd(demo, demo->swapchain_image_resources[i].cmd);
-    }
-
     /*
      * Prepare functions above may generate pipeline commands
      * that need to be flushed before beginning the render loop.
@@ -2125,6 +2120,11 @@ static void demo_prepare(struct demo *demo) {
     demo_flush_init_cmd(demo);
     if (demo->staging_texture.buffer) {
         demo_destroy_texture(demo, &demo->staging_texture);
+    }
+
+    for (uint32_t i = 0; i < demo->swapchainImageCount; i++) {
+        demo->current_buffer = i;
+        demo_draw_build_cmd(demo, demo->swapchain_image_resources[i].cmd);
     }
 
     demo->current_buffer = 0;
