@@ -45,7 +45,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(BUILD_VKSC_DEVSIM "Build Vulkan SC device simulation layer" ON)
 
-option(BUILD_CUBE "Build cube" OFF)
+option(BUILD_CUBE "Build cube" ON)
 option(BUILD_VULKANINFO "Build vulkaninfo" ON)
 option(BUILD_ICD "Build icd" ON)
 option(BUILD_TESTS "Build the tests")
