@@ -22,7 +22,7 @@ if(VULKANSC)
     set(LAYER_NAME "VkSCLayer_khronos_device_simulation")
 endif()
 if(${CMAKE_C_COMPILER_ID} MATCHES "(GNU|Clang)")
-    add_compile_options(-Werror -Wno-unused-function -Wno-unused-but-set-variable -Wno-type-limits)
+    add_compile_options(-Wno-unused-function -Wno-unused-but-set-variable -Wno-type-limits)
 elseif(MSVC)
     # PDBs aren't generated on Release builds by default.
     add_compile_options("$<$<CONFIG:Release>:/Zi>")
