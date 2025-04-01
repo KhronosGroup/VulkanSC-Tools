@@ -19,7 +19,7 @@
             "cmake_options": [
                 "-DGEN_VULKANSC_COMBINED=ON"
             ],
-            "commit": "928fc35c007356f0a4546988fd155ab86f55b4e3"
+            "commit": "vksc1.0.18"
         },
         {
             "name": "Vulkan-Utility-Libraries",
@@ -28,7 +28,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "a8f6e1e379d5e9c2999fdd9da0eade0c04a43812",
+            "commit": "vksc1.0.18",
             "deps": [
                 {
                     "var_name": "VULKAN_HEADERS_INSTALL_DIR",
@@ -97,14 +97,17 @@
             "sub_dir": "jsoncpp",
             "build_dir": "jsoncpp/build",
             "install_dir": "jsoncpp/build/install",
-            "commit": "1.9.5",
+            "commit": "1.9.6",
             "cmake_options": [
                 "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
                 "-DJSONCPP_WITH_TESTS=OFF",
                 "-DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF",
                 "-DJSONCPP_WITH_WARNING_AS_ERROR=OFF",
                 "-DJSONCPP_WITH_PKGCONFIG_SUPPORT=OFF",
-                "-DJSONCPP_STATIC_WINDOWS_RUNTIME=ON"
+                "-DJSONCPP_STATIC_WINDOWS_RUNTIME=ON",
+                "-DBUILD_SHARED_LIBS=OFF",
+                "-DBUILD_STATIC_LIBS=ON",
+                "-DBUILD_OBJECT_LIBS=OFF"
             ]
         },
         {
@@ -114,7 +117,7 @@
             "sub_dir": "valijson",
             "build_dir": "valijson/build",
             "install_dir": "valijson/build/install",
-            "commit": "v1.0"
+            "commit": "v1.0.2"
         },
         {
             "name": "Vulkan-Loader",
@@ -149,7 +152,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "88a5463f052f4f0fa9fb42f097662ac70a91bdc7",
+            "commit": "vksc1.0.18",
             "build_platforms": [
                 "windows",
                 "linux",
