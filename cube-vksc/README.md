@@ -15,7 +15,7 @@ In order to test with the Vulkan SC Emulation driver stack, please refer to its
 [documentation](https://github.com/KhronosGroup/VulkanSC-Emulation/blob/main/icd/README.md).
 
 The `vksccube` requires support for the `VK_KHR_display` extension for window-system interaction. The Vulkan SC
-Emulation ICD supports this through display emulation on top of Win32/X11 windows, hence the sample should with the
+Emulation ICD supports this through display emulation on top of Win32/X11 windows, hence the sample should work with the
 Vulkan SC Emulation ICD on top of any Vulkan implementation supporting these window-systems on Windows and on Linux
 running X11 or Wayland (through XWayland).
 
