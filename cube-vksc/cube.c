@@ -278,6 +278,7 @@ char const *to_string(VkPhysicalDeviceType const type) {
 typedef enum WSI_PLATFORM {
     WSI_PLATFORM_AUTO = 0,
     WSI_PLATFORM_DISPLAY,
+    WSI_PLATFORM_FILE,
     WSI_PLATFORM_INVALID,  // Sentinel just to indicate invalid user input
 } WSI_PLATFORM;
 
@@ -286,6 +287,7 @@ WSI_PLATFORM wsi_from_string(const char *str) {
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
     if (strcmp(str, "display") == 0) return WSI_PLATFORM_DISPLAY;
 #endif
+    if (strcmp(str, "file") == 0) return WSI_PLATFORM_FILE;
     return WSI_PLATFORM_INVALID;
 };
 
@@ -297,6 +299,8 @@ const char *wsi_to_string(WSI_PLATFORM wsi_platform) {
         case (WSI_PLATFORM_DISPLAY):
             return "display";
 #endif
+        case (WSI_PLATFORM_FILE):
+            return "file";
         default:
             return "unknown";
     }
@@ -372,6 +376,21 @@ struct demo {
         VkDeviceMemory mem;
         VkImageView view;
     } depth;
+
+    struct {
+        struct {
+            VkImage image;
+            VkMemoryAllocateInfo mem_alloc;
+            VkDeviceMemory mem;
+            VkImageView view;
+        } img;
+
+        struct {
+            VkBuffer buffer;
+            VkMemoryAllocateInfo mem_alloc;
+            VkDeviceMemory mem;
+        } staging;
+    } offscreen_texture;
 
     struct texture_object textures[DEMO_TEXTURE_COUNT];
     struct texture_object staging_texture;
@@ -802,6 +821,35 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
         vkCmdPipelineBarrier(cmd_buf, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, NULL, 0,
                              NULL, 1, &image_ownership_barrier);
     }
+
+    if (demo->wsi_platform == WSI_PLATFORM_FILE) {
+        VkImageMemoryBarrier image_wait_barrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                                   .pNext = NULL,
+                                                   .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                                                   .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                                                   .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                                   .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                                   .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                                   .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                                   .image = demo->offscreen_texture.img.image,
+                                                   .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
+
+        vkCmdPipelineBarrier(cmd_buf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1,
+                             &image_wait_barrier);
+
+        VkBufferImageCopy copy_region = {
+            .bufferOffset = 0,
+            .bufferRowLength = demo->width,
+            .bufferImageHeight = demo->height,
+            .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {demo->width, demo->height, 1},
+        };
+
+        vkCmdCopyImageToBuffer(cmd_buf, demo->offscreen_texture.img.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                               demo->offscreen_texture.staging.buffer, 1, &copy_region);
+    }
+
     demo_pop_cb_label(demo, cmd_buf);
     err = vkEndCommandBuffer(cmd_buf);
     assert(!err);
@@ -858,27 +906,29 @@ static void demo_draw(struct demo *demo) {
     vkWaitForFences(demo->device, 1, &demo->fences[demo->frame_index], VK_TRUE, UINT64_MAX);
     vkResetFences(demo->device, 1, &demo->fences[demo->frame_index]);
 
-    do {
-        // Get the index of the next available swapchain image:
-        err = vkAcquireNextImageKHR(demo->device, demo->swapchain, UINT64_MAX, demo->image_acquired_semaphores[demo->frame_index],
-                                    VK_NULL_HANDLE, &demo->current_buffer);
+    if (demo->wsi_platform != WSI_PLATFORM_FILE) {
+        do {
+            // Get the index of the next available swapchain image:
+            err = vkAcquireNextImageKHR(demo->device, demo->swapchain, UINT64_MAX,
+                                        demo->image_acquired_semaphores[demo->frame_index], VK_NULL_HANDLE, &demo->current_buffer);
 
-        if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-            // demo->swapchain is out of date (e.g. the window was resized) and
-            // must be recreated:
-            demo_resize(demo);
-        } else if (err == VK_SUBOPTIMAL_KHR) {
-            // demo->swapchain is not as optimal as it could be, but the platform's
-            // presentation engine will still present the image correctly.
-            break;
-        } else if (err == VK_ERROR_SURFACE_LOST_KHR) {
-            vkDestroySurfaceKHR(demo->inst, demo->surface, NULL);
-            demo_create_surface(demo);
-            demo_resize(demo);
-        } else {
-            assert(!err);
-        }
-    } while (err != VK_SUCCESS);
+            if (err == VK_ERROR_OUT_OF_DATE_KHR) {
+                // demo->swapchain is out of date (e.g. the window was resized) and
+                // must be recreated:
+                demo_resize(demo);
+            } else if (err == VK_SUBOPTIMAL_KHR) {
+                // demo->swapchain is not as optimal as it could be, but the platform's
+                // presentation engine will still present the image correctly.
+                break;
+            } else if (err == VK_ERROR_SURFACE_LOST_KHR) {
+                vkDestroySurfaceKHR(demo->inst, demo->surface, NULL);
+                demo_create_surface(demo);
+                demo_resize(demo);
+            } else {
+                assert(!err);
+            }
+        } while (err != VK_SUCCESS);
+    }
 
     demo_update_data_buffer(demo);
 
@@ -886,20 +936,31 @@ static void demo_draw(struct demo *demo) {
     // that the image won't be rendered to until the presentation
     // engine has fully released ownership to the application, and it is
     // okay to render to the image.
+    // In case of saving the rendered images to file the graphics queue
+    // is fully executed after every frame, so we do not have to synchronize
+    // the graphics queue with the present queue
     VkPipelineStageFlags pipe_stage_flags;
     VkSubmitInfo submit_info;
+    uint32_t semaphore_count = (demo->wsi_platform != WSI_PLATFORM_FILE) ? 1 : 0;
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = NULL;
     pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     submit_info.pWaitDstStageMask = &pipe_stage_flags;
-    submit_info.waitSemaphoreCount = 1;
+    submit_info.waitSemaphoreCount = semaphore_count;
     submit_info.pWaitSemaphores = &demo->image_acquired_semaphores[demo->frame_index];
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers = &demo->swapchain_image_resources[demo->current_buffer].cmd;
-    submit_info.signalSemaphoreCount = 1;
+    submit_info.signalSemaphoreCount = semaphore_count;
     submit_info.pSignalSemaphores = &demo->draw_complete_semaphores[demo->frame_index];
     err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, demo->fences[demo->frame_index]);
     assert(!err);
+
+    if (demo->wsi_platform == WSI_PLATFORM_FILE) {
+        // In case of image dump instead of present we wait for graphics queue execution
+        // to safely read back the offscreen backbuffer
+        vkQueueWaitIdle(demo->graphics_queue);
+        return;
+    }
 
     if (demo->separate_present_queue) {
         // If we are using separate queues, change image ownership to the
@@ -1196,6 +1257,113 @@ static void demo_prepare_buffers(struct demo *demo) {
         demo_name_object(demo, VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)demo->swapchain_image_resources[i].view, "SwapchainView(%u)",
                          i);
     }
+}
+
+static VkResult demo_prepare_offscreen_texture(struct demo *demo) {
+    VkResult U_ASSERT_ONLY err;
+    bool U_ASSERT_ONLY pass;
+
+    demo->swapchainImageCount = 1;
+
+    const VkBufferCreateInfo buffer_create_info = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                                   .pNext = NULL,
+                                                   .flags = 0,
+                                                   .size = demo->width * demo->height * 4,
+                                                   .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                   .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                                                   .queueFamilyIndexCount = 0,
+                                                   .pQueueFamilyIndices = NULL};
+
+    err = vkCreateBuffer(demo->device, &buffer_create_info, NULL, &demo->offscreen_texture.staging.buffer);
+    assert(!err);
+    demo_name_object(demo, VK_OBJECT_TYPE_BUFFER, (uint64_t)demo->offscreen_texture.staging.buffer, "StagingBuffer");
+
+    VkMemoryRequirements mem_reqs;
+    vkGetBufferMemoryRequirements(demo->device, demo->offscreen_texture.staging.buffer, &mem_reqs);
+
+    demo->offscreen_texture.staging.mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    demo->offscreen_texture.staging.mem_alloc.pNext = NULL;
+    demo->offscreen_texture.staging.mem_alloc.allocationSize = mem_reqs.size;
+    demo->offscreen_texture.staging.mem_alloc.memoryTypeIndex = 0;
+
+    VkFlags requirements = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    pass = memory_type_from_properties(demo, mem_reqs.memoryTypeBits, requirements,
+                                       &demo->offscreen_texture.staging.mem_alloc.memoryTypeIndex);
+    assert(pass);
+
+    err = vkAllocateMemory(demo->device, &demo->offscreen_texture.staging.mem_alloc, NULL, &demo->offscreen_texture.staging.mem);
+    assert(!err);
+    demo_name_object(demo, VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)demo->offscreen_texture.staging.mem, "StagingBufferMemory");
+
+    /* bind memory */
+    err = vkBindBufferMemory(demo->device, demo->offscreen_texture.staging.buffer, demo->offscreen_texture.staging.mem, 0);
+    assert(!err);
+
+    const VkFormat display_format = VK_FORMAT_R8G8B8A8_UNORM;
+    const VkImageCreateInfo image = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .pNext = NULL,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = display_format,
+        .extent = {demo->width, demo->height, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        .flags = 0,
+    };
+
+    VkImageViewCreateInfo view = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = NULL,
+        .image = VK_NULL_HANDLE,
+        .format = display_format,
+        .subresourceRange =
+            {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1},
+        .flags = 0,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    };
+
+    demo->format = display_format;
+
+    /* create image */
+    err = vkCreateImage(demo->device, &image, NULL, &demo->offscreen_texture.img.image);
+    assert(!err);
+    demo_name_object(demo, VK_OBJECT_TYPE_IMAGE, (uint64_t)demo->offscreen_texture.img.image, "SurfaceImage");
+
+    vkGetImageMemoryRequirements(demo->device, demo->offscreen_texture.img.image, &mem_reqs);
+    assert(!err);
+
+    demo->offscreen_texture.img.mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    demo->offscreen_texture.img.mem_alloc.pNext = NULL;
+    demo->offscreen_texture.img.mem_alloc.allocationSize = mem_reqs.size;
+    demo->offscreen_texture.img.mem_alloc.memoryTypeIndex = 0;
+
+    pass = memory_type_from_properties(demo, mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                       &demo->offscreen_texture.img.mem_alloc.memoryTypeIndex);
+    assert(pass);
+
+    /* allocate memory */
+    err = vkAllocateMemory(demo->device, &demo->offscreen_texture.img.mem_alloc, NULL, &demo->offscreen_texture.img.mem);
+    assert(!err);
+    demo_name_object(demo, VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)demo->offscreen_texture.img.mem, "SurfaceImageMem");
+
+    /* bind memory */
+    err = vkBindImageMemory(demo->device, demo->offscreen_texture.img.image, demo->offscreen_texture.img.mem, 0);
+    assert(!err);
+
+    /* create image view */
+    view.image = demo->offscreen_texture.img.image;
+    err = vkCreateImageView(demo->device, &view, NULL, &demo->offscreen_texture.img.view);
+    assert(!err);
+    demo_name_object(demo, VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)demo->offscreen_texture.img.view, "SurfaceImageView");
+
+    demo->swapchain_image_resources[0].uniform_memory = demo->offscreen_texture.img.mem;
+    demo->swapchain_image_resources[0].image = demo->offscreen_texture.img.image;
+    demo->swapchain_image_resources[0].view = demo->offscreen_texture.img.view;
+
+    return err;
 }
 
 static void demo_prepare_depth(struct demo *demo) {
@@ -1677,8 +1845,10 @@ static void demo_prepare_render_pass(struct demo *demo) {
     // to LAYOUT_COLOR_ATTACHMENT_OPTIMAL and the depth stencil attachment's layout
     // will be transitioned to LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL.  At the end of
     // the renderpass, the color attachment's layout will be transitioned to
-    // LAYOUT_PRESENT_SRC_KHR to be ready to present.  This is all done as part of
-    // the renderpass, no barriers are necessary.
+    // LAYOUT_PRESENT_SRC_KHR or LAYOUT_TRANSFER_SRC_OPTIMAL depending on it is
+    // presented or saved to file. This is all done as part of the renderpass.
+    VkImageLayout final_layout =
+        (demo->wsi_platform != WSI_PLATFORM_FILE) ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     const VkAttachmentDescription attachments[2] = {
         [0] =
             {
@@ -1690,7 +1860,7 @@ static void demo_prepare_render_pass(struct demo *demo) {
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                .finalLayout = final_layout,
             },
         [1] =
             {
@@ -2015,7 +2185,21 @@ static void demo_prepare_framebuffers(struct demo *demo) {
 }
 
 static void demo_prepare(struct demo *demo) {
-    demo_prepare_buffers(demo);
+    if (demo->wsi_platform != WSI_PLATFORM_FILE) {
+        demo_prepare_buffers(demo);
+    } else {  
+        if (demo->width == -1) {
+            demo->width = 512;
+        }
+        if (demo->height == -1) {
+            demo->height = 512;
+        }
+        if (demo->frameCount == INT32_MAX) {
+            demo->frameCount = 1;
+        }
+
+        demo_prepare_offscreen_texture(demo);
+    }
 
     if (demo->is_minimized) {
         demo->prepared = false;
@@ -2176,11 +2360,16 @@ static void demo_cleanup(struct demo *demo) {
             vkDestroyBuffer(demo->device, demo->swapchain_image_resources[i].uniform_buffer, NULL);
             vkUnmapMemory(demo->device, demo->swapchain_image_resources[i].uniform_memory);
         }
+
+        if (demo->wsi_platform == WSI_PLATFORM_FILE) {
+            vkDestroyImage(demo->device, demo->offscreen_texture.img.image, NULL);
+            vkDestroyBuffer(demo->device, demo->offscreen_texture.staging.buffer, NULL);
+        }
     }
     vkDeviceWaitIdle(demo->device);
     vkDestroyDevice(demo->device, NULL);
 
-    if (demo->VK_NV_acquire_winrt_display_supported) {
+    if (demo->VK_NV_acquire_winrt_display_supported && demo->wsi_platform == WSI_PLATFORM_DISPLAY) {
         pfnReleaseDisplayEXT(demo->gpu, demo->display);
     }
 
@@ -2224,7 +2413,7 @@ static VkResult demo_create_display_surface(struct demo *demo) {
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
     // If we can, and need to, acquire the display if supported
-    if (demo->VK_NV_acquire_winrt_display_supported) {
+    if (demo->VK_NV_acquire_winrt_display_supported && demo->wsi_platform != WSI_PLATFORM_DISPLAY) {
         err = pfnAcquireWinrtDisplayNV(demo->gpu, demo->display);
         if (err != VK_SUCCESS) {
             ERR_EXIT("Failed to get acqurie display", "vkAcquireWinrtDisplayNV Failure");
@@ -2358,6 +2547,60 @@ static void demo_run_display(struct demo *demo) {
 }
 #endif
 
+void save_rgba_to_ppm(const char *filename, int width, int height, const unsigned char *rgba_data) {
+    FILE *f = fopen(filename, "wb");
+    if (!f) {
+        perror("fopen");
+        ERR_EXIT("Failed to open ppm output file", "Save RGBA to PPM failure");
+    }
+
+    char header[64];
+    int header_len = snprintf(header, sizeof(header), "P6\n%d %d\n255\n", width, height);
+    fwrite(header, 1, header_len, f);
+
+    unsigned char *rgb_data = (unsigned char *)malloc(width * height * 3);
+    if (!rgb_data) {
+        perror("malloc");
+        fclose(f);
+        ERR_EXIT("Failed to malloc temp buffer for rgba/rgb conversion", "Save RGBA to PPM failure");
+    }
+
+    for (int i = 0; i < width * height; ++i) {
+        rgb_data[i * 3 + 0] = rgba_data[i * 4 + 0];  // R
+        rgb_data[i * 3 + 1] = rgba_data[i * 4 + 1];  // G
+        rgb_data[i * 3 + 2] = rgba_data[i * 4 + 2];  // B
+    }
+
+    fwrite(rgb_data, 1, width * height * 3, f);
+
+    free(rgb_data);
+    fclose(f);
+}
+
+void save_frame(struct demo *demo, uint32_t frame_id) {
+    VkResult U_ASSERT_ONLY err;
+
+    void *data;
+    err = vkMapMemory(demo->device, demo->offscreen_texture.staging.mem, 0,
+                      demo->offscreen_texture.staging.mem_alloc.allocationSize, 0, &data);
+    assert(!err);
+
+#define MAX_FILENAME_LENGTH 100
+    char filename[MAX_FILENAME_LENGTH];
+
+    snprintf(filename, MAX_FILENAME_LENGTH, "frame_%05d.ppm", frame_id);
+    save_rgba_to_ppm(filename, demo->width, demo->height, data);
+
+    vkUnmapMemory(demo->device, demo->offscreen_texture.staging.mem);
+}
+
+static void demo_run_image_dump(struct demo *demo) {
+    for (int32_t i = 0; i < demo->frameCount; i++) {
+        demo_draw(demo);
+        save_frame(demo, i);
+    }
+}
+
 /*
  * Return 1 (true) if all layer names specified in check_names
  * can be found in given layer properties.
@@ -2481,10 +2724,15 @@ static void demo_init_vk(struct demo *demo) {
                 demo->extension_names[demo->enabled_extension_count++] = VK_KHR_SURFACE_EXTENSION_NAME;
             }
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
-            if (!strcmp(VK_KHR_DISPLAY_EXTENSION_NAME, instance_extensions[i].extensionName) &&
-                (demo->wsi_platform == WSI_PLATFORM_AUTO || demo->wsi_platform == WSI_PLATFORM_DISPLAY)) {
-                platformSurfaceExtFound = true;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_DISPLAY_EXTENSION_NAME;
+            if (demo->wsi_platform == WSI_PLATFORM_AUTO || demo->wsi_platform == WSI_PLATFORM_DISPLAY) {
+                if (!strcmp(VK_KHR_DISPLAY_EXTENSION_NAME, instance_extensions[i].extensionName)) {
+                    platformSurfaceExtFound = true;
+                    demo->extension_names[demo->enabled_extension_count++] = VK_KHR_DISPLAY_EXTENSION_NAME;
+                }
+                if (!strcmp(VK_EXT_DIRECT_MODE_DISPLAY_EXTENSION_NAME, instance_extensions[i].extensionName)) {
+                    releaseDispExtFound = true;
+                    demo->extension_names[demo->enabled_extension_count++] = VK_EXT_DIRECT_MODE_DISPLAY_EXTENSION_NAME;
+                }
             }
 #endif
             if (!strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, instance_extensions[i].extensionName)) {
@@ -2492,36 +2740,34 @@ static void demo_init_vk(struct demo *demo) {
                     demo->extension_names[demo->enabled_extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
                 }
             }
-            if (!strcmp(VK_EXT_DIRECT_MODE_DISPLAY_EXTENSION_NAME, instance_extensions[i].extensionName)) {
-                releaseDispExtFound = true;
-                demo->extension_names[demo->enabled_extension_count++] = VK_EXT_DIRECT_MODE_DISPLAY_EXTENSION_NAME;
-            }
             assert(demo->enabled_extension_count < 64);
         }
     }
 
-    if (!surfaceExtFound) {
-        ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_SURFACE_EXTENSION_NAME
-                 " extension.\n\n"
-                 "Do you have a compatible Vulkan installable client driver (ICD) installed?\n"
-                 "Please look at the Getting Started guide for additional information.\n",
-                 "vkCreateInstance Failure");
-    }
-    if (!platformSurfaceExtFound) {
-#if defined(VK_USE_PLATFORM_DISPLAY_KHR)
-        if (demo->wsi_platform == WSI_PLATFORM_DISPLAY) {
-            ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_DISPLAY_EXTENSION_NAME
+    if (demo->wsi_platform != WSI_PLATFORM_FILE) {
+        if (!surfaceExtFound) {
+            ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_SURFACE_EXTENSION_NAME
                      " extension.\n\n"
                      "Do you have a compatible Vulkan installable client driver (ICD) installed?\n"
                      "Please look at the Getting Started guide for additional information.\n",
                      "vkCreateInstance Failure");
         }
+        if (!platformSurfaceExtFound) {
+#if defined(VK_USE_PLATFORM_DISPLAY_KHR)
+            if (demo->wsi_platform == WSI_PLATFORM_DISPLAY) {
+                ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_DISPLAY_EXTENSION_NAME
+                         " extension.\n\n"
+                         "Do you have a compatible Vulkan installable client driver (ICD) installed?\n"
+                         "Please look at the Getting Started guide for additional information.\n",
+                         "vkCreateInstance Failure");
+            }
 #endif
-        ERR_EXIT(
-            "vkEnumerateInstanceExtensionProperties failed to find any supported WSI surface extension.\n\n"
-            "Do you have a compatible Vulkan installable client driver (ICD) installed?\n"
-            "Please look at the Getting Started guide for additional information.\n",
-            "vkCreateInstance Failure");
+            ERR_EXIT(
+                "vkEnumerateInstanceExtensionProperties failed to find any supported WSI surface extension.\n\n"
+                "Do you have a compatible Vulkan installable client driver (ICD) installed?\n"
+                "Please look at the Getting Started guide for additional information.\n",
+                "vkCreateInstance Failure");
+        }
     }
 
     bool auto_wsi_platform = demo->wsi_platform == WSI_PLATFORM_AUTO;
@@ -2696,7 +2942,8 @@ static void demo_init_vk(struct demo *demo) {
                 demo->extension_names[demo->enabled_extension_count++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
             }
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-            if (!strcmp(VK_NV_ACQUIRE_WINRT_DISPLAY_EXTENSION_NAME, device_extensions[i].extensionName)) {
+            if (!strcmp(VK_NV_ACQUIRE_WINRT_DISPLAY_EXTENSION_NAME, device_extensions[i].extensionName) &&
+                (demo->wsi_platform == WSI_PLATFORM_AUTO || demo->wsi_platform == WSI_PLATFORM_DISPLAY)) {
                 acquireDispExtFound = 1;
                 demo->extension_names[demo->enabled_extension_count++] = VK_NV_ACQUIRE_WINRT_DISPLAY_EXTENSION_NAME;
             }
@@ -2792,7 +3039,7 @@ static void demo_create_device(struct demo *demo) {
         .fenceRequestCount = FRAME_LAG + 1,
         .deviceMemoryRequestCount = MAX_SWAPCHAIN_IMAGE_COUNT + 3,
         .bufferRequestCount = MAX_SWAPCHAIN_IMAGE_COUNT + 1,
-        .imageRequestCount = 2,
+        .imageRequestCount = 3,
         .eventRequestCount = 0,
         .queryPoolRequestCount = 0,
         .bufferViewRequestCount = 0,
@@ -2907,49 +3154,65 @@ static void demo_init_vk_swapchain(struct demo *demo) {
 
     demo_create_surface(demo);
 
-    // Iterate over each queue to learn whether it supports presenting:
-    VkBool32 supportsPresent[MAX_QUEUE_FAMILY_COUNT];
-    for (uint32_t i = 0; i < demo->queue_family_count; i++) {
-        vkGetPhysicalDeviceSurfaceSupportKHR(demo->gpu, i, demo->surface, &supportsPresent[i]);
-    }
-
-    // Search for a graphics and a present queue in the array of queue
-    // families, try to find one that supports both
-    uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
-    uint32_t presentQueueFamilyIndex = UINT32_MAX;
-    for (uint32_t i = 0; i < demo->queue_family_count; i++) {
-        if ((demo->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
-            if (graphicsQueueFamilyIndex == UINT32_MAX) {
+    if (demo->wsi_platform == WSI_PLATFORM_FILE) {
+        // Search for the first graphics queue
+        uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
+        for (uint32_t i = 0; i < demo->queue_family_count; i++) {
+            if ((demo->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
                 graphicsQueueFamilyIndex = i;
-            }
-
-            if (supportsPresent[i] == VK_TRUE) {
-                graphicsQueueFamilyIndex = i;
-                presentQueueFamilyIndex = i;
                 break;
             }
         }
-    }
+        if (graphicsQueueFamilyIndex == UINT32_MAX) {
+            ERR_EXIT("Failed to find graphics queue", "Vulkan init failure");
+        }
+        demo->graphics_queue_family_index = graphicsQueueFamilyIndex;
+        demo->separate_present_queue = false;
+    } else {
+        // Iterate over each queue to learn whether it supports presenting:
+        VkBool32 supportsPresent[MAX_QUEUE_FAMILY_COUNT];
+        for (uint32_t i = 0; i < demo->queue_family_count; i++) {
+            vkGetPhysicalDeviceSurfaceSupportKHR(demo->gpu, i, demo->surface, &supportsPresent[i]);
+        }
 
-    if (presentQueueFamilyIndex == UINT32_MAX) {
-        // If didn't find a queue that supports both graphics and present, then
-        // find a separate present queue.
-        for (uint32_t i = 0; i < demo->queue_family_count; ++i) {
-            if (supportsPresent[i] == VK_TRUE) {
-                presentQueueFamilyIndex = i;
-                break;
+        // Search for a graphics and a present queue in the array of queue
+        // families, try to find one that supports both
+        uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
+        uint32_t presentQueueFamilyIndex = UINT32_MAX;
+        for (uint32_t i = 0; i < demo->queue_family_count; i++) {
+            if ((demo->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+                if (graphicsQueueFamilyIndex == UINT32_MAX) {
+                    graphicsQueueFamilyIndex = i;
+                }
+
+                if (supportsPresent[i] == VK_TRUE) {
+                    graphicsQueueFamilyIndex = i;
+                    presentQueueFamilyIndex = i;
+                    break;
+                }
             }
         }
-    }
 
-    // Generate error if could not find both a graphics and a present queue
-    if (graphicsQueueFamilyIndex == UINT32_MAX || presentQueueFamilyIndex == UINT32_MAX) {
-        ERR_EXIT("Could not find both graphics and present queues\n", "Swapchain Initialization Failure");
-    }
+        if (presentQueueFamilyIndex == UINT32_MAX) {
+            // If didn't find a queue that supports both graphics and present, then
+            // find a separate present queue.
+            for (uint32_t i = 0; i < demo->queue_family_count; ++i) {
+                if (supportsPresent[i] == VK_TRUE) {
+                    presentQueueFamilyIndex = i;
+                    break;
+                }
+            }
+        }
 
-    demo->graphics_queue_family_index = graphicsQueueFamilyIndex;
-    demo->present_queue_family_index = presentQueueFamilyIndex;
-    demo->separate_present_queue = (demo->graphics_queue_family_index != demo->present_queue_family_index);
+        // Generate error if could not find both a graphics and a present queue
+        if (graphicsQueueFamilyIndex == UINT32_MAX || presentQueueFamilyIndex == UINT32_MAX) {
+            ERR_EXIT("Could not find both graphics and present queues\n", "Swapchain Initialization Failure");
+        }
+
+        demo->graphics_queue_family_index = graphicsQueueFamilyIndex;
+        demo->present_queue_family_index = presentQueueFamilyIndex;
+        demo->separate_present_queue = (demo->graphics_queue_family_index != demo->present_queue_family_index);
+    }
 
     demo_create_device(demo);
 
@@ -2961,16 +3224,18 @@ static void demo_init_vk_swapchain(struct demo *demo) {
         vkGetDeviceQueue(demo->device, demo->present_queue_family_index, 0, &demo->present_queue);
     }
 
-    // Get the list of VkFormat's that are supported:
-    uint32_t formatCount;
-    err = pfnGetPhysicalDeviceSurfaceFormatsKHR(demo->gpu, demo->surface, &formatCount, NULL);
-    assert(!err);
-    VkSurfaceFormatKHR surfFormats[MAX_SURFACE_FORMAT_COUNT];
-    err = pfnGetPhysicalDeviceSurfaceFormatsKHR(demo->gpu, demo->surface, &formatCount, surfFormats);
-    assert(!err);
-    VkSurfaceFormatKHR surfaceFormat = pick_surface_format(surfFormats, formatCount);
-    demo->format = surfaceFormat.format;
-    demo->color_space = surfaceFormat.colorSpace;
+    if (demo->wsi_platform != WSI_PLATFORM_FILE) {
+        // Get the list of VkFormat's that are supported:
+        uint32_t formatCount;
+        err = pfnGetPhysicalDeviceSurfaceFormatsKHR(demo->gpu, demo->surface, &formatCount, NULL);
+        assert(!err);
+        VkSurfaceFormatKHR surfFormats[MAX_SURFACE_FORMAT_COUNT];
+        err = pfnGetPhysicalDeviceSurfaceFormatsKHR(demo->gpu, demo->surface, &formatCount, surfFormats);
+        assert(!err);
+        VkSurfaceFormatKHR surfaceFormat = pick_surface_format(surfFormats, formatCount);
+        demo->format = surfaceFormat.format;
+        demo->color_space = surfaceFormat.colorSpace;
+    }
 
     demo->quit = false;
     demo->curFrame = 0;
@@ -2991,18 +3256,21 @@ static void demo_init_vk_swapchain(struct demo *demo) {
         err = vkCreateFence(demo->device, &fence_ci, NULL, &demo->fences[i]);
         assert(!err);
 
-        err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->image_acquired_semaphores[i]);
-        assert(!err);
-        demo_name_object(demo, VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)demo->image_acquired_semaphores[i], "AcquireSem(%u)", i);
-
-        err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->draw_complete_semaphores[i]);
-        assert(!err);
-        demo_name_object(demo, VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)demo->draw_complete_semaphores[i], "DrawCompleteSem(%u)", i);
-
-        if (demo->separate_present_queue) {
-            err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->image_ownership_semaphores[i]);
+        if (demo->wsi_platform != WSI_PLATFORM_FILE)
+        {
+            err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->image_acquired_semaphores[i]);
             assert(!err);
-            demo_name_object(demo, VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)demo->image_ownership_semaphores[i], "ImageOwnerSem(%u)", i);
+            demo_name_object(demo, VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)demo->image_acquired_semaphores[i], "AcquireSem(%u)", i);
+
+            err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->draw_complete_semaphores[i]);
+            assert(!err);
+            demo_name_object(demo, VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)demo->draw_complete_semaphores[i], "DrawCompleteSem(%u)", i);
+
+            if (demo->separate_present_queue) {
+                err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->image_ownership_semaphores[i]);
+                assert(!err);
+                demo_name_object(demo, VK_OBJECT_TYPE_SEMAPHORE, (uint64_t)demo->image_ownership_semaphores[i], "ImageOwnerSem(%u)", i);
+            }
         }
     }
     demo->frame_index = 0;
@@ -3122,6 +3390,10 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
         }
         strncat(available_wsi_platforms, "display", MAX_STR_LEN - 1);
 #endif
+        if (strlen(available_wsi_platforms) > 0) {
+            strncat(available_wsi_platforms, "|", MAX_STR_LEN - 1);
+        }
+        strncat(available_wsi_platforms, "file", MAX_STR_LEN - 1);
 
         char *message =
             "Usage:\n  %s\t[--use_staging] [--validate]\n"
@@ -3183,6 +3455,9 @@ int main(int argc, char **argv) {
             // nothing to do here
             break;
 #endif
+        case (WSI_PLATFORM_FILE):
+            // nothing to do here
+            break;
     }
 
     demo_init_vk_swapchain(&demo);
@@ -3202,6 +3477,9 @@ int main(int argc, char **argv) {
             demo_run_display(&demo);
             break;
 #endif
+        case (WSI_PLATFORM_FILE):
+            demo_run_image_dump(&demo);
+            break;
     }
 
     demo_cleanup(&demo);
