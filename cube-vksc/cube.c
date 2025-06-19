@@ -2385,7 +2385,9 @@ static void demo_resize(struct demo *demo) {
         }
         return;
     } else {
-        ERR_EXIT("Unexpected surface resize occured", "Not implemented");
+        // NOTE: surface resize is not supported by Vulkan SC Cube so any attempt of it signals the destruction
+        // of the display window, so we terminate gracefully
+        demo->quit = true;
     }
 }
 
