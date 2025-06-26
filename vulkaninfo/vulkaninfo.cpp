@@ -222,7 +222,22 @@ void DumpSurfaceCapabilities(Printer &p, AppInstance &inst, AppGpu &gpu, AppSurf
 }
 
 void DumpSurface(Printer &p, AppInstance &inst, AppGpu &gpu, AppSurface &surface, std::set<std::string> surface_types) {
-    ObjectWrapper obj(p, std::string("GPU id : ") + p.DecorateAsValue(std::to_string(gpu.id)) + " (" + gpu.props.deviceName + ")");
+    std::string surface_type_list_str = "";
+    if (surface_types.size() > 0) {
+        surface_type_list_str = " [";
+        bool is_first = true;
+        for (auto &name : surface_types) {
+            if (!is_first) {
+                surface_type_list_str += ", ";
+            } else {
+                is_first = false;
+            }
+            surface_type_list_str += name;
+        }
+        surface_type_list_str += "]";
+    }
+    ObjectWrapper obj(p, std::string("GPU id : ") + p.DecorateAsValue(std::to_string(gpu.id)) + " (" + gpu.props.deviceName + ")" +
+                             surface_type_list_str);
 
     if (surface_types.size() == 0) {
         p.SetAsType().PrintKeyString("Surface type", "No type found");
@@ -674,7 +689,7 @@ void GpuDumpVideoProfiles(Printer &p, AppGpu &gpu, bool show_video_props) {
                 for (const auto &video_formats_it : video_profile->formats_by_category) {
                     const auto &video_format_category_name = video_formats_it.first;
                     const auto &video_format_props = video_formats_it.second;
-                    ArrayWrapper video_format_category(p, video_format_category_name, video_format_props.size());
+                    ObjectWrapper video_format_category(p, video_format_category_name, video_format_props.size());
                     for (size_t i = 0; i < video_format_props.size(); ++i) {
                         ObjectWrapper video_format_obj(p, video_format_category_name + " Format #" + std::to_string(i + 1));
                         p.SetSubHeader();

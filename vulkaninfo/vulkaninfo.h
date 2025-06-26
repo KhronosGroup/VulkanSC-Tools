@@ -84,11 +84,9 @@
 #include <wayland-client.h>
 #endif
 
-#include <vulkan/vulkan.h>
+#include "vulkaninfo_functions.h"
 
-#define VOLK_IMPLEMENTATION
-#include "volk.h"
-#include "volk_sc_compat.h"
+#include <vulkan/vulkan.h>
 
 static std::string VkResultString(VkResult err);
 
@@ -550,7 +548,7 @@ struct AppInstance {
     struct _screen_window *window;
 #endif
     AppInstance() {
-        VkResult dllErr = volkInitialize();
+        VkResult dllErr = load_vulkan_library();
 
         if (dllErr != VK_SUCCESS) {
             THROW_ERR("Failed to initialize: " API_NAME " loader is not installed, not found, or failed to load.");
@@ -612,7 +610,7 @@ struct AppInstance {
             THROW_VK_ERR("vkCreateInstance", err);
         }
 
-        volkLoadInstance(instance);
+        load_vulkan_instance_functions(instance);
 
 #ifndef VULKANSC
         err = vkCreateDebugReportCallbackEXT(instance, &dbg_info, nullptr, &debug_callback);
@@ -627,7 +625,7 @@ struct AppInstance {
         if (debug_callback) vkDestroyDebugReportCallbackEXT(instance, debug_callback, nullptr);
 #endif  // VULKANSC
         if (vkDestroyInstance) vkDestroyInstance(instance, nullptr);
-        volkFinalize();
+        unload_vulkan_library();
     }
 
     AppInstance(const AppInstance &) = delete;
@@ -1902,7 +1900,7 @@ struct AppGpu {
 
         // True if this extension is present
         if (format_range.extension_name != nullptr) {
-            return inst.CheckExtensionEnabled(format_range.extension_name);
+            return CheckPhysicalDeviceExtensionIncluded(format_range.extension_name);
         }
 
         // True if standard and supported by both this instance and this GPU

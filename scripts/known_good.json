@@ -7,7 +7,7 @@
             "sub_dir": "Vulkan-Headers",
             "build_dir": "Vulkan-Headers/build",
             "install_dir": "Vulkan-Headers/build/install",
-            "commit": "v1.4.310"
+            "commit": "v1.4.319"
         },
         {
             "name": "Vulkan-Headers",
@@ -19,7 +19,7 @@
             "cmake_options": [
                 "-DGEN_VULKANSC_COMBINED=ON"
             ],
-            "commit": "vksc1.0.18"
+            "commit": "27ac1189d241d70b6190ebb06bac793e6b3007f1"
         },
         {
             "name": "Vulkan-Utility-Libraries",
@@ -28,7 +28,7 @@
             "sub_dir": "Vulkan-Utility-Libraries",
             "build_dir": "Vulkan-Utility-Libraries/build",
             "install_dir": "Vulkan-Utility-Libraries/build/install",
-            "commit": "vksc1.0.18",
+            "commit": "6a7e9e747a673babe368d6a5a6814621c4c53340",
             "deps": [
                 {
                     "var_name": "VULKAN_HEADERS_INSTALL_DIR",
@@ -50,23 +50,6 @@
             "build_step": "custom",
             "build_platforms": [
                 "darwin"
-            ]
-        },
-        {
-            "name": "volk",
-            "url": "https://github.com/zeux/volk",
-            "sub_dir": "volk",
-            "build_dir": "volk/build",
-            "install_dir": "volk/build/install",
-            "cmake_options": [
-                "-DVOLK_INSTALL=ON"
-            ],
-            "commit": "vulkan-sdk-1.4.309",
-            "deps": [
-                {
-                    "var_name": "VULKAN_HEADERS_INSTALL_DIR",
-                    "repo_name": "Vulkan-Headers"
-                }
             ]
         },
         {
@@ -129,7 +112,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "v1.4.310",
+            "commit": "v1.4.319",
             "build_platforms": [
                 "windows",
                 "linux",
@@ -152,7 +135,7 @@
             "cmake_options": [
                 "-DLOADER_USE_UNSAFE_FILE_SEARCH=ON"
             ],
-            "commit": "vksc1.0.18",
+            "commit": "6c3a7e118de0dc1fb91e117efd238c0a5cafa682",
             "build_platforms": [
                 "windows",
                 "linux",
@@ -169,7 +152,6 @@
     "install_names": {
         "Vulkan-Headers": "VULKAN_HEADERS_INSTALL_DIR",
         "Vulkan-Utility-Libraries": "VULKAN_UTILITY_LIBRARIES_INSTALL_DIR",
-        "volk": "VOLK_INSTALL_DIR",
         "MoltenVK": "MOLTENVK_REPO_ROOT",
         "googletest": "GOOGLETEST_INSTALL_DIR",
         "jsoncpp": "JSONCPP_INSTALL_DIR",

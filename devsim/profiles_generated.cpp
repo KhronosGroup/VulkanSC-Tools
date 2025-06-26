@@ -1192,6 +1192,15 @@ static VkImageLayout StringToImageLayout(const std::string &input_value) {
 
 static uint64_t VkStringToUint64(const std::string &input_value) {
     static const std::unordered_map<std::string, uint64_t> map = {
+        // VkResolveModeFlagBits
+        {"VK_RESOLVE_MODE_NONE", static_cast<uint64_t>(VK_RESOLVE_MODE_NONE)},
+        {"VK_RESOLVE_MODE_SAMPLE_ZERO_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_SAMPLE_ZERO_BIT)},
+        {"VK_RESOLVE_MODE_AVERAGE_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_AVERAGE_BIT)},
+        {"VK_RESOLVE_MODE_MIN_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MIN_BIT)},
+        {"VK_RESOLVE_MODE_MAX_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MAX_BIT)},
+        // VkPointClippingBehavior
+        {"VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES)},
+        {"VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY)},
         // VkShaderStageFlagBits
         {"VK_SHADER_STAGE_VERTEX_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_VERTEX_BIT)},
         {"VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)},
@@ -1201,6 +1210,20 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_SHADER_STAGE_COMPUTE_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_COMPUTE_BIT)},
         {"VK_SHADER_STAGE_ALL_GRAPHICS", static_cast<uint64_t>(VK_SHADER_STAGE_ALL_GRAPHICS)},
         {"VK_SHADER_STAGE_ALL", static_cast<uint64_t>(VK_SHADER_STAGE_ALL)},
+        // VkPipelineRobustnessImageBehavior
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
+        // VkShaderFloatControlsIndependence
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
+        // VkPipelineRobustnessBufferBehavior
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
         // VkSampleCountFlagBits
         {"VK_SAMPLE_COUNT_1_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_1_BIT)},
         {"VK_SAMPLE_COUNT_2_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_2_BIT)},
@@ -1209,62 +1232,6 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_SAMPLE_COUNT_16_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_16_BIT)},
         {"VK_SAMPLE_COUNT_32_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_32_BIT)},
         {"VK_SAMPLE_COUNT_64_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_64_BIT)},
-        // VkQueueFlagBits
-        {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
-        {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
-        {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
-        {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
-        // VkPipelineRobustnessBufferBehavior
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
-        // VkPointClippingBehavior
-        {"VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES)},
-        {"VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY)},
-        // VkImageUsageFlagBits
-        {"VK_IMAGE_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT)},
-        {"VK_IMAGE_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_DST_BIT)},
-        {"VK_IMAGE_USAGE_SAMPLED_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_SAMPLED_BIT)},
-        {"VK_IMAGE_USAGE_STORAGE_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_STORAGE_BIT)},
-        {"VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)},
-        {"VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)},
-        {"VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)},
-        {"VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)},
-        {"VK_IMAGE_USAGE_HOST_TRANSFER_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_HOST_TRANSFER_BIT)},
-        {"VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", static_cast<uint64_t>(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)},
-        // VkResolveModeFlagBits
-        {"VK_RESOLVE_MODE_NONE", static_cast<uint64_t>(VK_RESOLVE_MODE_NONE)},
-        {"VK_RESOLVE_MODE_SAMPLE_ZERO_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_SAMPLE_ZERO_BIT)},
-        {"VK_RESOLVE_MODE_AVERAGE_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_AVERAGE_BIT)},
-        {"VK_RESOLVE_MODE_MIN_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MIN_BIT)},
-        {"VK_RESOLVE_MODE_MAX_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MAX_BIT)},
-        // VkShaderFloatControlsIndependence
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
-        // VkPipelineRobustnessImageBehavior
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
-        // VkToolPurposeFlagBits
-        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
-        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
-        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
-        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
-        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
-        // VkSubgroupFeatureFlagBits
-        {"VK_SUBGROUP_FEATURE_BASIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BASIC_BIT)},
-        {"VK_SUBGROUP_FEATURE_VOTE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_VOTE_BIT)},
-        {"VK_SUBGROUP_FEATURE_ARITHMETIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT)},
-        {"VK_SUBGROUP_FEATURE_BALLOT_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BALLOT_BIT)},
-        {"VK_SUBGROUP_FEATURE_SHUFFLE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_BIT)},
-        {"VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)},
-        {"VK_SUBGROUP_FEATURE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_CLUSTERED_BIT)},
-        {"VK_SUBGROUP_FEATURE_QUAD_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_QUAD_BIT)},
-        {"VK_SUBGROUP_FEATURE_ROTATE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_BIT)},
-        {"VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT)},
         // VkBufferUsageFlagBits
         {"VK_BUFFER_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT)},
         {"VK_BUFFER_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_DST_BIT)},
@@ -1276,6 +1243,39 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)},
         {"VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)},
         {"VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)},
+        // VkToolPurposeFlagBits
+        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
+        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
+        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
+        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
+        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
+        // VkImageUsageFlagBits
+        {"VK_IMAGE_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT)},
+        {"VK_IMAGE_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_DST_BIT)},
+        {"VK_IMAGE_USAGE_SAMPLED_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_SAMPLED_BIT)},
+        {"VK_IMAGE_USAGE_STORAGE_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_STORAGE_BIT)},
+        {"VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)},
+        {"VK_IMAGE_USAGE_HOST_TRANSFER_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_HOST_TRANSFER_BIT)},
+        {"VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", static_cast<uint64_t>(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)},
+        // VkSubgroupFeatureFlagBits
+        {"VK_SUBGROUP_FEATURE_BASIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BASIC_BIT)},
+        {"VK_SUBGROUP_FEATURE_VOTE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_VOTE_BIT)},
+        {"VK_SUBGROUP_FEATURE_ARITHMETIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT)},
+        {"VK_SUBGROUP_FEATURE_BALLOT_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BALLOT_BIT)},
+        {"VK_SUBGROUP_FEATURE_SHUFFLE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_BIT)},
+        {"VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)},
+        {"VK_SUBGROUP_FEATURE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_CLUSTERED_BIT)},
+        {"VK_SUBGROUP_FEATURE_QUAD_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_QUAD_BIT)},
+        {"VK_SUBGROUP_FEATURE_ROTATE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_BIT)},
+        {"VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT)},
+        // VkQueueFlagBits
+        {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
+        {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
+        {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
+        {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
     };
     const auto it = map.find(input_value);
     if (it != map.end()) {
@@ -1410,7 +1410,7 @@ static VkPipelineStageFlags2 StringToVkPipelineStageFlags2(const std::string &in
         {"VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT", VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT},
         {"VK_PIPELINE_STAGE_2_TRANSFORM_FEEDBACK_BIT_EXT", VK_PIPELINE_STAGE_2_TRANSFORM_FEEDBACK_BIT_EXT},
         {"VK_PIPELINE_STAGE_2_CONDITIONAL_RENDERING_BIT_EXT", VK_PIPELINE_STAGE_2_CONDITIONAL_RENDERING_BIT_EXT},
-        {"VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV", VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV},
+        {"VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_EXT", VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_EXT},
         {"VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR},
         {"VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR", VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR},
         {"VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR", VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR},
@@ -1444,6 +1444,7 @@ static VkPipelineStageFlags2 StringToVkPipelineStageFlags2(const std::string &in
         {"VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT_KHR", VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT_KHR},
         {"VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT_KHR", VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT_KHR},
         {"VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT_KHR", VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT_KHR},
+        {"VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV", VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV},
         {"VK_PIPELINE_STAGE_2_SHADING_RATE_IMAGE_BIT_NV", VK_PIPELINE_STAGE_2_SHADING_RATE_IMAGE_BIT_NV},
         {"VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_NV", VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_NV},
         {"VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_NV", VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_NV},
@@ -1787,6 +1788,12 @@ class PhysicalDeviceData {
 #ifndef VULKANSC
     SetOfVideoProfiles set_of_video_profiles_{};
 #endif
+
+    // Space for array queries:
+    //
+    // - From VkPhysicalDeviceHostImageCopyPropertiesEXT
+    std::vector<VkImageLayout> pCopySrcLayouts_;
+    std::vector<VkImageLayout> pCopyDstLayouts_;
 
     bool vulkan_1_1_properties_written_;
     bool vulkan_1_2_properties_written_;
@@ -3100,7 +3107,7 @@ class JsonLoader {
         return count;
     }
 
-    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, VkImageLayout *dest, bool not_modifiable) {
+    int GetArray(const char* device_name, const Json::Value &parent, const std::string &member, const char *name, VkImageLayout *dest, uint32_t *destCount, bool not_modifiable) {
         (void)device_name;
 
         if (member != name) {
@@ -3113,6 +3120,7 @@ class JsonLoader {
         }
         const int count = static_cast<int>(value.size());
         if (!not_modifiable) {
+            *destCount = static_cast<uint32_t>(count);
             for (int i = 0; i < count; ++i) {
                 dest[i] = StringToImageLayout(value[i].asCString());
             }
@@ -3287,6 +3295,7 @@ bool JsonLoader::WarnDuplicatedFeature(const Json::Value &parent) {
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceLineRasterizationFeatures", "VkPhysicalDeviceLineRasterizationFeaturesKHR", "VkPhysicalDeviceLineRasterizationFeaturesEXT", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDevicePipelineCreationCacheControlFeatures", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures", "VkPhysicalDeviceVulkanSC10Features"});
+    valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceRobustness2FeaturesKHR", "VkPhysicalDeviceRobustness2FeaturesEXT"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceImageRobustnessFeatures", "VkPhysicalDeviceImageRobustnessFeaturesEXT", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceShaderTerminateInvocationFeatures", "VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR", "VkPhysicalDeviceVulkanSC10Features"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceSynchronization2Features", "VkPhysicalDeviceSynchronization2FeaturesKHR", "VkPhysicalDeviceVulkanSC10Features"});
@@ -3325,6 +3334,7 @@ bool JsonLoader::WarnDuplicatedProperty(const Json::Value &parent) {
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceTexelBufferAlignmentProperties", "VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT", "VkPhysicalDeviceVulkanSC10Properties"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceSubgroupSizeControlProperties", "VkPhysicalDeviceSubgroupSizeControlPropertiesEXT", "VkPhysicalDeviceVulkanSC10Properties"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceLineRasterizationProperties", "VkPhysicalDeviceLineRasterizationPropertiesKHR", "VkPhysicalDeviceLineRasterizationPropertiesEXT", "VkPhysicalDeviceVulkanSC10Properties"});
+    valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceRobustness2PropertiesKHR", "VkPhysicalDeviceRobustness2PropertiesEXT"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceHostImageCopyProperties", "VkPhysicalDeviceVulkanSC10Properties"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDeviceShaderIntegerDotProductProperties", "VkPhysicalDeviceVulkanSC10Properties"});
     valid &= WarnDuplicated(&layer_settings, parent, {"VkPhysicalDevicePipelineRobustnessProperties", "VkPhysicalDeviceVulkanSC10Properties"});
@@ -3518,7 +3528,7 @@ bool JsonLoader::GetFeature(const char *device_name, bool requested_profile, con
         return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_extended_dynamic_state_2_features_);
     } else if (name == "VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures") {
         return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_zero_initialize_workgroup_memory_features_);
-    } else if (name == "VkPhysicalDeviceRobustness2FeaturesEXT") {
+    } else if (name == "VkPhysicalDeviceRobustness2FeaturesEXT" || name == "VkPhysicalDeviceRobustness2FeaturesKHR") {
         auto support = CheckExtensionSupport(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
         return GetStruct(device_name, requested_profile, feature, &pdd_->physical_device_robustness_2_features_);
@@ -3703,6 +3713,10 @@ bool JsonLoader::GetProperty(const char *device_name, bool requested_profile, co
     } else if (name == "VkPhysicalDeviceVulkan13Properties") {
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_13_properties_);
     } else if (name == "VkPhysicalDeviceVulkan14Properties") {
+        pdd_->pCopySrcLayouts_.resize(64);
+        pdd_->pCopyDstLayouts_.resize(64);
+        pdd_->physical_device_vulkan_14_properties_.pCopySrcLayouts = pdd_->pCopySrcLayouts_.data();
+        pdd_->physical_device_vulkan_14_properties_.pCopyDstLayouts = pdd_->pCopyDstLayouts_.data();
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_14_properties_);
     } else if (name == "VkPhysicalDeviceToolProperties") {
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_tool_properties_);
@@ -3710,7 +3724,7 @@ bool JsonLoader::GetProperty(const char *device_name, bool requested_profile, co
         auto support = CheckExtensionSupport(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_custom_border_color_properties_);
-    } else if (name == "VkPhysicalDeviceRobustness2PropertiesEXT") {
+    } else if (name == "VkPhysicalDeviceRobustness2PropertiesEXT" || name == "VkPhysicalDeviceRobustness2PropertiesKHR") {
         auto support = CheckExtensionSupport(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_robustness_2_properties_);
@@ -3718,6 +3732,12 @@ bool JsonLoader::GetProperty(const char *device_name, bool requested_profile, co
         auto support = CheckExtensionSupport(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME, name);
         if (support != ExtensionSupport::SUPPORTED) return valid(support);
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_fragment_shading_rate_properties_);
+    } else if (name == "VkPhysicalDeviceHostImageCopyProperties") {
+        pdd_->pCopySrcLayouts_.resize(64);
+        pdd_->pCopyDstLayouts_.resize(64);
+        pdd_->physical_device_host_image_copy_properties_.pCopySrcLayouts = pdd_->pCopySrcLayouts_.data();
+        pdd_->physical_device_host_image_copy_properties_.pCopyDstLayouts = pdd_->pCopyDstLayouts_.data();
+        return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_host_image_copy_properties_);
     } else if (name == "VkPhysicalDeviceVulkanSC10Properties") {
         return GetStruct(device_name, requested_profile, property, &pdd_->physical_device_vulkan_sc_10_properties_);
     } else if (name == "VkPhysicalDeviceShaderIntegerDotProductProperties") {
@@ -3920,6 +3940,10 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
                 minImagetransferGranularity["height"].asUInt();
             dest->properties_2.queueFamilyProperties.minImageTransferGranularity.depth =
                 minImagetransferGranularity["depth"].asUInt();
+        } else if (name == "VkQueueFamilyOwnershipTransferPropertiesKHR") {
+            for (const auto &feature : props["optimalImageTransferToQueueFamilies"]) {
+                dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies |= feature.asUInt();
+            }
         } else if (name == "VkQueueFamilyGlobalPriorityPropertiesKHR" || name == "VkQueueFamilyGlobalPriorityPropertiesEXT") {
             uint32_t i = 0;
             for (const auto &feature : props["priorities"]) {
@@ -3950,6 +3974,10 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
     bool supported = false;
     for (const auto &device_qfp : pdd_->device_queue_family_properties_) {
         if (!QueueFamilyMatch(device_qfp.properties_2.queueFamilyProperties, dest->properties_2.queueFamilyProperties)) {
+            continue;
+        }
+        if ((device_qfp.ownership_transfer_properties_.optimalImageTransferToQueueFamilies & dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies) !=
+             dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies) {
             continue;
         }
         if (!GlobalPriorityMatch(device_qfp.global_priority_properties_, dest->global_priority_properties_)) {
@@ -3985,6 +4013,10 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
                    dest->properties_2.queueFamilyProperties.minImageTransferGranularity.width,
                    dest->properties_2.queueFamilyProperties.minImageTransferGranularity.height,
                    dest->properties_2.queueFamilyProperties.minImageTransferGranularity.depth);
+        if (dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies > 0) {
+            message += format(", VkQueueFamilyOwnershipTransferPropertiesKHR [optimalImageTransferToQueueFamilies: %" PRIu32 "]",
+                              dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies);
+        }
         if (dest->global_priority_properties_.priorityCount > 0) {
             std::string priorities = "[";
             for (uint32_t i = 0; i < dest->global_priority_properties_.priorityCount; ++i) {
@@ -4023,6 +4055,10 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
 
 bool QueueFamilyAndExtensionsMatch(const QueueFamilyProperties &device, const QueueFamilyProperties &profile) {
     if (!QueueFamilyMatch(device.properties_2.queueFamilyProperties, profile.properties_2.queueFamilyProperties)) {
+        return false;
+    }
+    if ((device.ownership_transfer_properties_.optimalImageTransferToQueueFamilies & profile.ownership_transfer_properties_.optimalImageTransferToQueueFamilies) !=
+         profile.ownership_transfer_properties_.optimalImageTransferToQueueFamilies) {
         return false;
     }
     if (!GlobalPriorityMatch(device.global_priority_properties_, profile.global_priority_properties_)) {
@@ -4455,7 +4491,7 @@ VkResult JsonLoader::ReadProfile(const char *device_name, const Json::Value& roo
                     for (const auto usage : video_profile.GetSupportedFormatCategories()) {
                         std::vector<VideoFormatPropertiesChain> formats{};
                         SetOfVideoProfileFormats device_formats{};
-        
+
                         // The initial set of formats is taken from the physical device supported ones, if there are any,
                         // and they match any of the profile defined ones
                         if (pd_video_profile != pdd_->set_of_device_video_profiles_.end()) {
@@ -4641,11 +4677,11 @@ VkResult JsonLoader::LoadFile(const std::string& filename) {
         JsonValidator validator;
         if (!validator.Init()) {
             LogMessage(&layer_settings, DEBUG_REPORT_WARNING_BIT,
-                "%s could not find the profile schema file to validate filename. This operation requires the Vulkan SDK to be installed. Skipping profile file validation.",
+                "%s could not find the profile schema file to validate filename. This operation requires the Vulkan SDK to be installed. Skipping profile file validation.\n",
                 kLayerName, filename.c_str());
         } else if (!validator.Check(root)) {
             LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT,
-                "%s is not a valid JSON profile file.", filename.c_str());
+                "%s is not a valid JSON profile file.\n", filename.c_str());
             if (layer_settings.log.debug_fail_on_error) {
                 return VK_ERROR_INITIALIZATION_FAILED;
             } else {
@@ -4674,7 +4710,7 @@ VkResult JsonLoader::LoadProfilesDatabase() {
             this->LoadFile(path);
             continue;
         }
-        
+
         for (const auto& entry : fs::directory_iterator(path)) {
             if (fs::is_directory(entry.path())) {
                 continue;
@@ -4746,21 +4782,20 @@ void JsonLoader::ReadProfileApiVersion() {
             break;
         }
     }
-    if (!found_profile) {
-        for (const auto &profile : profiles.getMemberNames()) {
-            const std::string version_string = profiles[profile]["api-version"].asCString();
+    if (!found_profile && profiles) {
+        // Systematically load the first and default profile when the profile is not found
+        const auto profile = profiles.getMemberNames()[0];
+        const std::string version_string = profiles[profile]["api-version"].asCString();
 
-            uint32_t api_major = 0;
-            uint32_t api_minor = 0;
-            uint32_t api_patch = 0;
-            std::sscanf(version_string.c_str(), "%u.%u.%u", &api_major, &api_minor, &api_patch);
+        uint32_t api_major = 0;
+        uint32_t api_minor = 0;
+        uint32_t api_patch = 0;
+        std::sscanf(version_string.c_str(), "%u.%u.%u", &api_major, &api_minor, &api_patch);
 #ifdef VULKANSC
-            profile_api_version_ = VK_MAKE_API_VERSION(VKSC_API_VARIANT, api_major, api_minor, api_patch);
+        profile_api_version_ = VK_MAKE_API_VERSION(VKSC_API_VARIANT, api_major, api_minor, api_patch);
 #else
-            profile_api_version_ = VK_MAKE_API_VERSION(0, api_major, api_minor, api_patch);
+        profile_api_version_ = VK_MAKE_API_VERSION(0, api_major, api_minor, api_patch);
 #endif
-            break; // Systematically load the first and default profile when the profile is not found
-        }
     }
 
     for (const auto& extension : layer_settings.simulate.exclude_device_extensions) {
@@ -4852,23 +4887,21 @@ VkResult JsonLoader::LoadDevice(const char* device_name, PhysicalDeviceData *pdd
                     break;  // load a single profile
                 }
             }
-            if (!found_profile) {
-                for (const auto &profile : profiles.getMemberNames()) {
-                    const auto &caps = profiles[profile]["capabilities"];
+            if (!found_profile && profiles) {
+                // Systematically load the first and default profile
+                const auto profile = profiles.getMemberNames()[0];
+                const auto &caps = profiles[profile]["capabilities"];
 
-                    for (const auto &cap : caps) {
-                        std::vector<std::string> cap_variants;
-                        if (cap.isArray()) {
-                            for (const auto &cap_variant : cap) {
-                                cap_variants.push_back(cap_variant.asString());
-                            }
-                        } else {
-                            cap_variants.push_back(cap.asString());
+                for (const auto &cap : caps) {
+                    std::vector<std::string> cap_variants;
+                    if (cap.isArray()) {
+                        for (const auto &cap_variant : cap) {
+                            cap_variants.push_back(cap_variant.asString());
                         }
-                        capabilities.push_back(cap_variants);
+                    } else {
+                        cap_variants.push_back(cap.asString());
                     }
-
-                    break; // Systematically load the first and default profile
+                    capabilities.push_back(cap_variants);
                 }
             }
 
@@ -5068,7 +5101,7 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
         GET_VALUE_WARN(member, earlyFragmentMultisampleCoverageAfterSampleCounting, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, earlyFragmentSampleMaskTestBeforeSampleCounting, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, depthStencilSwizzleOneSupport, false, requested_profile, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, polygonModePointSize, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, polygonModePointSize, true, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, nonStrictSinglePixelWideLinesUseParallelogram, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, nonStrictWideLinesUseParallelogram, false, requested_profile, WarnIfNotEqualBool);
     }
@@ -5329,7 +5362,7 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
         GET_VALUE_WARN(member, earlyFragmentMultisampleCoverageAfterSampleCounting, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, earlyFragmentSampleMaskTestBeforeSampleCounting, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, depthStencilSwizzleOneSupport, false, requested_profile, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, polygonModePointSize, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, polygonModePointSize, true, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, nonStrictSinglePixelWideLinesUseParallelogram, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, nonStrictWideLinesUseParallelogram, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, blockTexelViewCompatibleMultipleLayers, false, requested_profile, WarnIfNotEqualBool);
@@ -5339,8 +5372,26 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
         GET_VALUE_ENUM_WARN(member, defaultRobustnessUniformBuffers, true, requested_profile, WarnIfNotEqualEnum);
         GET_VALUE_ENUM_WARN(member, defaultRobustnessVertexInputs, true, requested_profile, WarnIfNotEqualEnum);
         GET_VALUE_ENUM_WARN(member, defaultRobustnessImages, true, requested_profile, WarnIfNotEqualEnum);
-        GetArray(device_name, parent, member, "pCopySrcLayouts", dest->pCopySrcLayouts, true);
-        GetArray(device_name, parent, member, "pCopyDstLayouts", dest->pCopyDstLayouts, true);
+        GET_VALUE_WARN(member, copySrcLayoutCount, true, requested_profile, WarnIfNotEqual32u);
+        GetArray(device_name, parent, member, "pCopySrcLayouts", dest->pCopySrcLayouts, &dest->copySrcLayoutCount, false);
+        GET_VALUE_WARN(member, copyDstLayoutCount, true, requested_profile, WarnIfNotEqual32u);
+        GetArray(device_name, parent, member, "pCopyDstLayouts", dest->pCopyDstLayouts, &dest->copyDstLayoutCount, false);
+        GetArray(device_name, parent, member, "optimalTilingLayoutUUID", dest->optimalTilingLayoutUUID, true);
+        GET_VALUE_WARN(member, identicalMemoryTypeRequirements, false, requested_profile, WarnIfNotEqualBool);
+    }
+    return valid;
+}
+
+bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceHostImageCopyProperties *dest) {
+    (void)dest;
+    (void)requested_profile;
+    LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceHostImageCopyProperties)\n");
+    bool valid = true;
+    for (const auto &member : parent.getMemberNames()) {
+        GET_VALUE_WARN(member, copySrcLayoutCount, true, requested_profile, WarnIfNotEqual32u);
+        GetArray(device_name, parent, member, "pCopySrcLayouts", dest->pCopySrcLayouts, &dest->copySrcLayoutCount, false);
+        GET_VALUE_WARN(member, copyDstLayoutCount, true, requested_profile, WarnIfNotEqual32u);
+        GetArray(device_name, parent, member, "pCopyDstLayouts", dest->pCopyDstLayouts, &dest->copyDstLayoutCount, false);
         GetArray(device_name, parent, member, "optimalTilingLayoutUUID", dest->optimalTilingLayoutUUID, true);
         GET_VALUE_WARN(member, identicalMemoryTypeRequirements, false, requested_profile, WarnIfNotEqualBool);
     }
@@ -6836,8 +6887,8 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
         GetArray(device_name, parent, member, "lineWidthRange", dest->lineWidthRange, false);
         GET_VALUE_WARN(member, pointSizeGranularity, false, requested_profile, WarnIfLesserFloat);
         GET_VALUE_WARN(member, lineWidthGranularity, false, requested_profile, WarnIfLesserFloat);
-        GET_VALUE_WARN(member, strictLines, true, requested_profile, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, standardSampleLocations, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, strictLines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, standardSampleLocations, false, requested_profile, WarnIfNotEqualBool);
         GET_VALUE_WARN(member, optimalBufferCopyOffsetAlignment, false, requested_profile, WarnIfLesser);
         GET_VALUE_WARN(member, optimalBufferCopyRowPitchAlignment, false, requested_profile, WarnIfLesser);
         GET_VALUE_WARN(member, nonCoherentAtomSize, false, requested_profile, WarnIfLesser);
@@ -7280,6 +7331,14 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
                     VkPhysicalDeviceVulkan14Properties *data = (VkPhysicalDeviceVulkan14Properties *)place;
                     void *pNext = data->pNext;
                     *data = physicalDeviceData->physical_device_vulkan_14_properties_;
+                    data->pNext = pNext;
+                }
+                break;
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES:
+                {
+                    VkPhysicalDeviceHostImageCopyProperties *data = (VkPhysicalDeviceHostImageCopyProperties *)place;
+                    void *pNext = data->pNext;
+                    *data = physicalDeviceData->physical_device_host_image_copy_properties_;
                     data->pNext = pNext;
                 }
                 break;
@@ -8856,6 +8915,11 @@ void LoadQueueFamilyProperties(VkInstance instance, VkPhysicalDevice pd, Physica
         std::vector<void *> pNext(count);
         std::vector<VkQueueFamilyProperties2> props(count);
         for (uint32_t i = 0; i < count; ++i) {
+            if (PhysicalDeviceData::HasExtension(pdd, VK_KHR_MAINTENANCE_9_EXTENSION_NAME)) {
+                pdd->device_queue_family_properties_[i].ownership_transfer_properties_.pNext = pNext[i];
+
+                pNext[i] = &pdd->device_queue_family_properties_[i].ownership_transfer_properties_;
+            }
             if (PhysicalDeviceData::HasExtension(pdd, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME)) {
                 pdd->device_queue_family_properties_[i].global_priority_properties_.pNext = pNext[i];
 

@@ -356,6 +356,97 @@ std::string StdVideoH265AspectRatioIdcString(StdVideoH265AspectRatioIdc value) {
 void DumpStdVideoH265AspectRatioIdc(Printer &p, std::string name, StdVideoH265AspectRatioIdc value) {
     p.PrintKeyString(name, StdVideoH265AspectRatioIdcString(value));
 }
+std::string StdVideoVP9ProfileString(StdVideoVP9Profile value) {
+    switch (value) {
+        case STD_VIDEO_VP9_PROFILE_0: return "STD_VIDEO_VP9_PROFILE_0";
+        case STD_VIDEO_VP9_PROFILE_1: return "STD_VIDEO_VP9_PROFILE_1";
+        case STD_VIDEO_VP9_PROFILE_2: return "STD_VIDEO_VP9_PROFILE_2";
+        case STD_VIDEO_VP9_PROFILE_3: return "STD_VIDEO_VP9_PROFILE_3";
+        case STD_VIDEO_VP9_PROFILE_INVALID: return "STD_VIDEO_VP9_PROFILE_INVALID";
+        default: return std::string("UNKNOWN_StdVideoVP9Profile_value") + std::to_string(value);
+    }
+}
+void DumpStdVideoVP9Profile(Printer &p, std::string name, StdVideoVP9Profile value) {
+    p.PrintKeyString(name, StdVideoVP9ProfileString(value));
+}
+std::string StdVideoVP9LevelString(StdVideoVP9Level value) {
+    switch (value) {
+        case STD_VIDEO_VP9_LEVEL_1_0: return "STD_VIDEO_VP9_LEVEL_1_0";
+        case STD_VIDEO_VP9_LEVEL_1_1: return "STD_VIDEO_VP9_LEVEL_1_1";
+        case STD_VIDEO_VP9_LEVEL_2_0: return "STD_VIDEO_VP9_LEVEL_2_0";
+        case STD_VIDEO_VP9_LEVEL_2_1: return "STD_VIDEO_VP9_LEVEL_2_1";
+        case STD_VIDEO_VP9_LEVEL_3_0: return "STD_VIDEO_VP9_LEVEL_3_0";
+        case STD_VIDEO_VP9_LEVEL_3_1: return "STD_VIDEO_VP9_LEVEL_3_1";
+        case STD_VIDEO_VP9_LEVEL_4_0: return "STD_VIDEO_VP9_LEVEL_4_0";
+        case STD_VIDEO_VP9_LEVEL_4_1: return "STD_VIDEO_VP9_LEVEL_4_1";
+        case STD_VIDEO_VP9_LEVEL_5_0: return "STD_VIDEO_VP9_LEVEL_5_0";
+        case STD_VIDEO_VP9_LEVEL_5_1: return "STD_VIDEO_VP9_LEVEL_5_1";
+        case STD_VIDEO_VP9_LEVEL_5_2: return "STD_VIDEO_VP9_LEVEL_5_2";
+        case STD_VIDEO_VP9_LEVEL_6_0: return "STD_VIDEO_VP9_LEVEL_6_0";
+        case STD_VIDEO_VP9_LEVEL_6_1: return "STD_VIDEO_VP9_LEVEL_6_1";
+        case STD_VIDEO_VP9_LEVEL_6_2: return "STD_VIDEO_VP9_LEVEL_6_2";
+        case STD_VIDEO_VP9_LEVEL_INVALID: return "STD_VIDEO_VP9_LEVEL_INVALID";
+        default: return std::string("UNKNOWN_StdVideoVP9Level_value") + std::to_string(value);
+    }
+}
+void DumpStdVideoVP9Level(Printer &p, std::string name, StdVideoVP9Level value) {
+    p.PrintKeyString(name, StdVideoVP9LevelString(value));
+}
+std::string StdVideoVP9FrameTypeString(StdVideoVP9FrameType value) {
+    switch (value) {
+        case STD_VIDEO_VP9_FRAME_TYPE_KEY: return "STD_VIDEO_VP9_FRAME_TYPE_KEY";
+        case STD_VIDEO_VP9_FRAME_TYPE_NON_KEY: return "STD_VIDEO_VP9_FRAME_TYPE_NON_KEY";
+        case STD_VIDEO_VP9_FRAME_TYPE_INVALID: return "STD_VIDEO_VP9_FRAME_TYPE_INVALID";
+        default: return std::string("UNKNOWN_StdVideoVP9FrameType_value") + std::to_string(value);
+    }
+}
+void DumpStdVideoVP9FrameType(Printer &p, std::string name, StdVideoVP9FrameType value) {
+    p.PrintKeyString(name, StdVideoVP9FrameTypeString(value));
+}
+std::string StdVideoVP9ReferenceNameString(StdVideoVP9ReferenceName value) {
+    switch (value) {
+        case STD_VIDEO_VP9_REFERENCE_NAME_INTRA_FRAME: return "STD_VIDEO_VP9_REFERENCE_NAME_INTRA_FRAME";
+        case STD_VIDEO_VP9_REFERENCE_NAME_LAST_FRAME: return "STD_VIDEO_VP9_REFERENCE_NAME_LAST_FRAME";
+        case STD_VIDEO_VP9_REFERENCE_NAME_GOLDEN_FRAME: return "STD_VIDEO_VP9_REFERENCE_NAME_GOLDEN_FRAME";
+        case STD_VIDEO_VP9_REFERENCE_NAME_ALTREF_FRAME: return "STD_VIDEO_VP9_REFERENCE_NAME_ALTREF_FRAME";
+        case STD_VIDEO_VP9_REFERENCE_NAME_INVALID: return "STD_VIDEO_VP9_REFERENCE_NAME_INVALID";
+        default: return std::string("UNKNOWN_StdVideoVP9ReferenceName_value") + std::to_string(value);
+    }
+}
+void DumpStdVideoVP9ReferenceName(Printer &p, std::string name, StdVideoVP9ReferenceName value) {
+    p.PrintKeyString(name, StdVideoVP9ReferenceNameString(value));
+}
+std::string StdVideoVP9InterpolationFilterString(StdVideoVP9InterpolationFilter value) {
+    switch (value) {
+        case STD_VIDEO_VP9_INTERPOLATION_FILTER_EIGHTTAP: return "STD_VIDEO_VP9_INTERPOLATION_FILTER_EIGHTTAP";
+        case STD_VIDEO_VP9_INTERPOLATION_FILTER_EIGHTTAP_SMOOTH: return "STD_VIDEO_VP9_INTERPOLATION_FILTER_EIGHTTAP_SMOOTH";
+        case STD_VIDEO_VP9_INTERPOLATION_FILTER_EIGHTTAP_SHARP: return "STD_VIDEO_VP9_INTERPOLATION_FILTER_EIGHTTAP_SHARP";
+        case STD_VIDEO_VP9_INTERPOLATION_FILTER_BILINEAR: return "STD_VIDEO_VP9_INTERPOLATION_FILTER_BILINEAR";
+        case STD_VIDEO_VP9_INTERPOLATION_FILTER_SWITCHABLE: return "STD_VIDEO_VP9_INTERPOLATION_FILTER_SWITCHABLE";
+        case STD_VIDEO_VP9_INTERPOLATION_FILTER_INVALID: return "STD_VIDEO_VP9_INTERPOLATION_FILTER_INVALID";
+        default: return std::string("UNKNOWN_StdVideoVP9InterpolationFilter_value") + std::to_string(value);
+    }
+}
+void DumpStdVideoVP9InterpolationFilter(Printer &p, std::string name, StdVideoVP9InterpolationFilter value) {
+    p.PrintKeyString(name, StdVideoVP9InterpolationFilterString(value));
+}
+std::string StdVideoVP9ColorSpaceString(StdVideoVP9ColorSpace value) {
+    switch (value) {
+        case STD_VIDEO_VP9_COLOR_SPACE_UNKNOWN: return "STD_VIDEO_VP9_COLOR_SPACE_UNKNOWN";
+        case STD_VIDEO_VP9_COLOR_SPACE_BT_601: return "STD_VIDEO_VP9_COLOR_SPACE_BT_601";
+        case STD_VIDEO_VP9_COLOR_SPACE_BT_709: return "STD_VIDEO_VP9_COLOR_SPACE_BT_709";
+        case STD_VIDEO_VP9_COLOR_SPACE_SMPTE_170: return "STD_VIDEO_VP9_COLOR_SPACE_SMPTE_170";
+        case STD_VIDEO_VP9_COLOR_SPACE_SMPTE_240: return "STD_VIDEO_VP9_COLOR_SPACE_SMPTE_240";
+        case STD_VIDEO_VP9_COLOR_SPACE_BT_2020: return "STD_VIDEO_VP9_COLOR_SPACE_BT_2020";
+        case STD_VIDEO_VP9_COLOR_SPACE_RESERVED: return "STD_VIDEO_VP9_COLOR_SPACE_RESERVED";
+        case STD_VIDEO_VP9_COLOR_SPACE_RGB: return "STD_VIDEO_VP9_COLOR_SPACE_RGB";
+        case STD_VIDEO_VP9_COLOR_SPACE_INVALID: return "STD_VIDEO_VP9_COLOR_SPACE_INVALID";
+        default: return std::string("UNKNOWN_StdVideoVP9ColorSpace_value") + std::to_string(value);
+    }
+}
+void DumpStdVideoVP9ColorSpace(Printer &p, std::string name, StdVideoVP9ColorSpace value) {
+    p.PrintKeyString(name, StdVideoVP9ColorSpaceString(value));
+}
 std::string StdVideoAV1ProfileString(StdVideoAV1Profile value) {
     switch (value) {
         case STD_VIDEO_AV1_PROFILE_MAIN: return "STD_VIDEO_AV1_PROFILE_MAIN";
@@ -872,7 +963,22 @@ std::string VkFormatString(VkFormat value) {
         case (VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG): return "FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG";
         case (VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG): return "FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG";
         case (VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG): return "FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG";
+        case (VK_FORMAT_R8_BOOL_ARM): return "FORMAT_R8_BOOL_ARM";
         case (VK_FORMAT_R16G16_SFIXED5_NV): return "FORMAT_R16G16_SFIXED5_NV";
+        case (VK_FORMAT_R10X6_UINT_PACK16_ARM): return "FORMAT_R10X6_UINT_PACK16_ARM";
+        case (VK_FORMAT_R10X6G10X6_UINT_2PACK16_ARM): return "FORMAT_R10X6G10X6_UINT_2PACK16_ARM";
+        case (VK_FORMAT_R10X6G10X6B10X6A10X6_UINT_4PACK16_ARM): return "FORMAT_R10X6G10X6B10X6A10X6_UINT_4PACK16_ARM";
+        case (VK_FORMAT_R12X4_UINT_PACK16_ARM): return "FORMAT_R12X4_UINT_PACK16_ARM";
+        case (VK_FORMAT_R12X4G12X4_UINT_2PACK16_ARM): return "FORMAT_R12X4G12X4_UINT_2PACK16_ARM";
+        case (VK_FORMAT_R12X4G12X4B12X4A12X4_UINT_4PACK16_ARM): return "FORMAT_R12X4G12X4B12X4A12X4_UINT_4PACK16_ARM";
+        case (VK_FORMAT_R14X2_UINT_PACK16_ARM): return "FORMAT_R14X2_UINT_PACK16_ARM";
+        case (VK_FORMAT_R14X2G14X2_UINT_2PACK16_ARM): return "FORMAT_R14X2G14X2_UINT_2PACK16_ARM";
+        case (VK_FORMAT_R14X2G14X2B14X2A14X2_UINT_4PACK16_ARM): return "FORMAT_R14X2G14X2B14X2A14X2_UINT_4PACK16_ARM";
+        case (VK_FORMAT_R14X2_UNORM_PACK16_ARM): return "FORMAT_R14X2_UNORM_PACK16_ARM";
+        case (VK_FORMAT_R14X2G14X2_UNORM_2PACK16_ARM): return "FORMAT_R14X2G14X2_UNORM_2PACK16_ARM";
+        case (VK_FORMAT_R14X2G14X2B14X2A14X2_UNORM_4PACK16_ARM): return "FORMAT_R14X2G14X2B14X2A14X2_UNORM_4PACK16_ARM";
+        case (VK_FORMAT_G14X2_B14X2R14X2_2PLANE_420_UNORM_3PACK16_ARM): return "FORMAT_G14X2_B14X2R14X2_2PLANE_420_UNORM_3PACK16_ARM";
+        case (VK_FORMAT_G14X2_B14X2R14X2_2PLANE_422_UNORM_3PACK16_ARM): return "FORMAT_G14X2_B14X2R14X2_2PLANE_422_UNORM_3PACK16_ARM";
         default: return std::string("UNKNOWN_VkFormat_value") + std::to_string(value);
     }
 }
@@ -913,7 +1019,9 @@ std::string VkImageLayoutString(VkImageLayout value) {
         case (VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR): return "IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR";
         case (VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR): return "IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR";
         case (VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT): return "IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT";
+        case (VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM): return "IMAGE_LAYOUT_TENSOR_ALIASING_ARM";
         case (VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR): return "IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR";
+        case (VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT): return "IMAGE_LAYOUT_ZERO_INITIALIZED_EXT";
         default: return std::string("UNKNOWN_VkImageLayout_value") + std::to_string(value);
     }
 }
@@ -1281,9 +1389,12 @@ std::vector<const char *> VkFormatFeatureFlagBits2GetStrings(VkFormatFeatureFlag
     if (VK_FORMAT_FEATURE_2_WEIGHT_SAMPLED_IMAGE_BIT_QCOM & value) strings.push_back("FORMAT_FEATURE_2_WEIGHT_SAMPLED_IMAGE_BIT_QCOM");
     if (VK_FORMAT_FEATURE_2_BLOCK_MATCHING_BIT_QCOM & value) strings.push_back("FORMAT_FEATURE_2_BLOCK_MATCHING_BIT_QCOM");
     if (VK_FORMAT_FEATURE_2_BOX_FILTER_SAMPLED_BIT_QCOM & value) strings.push_back("FORMAT_FEATURE_2_BOX_FILTER_SAMPLED_BIT_QCOM");
+    if (VK_FORMAT_FEATURE_2_TENSOR_SHADER_BIT_ARM & value) strings.push_back("FORMAT_FEATURE_2_TENSOR_SHADER_BIT_ARM");
+    if (VK_FORMAT_FEATURE_2_TENSOR_IMAGE_ALIASING_BIT_ARM & value) strings.push_back("FORMAT_FEATURE_2_TENSOR_IMAGE_ALIASING_BIT_ARM");
     if (VK_FORMAT_FEATURE_2_OPTICAL_FLOW_IMAGE_BIT_NV & value) strings.push_back("FORMAT_FEATURE_2_OPTICAL_FLOW_IMAGE_BIT_NV");
     if (VK_FORMAT_FEATURE_2_OPTICAL_FLOW_VECTOR_BIT_NV & value) strings.push_back("FORMAT_FEATURE_2_OPTICAL_FLOW_VECTOR_BIT_NV");
     if (VK_FORMAT_FEATURE_2_OPTICAL_FLOW_COST_BIT_NV & value) strings.push_back("FORMAT_FEATURE_2_OPTICAL_FLOW_COST_BIT_NV");
+    if (VK_FORMAT_FEATURE_2_TENSOR_DATA_GRAPH_BIT_ARM & value) strings.push_back("FORMAT_FEATURE_2_TENSOR_DATA_GRAPH_BIT_ARM");
     if (VK_FORMAT_FEATURE_2_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR & value) strings.push_back("FORMAT_FEATURE_2_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR");
     if (VK_FORMAT_FEATURE_2_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR & value) strings.push_back("FORMAT_FEATURE_2_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR");
     return strings;
@@ -1338,6 +1449,8 @@ std::vector<const char *> VkImageUsageFlagBitsGetStrings(VkImageUsageFlagBits va
     if (VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI & value) strings.push_back("IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI");
     if (VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM & value) strings.push_back("IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM");
     if (VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM & value) strings.push_back("IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM");
+    if (VK_IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM & value) strings.push_back("IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM");
+    if (VK_IMAGE_USAGE_TILE_MEMORY_BIT_QCOM & value) strings.push_back("IMAGE_USAGE_TILE_MEMORY_BIT_QCOM");
     if (VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR & value) strings.push_back("IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR");
     if (VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR & value) strings.push_back("IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR");
     return strings;
@@ -1374,6 +1487,7 @@ std::vector<const char *> VkMemoryHeapFlagBitsGetStrings(VkMemoryHeapFlagBits va
     if (VK_MEMORY_HEAP_DEVICE_LOCAL_BIT & value) strings.push_back("MEMORY_HEAP_DEVICE_LOCAL_BIT");
     if (VK_MEMORY_HEAP_MULTI_INSTANCE_BIT & value) strings.push_back("MEMORY_HEAP_MULTI_INSTANCE_BIT");
     if (VK_MEMORY_HEAP_SEU_SAFE_BIT & value) strings.push_back("MEMORY_HEAP_SEU_SAFE_BIT");
+    if (VK_MEMORY_HEAP_TILE_MEMORY_BIT_QCOM & value) strings.push_back("MEMORY_HEAP_TILE_MEMORY_BIT_QCOM");
     return strings;
 }
 void DumpVkMemoryHeapFlags(Printer &p, std::string name, VkMemoryHeapFlags value) {
@@ -1452,6 +1566,7 @@ std::vector<const char *> VkQueueFlagBitsGetStrings(VkQueueFlagBits value) {
     if (VK_QUEUE_VIDEO_DECODE_BIT_KHR & value) strings.push_back("QUEUE_VIDEO_DECODE_BIT_KHR");
     if (VK_QUEUE_VIDEO_ENCODE_BIT_KHR & value) strings.push_back("QUEUE_VIDEO_ENCODE_BIT_KHR");
     if (VK_QUEUE_OPTICAL_FLOW_BIT_NV & value) strings.push_back("QUEUE_OPTICAL_FLOW_BIT_NV");
+    if (VK_QUEUE_DATA_GRAPH_BIT_ARM & value) strings.push_back("QUEUE_DATA_GRAPH_BIT_ARM");
     return strings;
 }
 void DumpVkQueueFlags(Printer &p, std::string name, VkQueueFlags value) {
@@ -1511,6 +1626,10 @@ std::string VkQueueFlagsString(VkQueueFlags value) {
         if (is_first) { is_first = false; } else { out += " | "; }
         out += "QUEUE_OPTICAL_FLOW_BIT_NV";
     }
+    if (VK_QUEUE_DATA_GRAPH_BIT_ARM & value) {
+        if (is_first) { is_first = false; } else { out += " | "; }
+        out += "QUEUE_DATA_GRAPH_BIT_ARM";
+    }
     return out;
 }
 std::vector<const char *> VkResolveModeFlagBitsGetStrings(VkResolveModeFlagBits value) {
@@ -1520,7 +1639,7 @@ std::vector<const char *> VkResolveModeFlagBitsGetStrings(VkResolveModeFlagBits 
     if (VK_RESOLVE_MODE_AVERAGE_BIT & value) strings.push_back("RESOLVE_MODE_AVERAGE_BIT");
     if (VK_RESOLVE_MODE_MIN_BIT & value) strings.push_back("RESOLVE_MODE_MIN_BIT");
     if (VK_RESOLVE_MODE_MAX_BIT & value) strings.push_back("RESOLVE_MODE_MAX_BIT");
-    if (VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID & value) strings.push_back("RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID");
+    if (VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID & value) strings.push_back("RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID");
     return strings;
 }
 void DumpVkResolveModeFlags(Printer &p, std::string name, VkResolveModeFlags value) {
@@ -2497,14 +2616,14 @@ void DumpVkPhysicalDevicePushDescriptorProperties(Printer &p, std::string name, 
     p.SetMinKeyWidth(18);
     p.PrintKeyValue("maxPushDescriptors", obj.maxPushDescriptors);
 }
-void DumpVkPhysicalDeviceRobustness2FeaturesEXT(Printer &p, std::string name, const VkPhysicalDeviceRobustness2FeaturesEXT &obj) {
+void DumpVkPhysicalDeviceRobustness2FeaturesKHR(Printer &p, std::string name, const VkPhysicalDeviceRobustness2FeaturesKHR &obj) {
     ObjectWrapper object{p, name};
     p.SetMinKeyWidth(19);
     p.PrintKeyBool("robustBufferAccess2", static_cast<bool>(obj.robustBufferAccess2));
     p.PrintKeyBool("robustImageAccess2", static_cast<bool>(obj.robustImageAccess2));
     p.PrintKeyBool("nullDescriptor", static_cast<bool>(obj.nullDescriptor));
 }
-void DumpVkPhysicalDeviceRobustness2PropertiesEXT(Printer &p, std::string name, const VkPhysicalDeviceRobustness2PropertiesEXT &obj) {
+void DumpVkPhysicalDeviceRobustness2PropertiesKHR(Printer &p, std::string name, const VkPhysicalDeviceRobustness2PropertiesKHR &obj) {
     ObjectWrapper object{p, name};
     p.SetMinKeyWidth(38);
     p.PrintKeyValue("robustStorageBufferAccessSizeAlignment", to_hex_str(p, obj.robustStorageBufferAccessSizeAlignment));
@@ -3161,7 +3280,7 @@ struct phys_device_props2_chain {
     VkPhysicalDevicePointClippingProperties PhysicalDevicePointClippingProperties{};
     VkPhysicalDeviceProtectedMemoryProperties PhysicalDeviceProtectedMemoryProperties{};
     VkPhysicalDevicePushDescriptorProperties PhysicalDevicePushDescriptorProperties{};
-    VkPhysicalDeviceRobustness2PropertiesEXT PhysicalDeviceRobustness2PropertiesEXT{};
+    VkPhysicalDeviceRobustness2PropertiesKHR PhysicalDeviceRobustness2PropertiesKHR{};
     VkPhysicalDeviceSampleLocationsPropertiesEXT PhysicalDeviceSampleLocationsPropertiesEXT{};
     VkPhysicalDeviceSamplerFilterMinmaxProperties PhysicalDeviceSamplerFilterMinmaxProperties{};
     VkPhysicalDeviceShaderIntegerDotProductProperties PhysicalDeviceShaderIntegerDotProductProperties{};
@@ -3203,7 +3322,7 @@ struct phys_device_props2_chain {
         PhysicalDevicePointClippingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_POINT_CLIPPING_PROPERTIES;
         PhysicalDeviceProtectedMemoryProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_PROPERTIES;
         PhysicalDevicePushDescriptorProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES;
-        PhysicalDeviceRobustness2PropertiesEXT.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT;
+        PhysicalDeviceRobustness2PropertiesKHR.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR;
         PhysicalDeviceSampleLocationsPropertiesEXT.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT;
         PhysicalDeviceSamplerFilterMinmaxProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES;
         PhysicalDeviceShaderIntegerDotProductProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES;
@@ -3270,8 +3389,9 @@ struct phys_device_props2_chain {
             chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceProtectedMemoryProperties));
         if ((gpu.api_version >= VK_API_VERSION_1_4))
             chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDevicePushDescriptorProperties));
-        if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME))
-            chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceRobustness2PropertiesEXT));
+        if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)
+         || gpu.CheckPhysicalDeviceExtensionIncluded(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME))
+            chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceRobustness2PropertiesKHR));
         if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME))
             chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceSampleLocationsPropertiesEXT));
         if ((gpu.api_version >= VK_API_VERSION_1_2))
@@ -3445,9 +3565,9 @@ void chain_iterator_phys_device_props2(Printer &p, AppInstance &inst, AppGpu &gp
             DumpVkPhysicalDevicePushDescriptorProperties(p, "VkPhysicalDevicePushDescriptorProperties", *props);
             p.AddNewline();
         }
-        if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT) {
-            const VkPhysicalDeviceRobustness2PropertiesEXT* props = (const VkPhysicalDeviceRobustness2PropertiesEXT*)structure;
-            DumpVkPhysicalDeviceRobustness2PropertiesEXT(p, "VkPhysicalDeviceRobustness2PropertiesEXT", *props);
+        if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR) {
+            const VkPhysicalDeviceRobustness2PropertiesKHR* props = (const VkPhysicalDeviceRobustness2PropertiesKHR*)structure;
+            DumpVkPhysicalDeviceRobustness2PropertiesKHR(p, "VkPhysicalDeviceRobustness2PropertiesKHR", *props);
             p.AddNewline();
         }
         if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT) {
@@ -3604,7 +3724,7 @@ struct phys_device_features2_chain {
     VkPhysicalDevicePipelineRobustnessFeatures PhysicalDevicePipelineRobustnessFeatures{};
     VkPhysicalDevicePrivateDataFeatures PhysicalDevicePrivateDataFeatures{};
     VkPhysicalDeviceProtectedMemoryFeatures PhysicalDeviceProtectedMemoryFeatures{};
-    VkPhysicalDeviceRobustness2FeaturesEXT PhysicalDeviceRobustness2FeaturesEXT{};
+    VkPhysicalDeviceRobustness2FeaturesKHR PhysicalDeviceRobustness2FeaturesKHR{};
     VkPhysicalDeviceSamplerYcbcrConversionFeatures PhysicalDeviceSamplerYcbcrConversionFeatures{};
     VkPhysicalDeviceScalarBlockLayoutFeatures PhysicalDeviceScalarBlockLayoutFeatures{};
     VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures PhysicalDeviceSeparateDepthStencilLayoutsFeatures{};
@@ -3675,7 +3795,7 @@ struct phys_device_features2_chain {
         PhysicalDevicePipelineRobustnessFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES;
         PhysicalDevicePrivateDataFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES;
         PhysicalDeviceProtectedMemoryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES;
-        PhysicalDeviceRobustness2FeaturesEXT.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+        PhysicalDeviceRobustness2FeaturesKHR.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR;
         PhysicalDeviceSamplerYcbcrConversionFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES;
         PhysicalDeviceScalarBlockLayoutFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES;
         PhysicalDeviceSeparateDepthStencilLayoutsFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
@@ -3785,8 +3905,9 @@ struct phys_device_features2_chain {
             chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDevicePrivateDataFeatures));
         if (gpu.api_version == VK_API_VERSION_1_1 || show_promoted_structs)
             chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceProtectedMemoryFeatures));
-        if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME))
-            chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceRobustness2FeaturesEXT));
+        if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)
+         || gpu.CheckPhysicalDeviceExtensionIncluded(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME))
+            chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceRobustness2FeaturesKHR));
         if ((gpu.api_version >= VK_API_VERSION_1_1))
             chain_members.push_back(reinterpret_cast<VkBaseOutStructure*>(&PhysicalDeviceSamplerYcbcrConversionFeatures));
         if ((gpu.api_version >= VK_API_VERSION_1_2))
@@ -4050,9 +4171,9 @@ void chain_iterator_phys_device_features2(Printer &p, AppGpu &gpu, bool show_pro
             DumpVkPhysicalDeviceProtectedMemoryFeatures(p, "VkPhysicalDeviceProtectedMemoryFeatures", *props);
             p.AddNewline();
         }
-        if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT) {
-            const VkPhysicalDeviceRobustness2FeaturesEXT* props = (const VkPhysicalDeviceRobustness2FeaturesEXT*)structure;
-            DumpVkPhysicalDeviceRobustness2FeaturesEXT(p, "VkPhysicalDeviceRobustness2FeaturesEXT", *props);
+        if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR) {
+            const VkPhysicalDeviceRobustness2FeaturesKHR* props = (const VkPhysicalDeviceRobustness2FeaturesKHR*)structure;
+            DumpVkPhysicalDeviceRobustness2FeaturesKHR(p, "VkPhysicalDeviceRobustness2FeaturesKHR", *props);
             p.AddNewline();
         }
         if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES) {
