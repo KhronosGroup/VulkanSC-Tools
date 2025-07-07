@@ -122,6 +122,7 @@
                     "pNext": "NULL",
                     "flags": "0",
                     "stage": "VK_SHADER_STAGE_VERTEX_BIT",
+                    "module": 0,
                     "pName": "main",
                     "pSpecializationInfo": "NULL"
                 },
@@ -130,6 +131,7 @@
                     "pNext": "NULL",
                     "flags": "0",
                     "stage": "VK_SHADER_STAGE_FRAGMENT_BIT",
+                    "module": 0,
                     "pName": "main",
                     "pSpecializationInfo": "NULL"
                 }
@@ -254,6 +256,7 @@
             },
             "layout": 5,
             "subpass": 0,
+            "renderPass": 0,
             "basePipelineHandle": "",
             "basePipelineIndex": 0
         },
