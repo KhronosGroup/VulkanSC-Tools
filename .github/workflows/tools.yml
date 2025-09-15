@@ -54,7 +54,7 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: actions/setup-python@v5
+            - uses: actions/setup-python@v6
               with:
                 python-version: '3.10'
             - run: |
@@ -115,7 +115,7 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: actions/setup-python@v5
+            - uses: actions/setup-python@v6
               with:
                 python-version: '3.10'
             - uses: lukka/get-cmake@latest
@@ -149,7 +149,7 @@ jobs:
             uses: hendrikmuhs/ccache-action@v1.2
             with:
               key: mingw-ccache
-          - uses: actions/setup-python@v5
+          - uses: actions/setup-python@v6
             with:
               python-version: '3.10'
           - uses: lukka/get-cmake@latest
@@ -171,7 +171,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
+        - uses: actions/setup-python@v6
           with:
             python-version: '3.10'
         - run: sudo apt-get -qq update && sudo apt install --yes libwayland-dev xorg-dev wayland-protocols
