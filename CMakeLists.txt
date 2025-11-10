@@ -17,9 +17,14 @@
 # ~~~
 cmake_minimum_required(VERSION 3.22.1)
 
-project(Vulkan-Tools)
-
 option(VULKANSC "Build Vulkan SC tools" ON)
+
+# The VERSION field is generated with the "--generated-version" flag in the generate_source.py script
+if(VULKANSC)
+    project(Vulkan-Tools VERSION 1.0.19) # vulkansc
+else()
+    project(Vulkan-Tools VERSION 1.4.330) # vulkan
+endif()
 
 # This variable enables downstream users to customize the target API
 # variant (e.g. Vulkan SC)
@@ -68,7 +73,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-find_package(VulkanHeaders QUIET REQUIRED CONFIG)
+find_package(VulkanHeaders ${PROJECT_VERSION} QUIET REQUIRED CONFIG)
 if ((APPLE OR BUILD_TESTS) AND NOT ANDROID)
     find_package(VulkanLoader QUIET REQUIRED CONFIG)
 endif()

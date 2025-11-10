@@ -264,13 +264,14 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
                                               kLayerSettingsExcludeDeviceExtensions,
                                               kLayerSettingsExcludeFormats,
                                               kLayerSettingsDefaultFeatureValues,
+                                              kLayerSettingsUnknownFeatureValues,
                                               kLayerSettingsForceDevice,
                                               kLayerSettingsForceDeviceUUID,
                                               kLayerSettingsForceDeviceName};
         uint32_t setting_name_count = static_cast<uint32_t>(std::size(setting_names));
 
         std::vector<const char *> unknown_settings;
-        vkuGetUnknownSettings(create_info, setting_name_count, setting_names, unknown_settings);
+        vkuGetUnknownSettings(layerSettingSet, setting_name_count, setting_names, create_info, unknown_settings);
 
         for (std::size_t i = 0, n = unknown_settings.size(); i < n; ++i) {
             LogMessage(layer_settings, DEBUG_REPORT_WARNING_BIT,
@@ -324,6 +325,12 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
             vkuGetLayerSettingValue(layerSettingSet, kLayerSettingsDefaultFeatureValues, value);
             layer_settings->simulate.default_feature_values = GetDefaultFeatureValues(ToUpper(value));
         }
+    }
+
+    if (vkuHasLayerSetting(layerSettingSet, kLayerSettingsUnknownFeatureValues)) {
+        std::string value;
+        vkuGetLayerSettingValue(layerSettingSet, kLayerSettingsUnknownFeatureValues, value);
+        layer_settings->simulate.unknown_feature_values = GetUnknownFeatureValues(ToUpper(value));
     }
 
     if (vkuHasLayerSetting(layerSettingSet, kLayerSettingsExcludeDeviceExtensions)) {
@@ -480,6 +487,7 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
     const std::string profile_dirs = GetString(layer_settings->simulate.profile_dirs);
     const std::string simulation_capabilities_log = GetSimulateCapabilitiesLog(layer_settings->simulate.capabilities);
     const std::string default_feature_values = GetDefaultFeatureValuesString(layer_settings->simulate.default_feature_values);
+    const std::string unknown_feature_values = GetUnknownFeatureValuesString(layer_settings->simulate.unknown_feature_values);
     const std::string debug_actions_log = GetDebugActionsLog(layer_settings->log.debug_actions);
     const std::string debug_reports_log = GetDebugReportsLog(layer_settings->log.debug_reports);
 
@@ -492,6 +500,7 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
         format("\t%s: %s\n", kLayerSettingsProfileValidation, layer_settings->simulate.profile_validation ? "true" : "false");
     settings_log += format("\t%s: %s\n", kLayerSettingsSimulateCapabilities, simulation_capabilities_log.c_str());
     settings_log += format("\t%s: %s\n", kLayerSettingsDefaultFeatureValues, default_feature_values.c_str());
+    settings_log += format("\t%s: %s\n", kLayerSettingsUnknownFeatureValues, unknown_feature_values.c_str());
 
     settings_log +=
         format("\t%s: %s\n", kLayerSettingsEmulatePortability, layer_settings->simulate.emulate_portability ? "true" : "false");

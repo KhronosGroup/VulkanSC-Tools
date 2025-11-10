@@ -1192,46 +1192,13 @@ static VkImageLayout StringToImageLayout(const std::string &input_value) {
 
 static uint64_t VkStringToUint64(const std::string &input_value) {
     static const std::unordered_map<std::string, uint64_t> map = {
-        // VkResolveModeFlagBits
-        {"VK_RESOLVE_MODE_NONE", static_cast<uint64_t>(VK_RESOLVE_MODE_NONE)},
-        {"VK_RESOLVE_MODE_SAMPLE_ZERO_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_SAMPLE_ZERO_BIT)},
-        {"VK_RESOLVE_MODE_AVERAGE_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_AVERAGE_BIT)},
-        {"VK_RESOLVE_MODE_MIN_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MIN_BIT)},
-        {"VK_RESOLVE_MODE_MAX_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MAX_BIT)},
         // VkPointClippingBehavior
         {"VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES)},
         {"VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY)},
-        // VkShaderStageFlagBits
-        {"VK_SHADER_STAGE_VERTEX_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_VERTEX_BIT)},
-        {"VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)},
-        {"VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)},
-        {"VK_SHADER_STAGE_GEOMETRY_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_GEOMETRY_BIT)},
-        {"VK_SHADER_STAGE_FRAGMENT_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_FRAGMENT_BIT)},
-        {"VK_SHADER_STAGE_COMPUTE_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_COMPUTE_BIT)},
-        {"VK_SHADER_STAGE_ALL_GRAPHICS", static_cast<uint64_t>(VK_SHADER_STAGE_ALL_GRAPHICS)},
-        {"VK_SHADER_STAGE_ALL", static_cast<uint64_t>(VK_SHADER_STAGE_ALL)},
-        // VkPipelineRobustnessImageBehavior
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
         // VkShaderFloatControlsIndependence
         {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
         {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
         {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
-        // VkPipelineRobustnessBufferBehavior
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
-        // VkSampleCountFlagBits
-        {"VK_SAMPLE_COUNT_1_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_1_BIT)},
-        {"VK_SAMPLE_COUNT_2_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_2_BIT)},
-        {"VK_SAMPLE_COUNT_4_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_4_BIT)},
-        {"VK_SAMPLE_COUNT_8_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_8_BIT)},
-        {"VK_SAMPLE_COUNT_16_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_16_BIT)},
-        {"VK_SAMPLE_COUNT_32_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_32_BIT)},
-        {"VK_SAMPLE_COUNT_64_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_64_BIT)},
         // VkBufferUsageFlagBits
         {"VK_BUFFER_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT)},
         {"VK_BUFFER_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_DST_BIT)},
@@ -1243,12 +1210,16 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)},
         {"VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)},
         {"VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)},
-        // VkToolPurposeFlagBits
-        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
-        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
-        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
-        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
-        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
+        // VkPipelineRobustnessImageBehavior
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
+        // VkQueueFlagBits
+        {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
+        {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
+        {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
+        {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
         // VkImageUsageFlagBits
         {"VK_IMAGE_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT)},
         {"VK_IMAGE_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_DST_BIT)},
@@ -1271,11 +1242,40 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_SUBGROUP_FEATURE_QUAD_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_QUAD_BIT)},
         {"VK_SUBGROUP_FEATURE_ROTATE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_BIT)},
         {"VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT)},
-        // VkQueueFlagBits
-        {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
-        {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
-        {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
-        {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
+        // VkResolveModeFlagBits
+        {"VK_RESOLVE_MODE_NONE", static_cast<uint64_t>(VK_RESOLVE_MODE_NONE)},
+        {"VK_RESOLVE_MODE_SAMPLE_ZERO_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_SAMPLE_ZERO_BIT)},
+        {"VK_RESOLVE_MODE_AVERAGE_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_AVERAGE_BIT)},
+        {"VK_RESOLVE_MODE_MIN_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MIN_BIT)},
+        {"VK_RESOLVE_MODE_MAX_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MAX_BIT)},
+        // VkToolPurposeFlagBits
+        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
+        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
+        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
+        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
+        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
+        // VkPipelineRobustnessBufferBehavior
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
+        // VkSampleCountFlagBits
+        {"VK_SAMPLE_COUNT_1_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_1_BIT)},
+        {"VK_SAMPLE_COUNT_2_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_2_BIT)},
+        {"VK_SAMPLE_COUNT_4_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_4_BIT)},
+        {"VK_SAMPLE_COUNT_8_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_8_BIT)},
+        {"VK_SAMPLE_COUNT_16_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_16_BIT)},
+        {"VK_SAMPLE_COUNT_32_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_32_BIT)},
+        {"VK_SAMPLE_COUNT_64_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_64_BIT)},
+        // VkShaderStageFlagBits
+        {"VK_SHADER_STAGE_VERTEX_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_VERTEX_BIT)},
+        {"VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)},
+        {"VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)},
+        {"VK_SHADER_STAGE_GEOMETRY_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_GEOMETRY_BIT)},
+        {"VK_SHADER_STAGE_FRAGMENT_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_FRAGMENT_BIT)},
+        {"VK_SHADER_STAGE_COMPUTE_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_COMPUTE_BIT)},
+        {"VK_SHADER_STAGE_ALL_GRAPHICS", static_cast<uint64_t>(VK_SHADER_STAGE_ALL_GRAPHICS)},
+        {"VK_SHADER_STAGE_ALL", static_cast<uint64_t>(VK_SHADER_STAGE_ALL)},
     };
     const auto it = map.find(input_value);
     if (it != map.end()) {
@@ -4987,9 +4987,9 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
     for (const auto &member : parent.getMemberNames()) {
         GetArray(device_name, parent, member, "deviceUUID", dest->deviceUUID, true);
         GetArray(device_name, parent, member, "driverUUID", dest->driverUUID, true);
-        GetArray(device_name, parent, member, "deviceLUID", dest->deviceLUID, true);
+        GetArray(device_name, parent, member, "deviceLUID", dest->deviceLUID, false);
         GET_VALUE_WARN(member, deviceNodeMask, true, requested_profile, WarnIfNotEqual32u);
-        GET_VALUE_WARN(member, deviceLUIDValid, true, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, deviceLUIDValid, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
@@ -6878,7 +6878,7 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
         GET_VALUE_FLAG_WARN(member, storageImageSampleCounts, false, requested_profile);
         GET_VALUE_WARN(member, maxSampleMaskWords, false, requested_profile, WarnIfGreater);
         GET_VALUE_WARN(member, timestampComputeAndGraphics, false, requested_profile, WarnIfNotEqualBool);
-        GET_VALUE_WARN(member, timestampPeriod, false, requested_profile, WarnIfLesserFloat);
+        GET_VALUE_WARN(member, timestampPeriod, true, requested_profile, WarnIfNotEqualFloat);
         GET_VALUE_WARN(member, maxClipDistances, false, requested_profile, WarnIfGreater);
         GET_VALUE_WARN(member, maxCullDistances, false, requested_profile, WarnIfGreater);
         GET_VALUE_WARN(member, maxCombinedClipAndCullDistances, false, requested_profile, WarnIfGreater);
@@ -8169,6 +8169,10 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalD
 
     PhysicalDeviceData *pdd = PhysicalDeviceData::Find(physicalDevice);
     if (pdd) {
+        ProfileLayerSettings *layer_settings = &JsonLoader::Find(pdd->instance())->layer_settings;
+        if (layer_settings->simulate.unknown_feature_values == UNKNOWN_FEATURE_VALUES_DEVICE) {
+            dt->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+        }
         FillPNextChain(pdd, pFeatures->pNext);
     } else {
         dt->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
