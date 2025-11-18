@@ -21,7 +21,7 @@ option(VULKANSC "Build Vulkan SC tools" ON)
 
 # The VERSION field is generated with the "--generated-version" flag in the generate_source.py script
 if(VULKANSC)
-    project(Vulkan-Tools VERSION 1.0.19) # vulkansc
+    project(Vulkan-Tools VERSION 1.0.20) # vulkansc
 else()
     project(Vulkan-Tools VERSION 1.4.330) # vulkan
 endif()
