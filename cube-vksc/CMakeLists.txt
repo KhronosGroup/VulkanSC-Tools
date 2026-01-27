@@ -18,11 +18,12 @@
 # ~~~
 
 option(BUILD_WSI_DISPLAY_SUPPORT "Build DISPLAY WSI support" ON)
-set(VKSC_PIPELINE_CACHE_COMPILER "" CACHE FILEPATH "Path to the Vulkan SC pipeline cache compiler")
+option(REBUILD_PIPELINE_CACHE "Rebuild pipeline cache" OFF)
 set(VKSC_PIPELINE_CACHE_FLAGS "" CACHE STRING "Additional flags to pass to the pipeline cache compiler")
 
-if(NOT VKSC_PIPELINE_CACHE_COMPILER)
-    message(STATUS "Using self-hosted Vulkan SC Emulation ICD pipeline cache. Provide a pipeline cache compile via VKSC_PIPELINE_CACHE_COMPILER should a different one be needed.")
+if(NOT REBUILD_PIPELINE_CACHE)
+    message(STATUS "Using self-hosted Vulkan SC Emulation ICD pipeline cache. "
+                   "Use REBUILD_PIPELINE_CACHE to rebuild pipeline cache with the Pipeline Cache Compiler discovered by the VulkanSC SDK.")
 endif()
 
 if(BUILD_WSI_DISPLAY_SUPPORT)
@@ -60,23 +61,33 @@ if (COMPILE_CUBE_SHADERS)
                     DEPENDS cube.frag ${GLSLANG_VALIDATOR})
 endif()
 
-if(VKSC_PIPELINE_CACHE_COMPILER)
+if(REBUILD_PIPELINE_CACHE)
+    find_package(VulkanSC CONFIG REQUIRED)
+    include(VulkanSCPccUtilities)
+
     separate_arguments(VKSC_PIPELINE_CACHE_FLAGS NATIVE_COMMAND "${VKSC_PIPELINE_CACHE_FLAGS}")
+
+    add_vksc_pipeline_cache(pipeline_cache
+        PATH .
+        FLAGS $<$<CONFIG:Debug,RelWithDebInfo>:${VulkanSC_DEBUG_FLAG}> ${VKSC_PIPELINE_CACHE_FLAGS}
+    )
+
+    get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(GENERATOR_IS_MULTI_CONFIG)
+        set(PIPELINE_CACHE_BIN "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/pipeline_cache.bin")
+    else()
+        set(PIPELINE_CACHE_BIN "${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache.bin")
+    endif()
+
     add_custom_command(COMMENT "Compiling pipeline cache binary header"
                     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache.h
-                    BYPRODUCTS
-                        cube.pc.json.log
-                        ${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache.h.bin
-                    COMMAND ${VKSC_PIPELINE_CACHE_COMPILER} --path ${CMAKE_CURRENT_SOURCE_DIR}
-                        --out ${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache.h.bin
-                        --log ${CMAKE_CURRENT_BINARY_DIR}/cube.pc.json.log
-                        ${VKSC_PIPELINE_CACHE_FLAGS}
-                    COMMAND ${CMAKE_COMMAND} -D INPUT:FILEPATH=${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache.h.bin
+                    COMMAND ${CMAKE_COMMAND} -D INPUT:FILEPATH=${PIPELINE_CACHE_BIN}/
                         -D OUTPUT:FILEPATH=${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache.h
                         -P ${CMAKE_CURRENT_SOURCE_DIR}/bin_to_c_hex_array.cmake
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                     MAIN_DEPENDENCY cube.pc.json
                     DEPENDS
+                        pipeline_cache
                         cube.pc.json
                         ${CMAKE_CURRENT_SOURCE_DIR}/cube.vert.spv
                         ${CMAKE_CURRENT_SOURCE_DIR}/cube.frag.spv
