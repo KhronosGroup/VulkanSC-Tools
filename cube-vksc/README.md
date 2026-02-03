@@ -26,7 +26,7 @@ component to execute properly: a pipeline cache compiler (PCC). As a convenience
 pipeline cache binary using the Khronos Vulkan SC Emulation ICD PCC (`pcconvk`). This pipeline cache can be used with
 the Vulkan SC Emulation ICD on top of any compatible Vulkan implementation.
 
-If you want to run the application using any other Vulkan SC ICD, you'll need to compile the pipline cache JSON
+If you want to run the application using any other Vulkan SC ICD, you'll need to compile the pipeline cache JSON
 (`cube-vksc/cube.pc.json`) offline and specify the built pipeline cache binary at run-time, e.g.:
 
 ```
@@ -35,15 +35,14 @@ vksccube --pipeline-cache pipeline_cache.bin
 ```
 
 Alternatively, you can embed a custom pipeline cache binary into `vksccube` built using the pipeline cache compiler
-of your choice instead of the Vulkan SC EMulation ICD's PCC by adding the `VKSC_PIPELINE_CACHE_COMPILER` (and if any
-additional compiler specific flags are needed, the `VKSC_PIPELINE_CACHE_FLAGS`) configuration-time option(s):
+discovered and configured by the Vulkan SC SDK by setting the `REBUILD_PIPELINE_CACHE` configuration-time option.
+
+The Vulkan SC SDK implicitly provides any required arguments for the configured PCC.
+For example, in case NVIDIA's Vulkan SC PCC, the target GPU instruction set.
+If any additional compiler specific flags are needed, they can be set as a command-line fragment using the
+`VKSC_PIPELINE_CACHE_FLAGS`
 
 ```
-cmake ... -D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path-to-pcc> -D VKSC_PIPELINE_CACHE_FLAGS=<additional-args>
+cmake ... -D REBUILD_PIPELINE_CACHE=ON -D VKSC_PIPELINE_CACHE_FLAGS=<additional-args>
 ```
 
-For example, NVIDIA's Vulkan SC PCC requires an additional argument to specify the target GPU instruction set:
-
-```
-cmake ... -D VKSC_PIPELINE_CACHE_COMPILER:FILEPATH=<path-to-nvidia-pcc> -D VKSC_PIPELINE_CACHE_FLAGS="-chip <target>"
-```
