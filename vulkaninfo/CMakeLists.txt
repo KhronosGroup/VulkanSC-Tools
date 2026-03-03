@@ -109,6 +109,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|QNX")
     if(BUILD_WSI_SCI_SUPPORT)
         target_compile_definitions(vulkaninfo INTERFACE VK_USE_PLATFORM_SCI)
     endif()
+    target_compile_definitions(vulkaninfo PRIVATE VK_USE_PLATFORM_DISPLAY)
 endif()
 
 if(APPLE)

@@ -181,7 +181,7 @@ def main(argv):
     group.add_argument('-o', action='store', dest='directory', help='Create target and related files in specified directory')
     args = parser.parse_args(argv)
 
-    repo_dir = common_codegen.repo_relative('.')
+    repo_dir = common_codegen.RepoRelative('.')
 
     registry = os.path.abspath(os.path.join(args.registry,  'vk.xml'))
     video_registry = os.path.abspath(os.path.join(args.registry,  'video.xml'))
@@ -260,9 +260,9 @@ def main(argv):
     if args.generated_version:
         json_files = []
         if args.api == 'vulkansc':
-            json_files.append(common_codegen.repo_relative('icd/VkICD_mock_icd_vksc.json.in'))
+            json_files.append(common_codegen.RepoRelative('icd/VkICD_mock_icd_vksc.json.in'))
         else:
-            json_files.append(common_codegen.repo_relative('icd/VkICD_mock_icd.json.in'))
+            json_files.append(common_codegen.RepoRelative('icd/VkICD_mock_icd.json.in'))
         for json_file in json_files:
             with open(json_file) as f:
                 data = json.load(f)
@@ -273,7 +273,7 @@ def main(argv):
                 f.write(json.dumps(data, indent=4))
 
         # Update the CMake project version
-        with open(common_codegen.repo_relative('CMakeLists.txt'), "r+") as f:
+        with open(common_codegen.RepoRelative('CMakeLists.txt'), "r+") as f:
             data = f.read()
             f.seek(0)
             f.write(re.sub(f"project.*VERSION.*# {args.api}", f"project(Vulkan-Tools VERSION {args.generated_version}) # {args.api}", data))
