@@ -1394,7 +1394,7 @@ util::vulkaninfo_optional<ParsedResults> parse_arguments(int argc, char **argv, 
             results.show.promoted_structs = true;
 #ifndef VULKANSC
         } else if (strcmp(argv[i], "--show-video-props") == 0) {
-            results.show_video_props = true;
+            results.show.video_props = true;
 #endif  // VULKANSC
         } else if ((strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0) && argc > (i + 1)) {
             if (argv[i + 1][0] == '-') {
