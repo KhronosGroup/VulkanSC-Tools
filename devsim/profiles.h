@@ -39,7 +39,11 @@ std::string GetSimulateCapabilitiesLog(SimulateCapabilityFlags flags);
 
 std::string GetDebugReportsLog(DebugActionFlags flags);
 
+#ifdef VULKANSC
+#define kLayerName "VK_LAYER_KHRONOS_device_simulation"
+#else
 #define kLayerName "VK_LAYER_KHRONOS_profiles"
+#endif  // VULKANSC
 #define kLayerSettingsProfileEmulation "profile_emulation"
 #define kLayerSettingsProfileFile "profile_file"
 #define kLayerSettingsProfileDirs "profile_dirs"

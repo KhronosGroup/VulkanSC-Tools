@@ -1431,7 +1431,11 @@ PrinterCreateDetails get_printer_create_details(ParsedResults &parse_data, AppIn
         case (OutputCategory::profile_json):
             create.output_type = OutputType::json;
             create.start_string =
+#ifdef VULKANSC
+                std::string("{\n\t\"$schema\": ") + "\"https://schema.khronos.org/vulkansc/profiles-0.8-latest.json\"";
+#else
                 std::string("{\n\t\"$schema\": ") + "\"https://schema.khronos.org/vulkan/profiles-0.8-latest.json\"";
+#endif  // VULKANSC
             if (parse_data.filename.empty()) {
                 create.file_name = std::string("VP_" APP_UPPER_CASE_NAME "_") + std::string(selected_gpu.props.deviceName) + "_" +
                                    selected_gpu.GetDriverVersionString();
