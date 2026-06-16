@@ -8,6 +8,93 @@
         "implementation_version": "1.0.0",
         "status": "STABLE",
         "description": "Khronos Vulkan SC device simulation layer",
-        "introduction": "The Khronos device simulation layer helps test across a wide range of hardware capabilities without requiring a physical copy of every device."
+        "introduction": "The Khronos device simulation layer helps test across a wide range of hardware capabilities without requiring a physical copy of every device.",
+        "instance_extensions": [
+            {
+                "name": "VK_EXT_layer_settings",
+                "spec_version": "2"
+            }
+        ],
+        "features": {
+            "settings": [
+                {
+                    "key": "simulate_capabilities",
+                    "label": "Simulate Profile Capabilities",
+                    "description": "Control of the simulated capabilities of the Vulkan SC physical device from the selected Vulkan SC Profile.",
+                    "status": "STABLE",
+                    "type": "FLAGS",
+                    "flags": [
+                        {
+                            "key": "SIMULATE_API_VERSION_BIT",
+                            "label": "Version",
+                            "description": "The Vulkan SC device will report the API version from the selected Profile. It also overrides the `api-version` set in VkPhysicalDeviceProperties."
+                        },
+                        {
+                            "key": "SIMULATE_FEATURES_BIT",
+                            "label": "Features",
+                            "description": "The Vulkan SC device will report the features from the selected Profile.",
+                            "settings": [
+                                {
+                                    "key": "default_feature_values",
+                                    "label": "Unspecified Features",
+                                    "description": "Feature values when not specified in the select Vulkan SC profiles.",
+                                    "status": "STABLE",
+                                    "type": "ENUM",
+                                    "default": "DEFAULT_FEATURE_VALUES_DEVICE",
+                                    "flags": [
+                                        {
+                                            "key": "DEFAULT_FEATURE_VALUES_DEVICE",
+                                            "label": "Use Device Values",
+                                            "description": "When a feature is not mentioned in the select Vulkan SC profiles, set is to the physical device value."
+                                        },
+                                        {
+                                            "key": "DEFAULT_FEATURE_VALUES_FALSE",
+                                            "label": "Use False",
+                                            "description": "When a feature is not mentioned in the select Vulkan SC profiles, set it to false."
+                                        }
+                                    ]
+                                },
+                                {
+                                    "key": "unknown_feature_values",
+                                    "label": "Unknown Features",
+                                    "description": "Feature values when unrecongnized by Vulkan SC profiles.",
+                                    "status": "STABLE",
+                                    "type": "ENUM",
+                                    "default": "UNKNOWN_FEATURE_VALUES_UNCHANGED",
+                                    "flags": [
+                                        {
+                                            "key": "UNKNOWN_FEATURE_VALUES_UNCHANGED",
+                                            "label": "Unmodified",
+                                            "description": "When a feature is not recognized by Vulkan SC profiles, skip it."
+                                        },
+                                        {
+                                            "key": "UNKNOWN_FEATURE_VALUES_DEVICE",
+                                            "label": "Use Device Values",
+                                            "description": "When a feature is not recognized by Vulkan SC profiles, attempt to load device values."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "key": "SIMULATE_PROPERTIES_BIT",
+                            "label": "Properties",
+                            "description": "The Vulkan SC device will report the properties from the selected Profile."
+                        },
+                        {
+                            "key": "SIMULATE_EXTENSIONS_BIT",
+                            "label": "Device Extensions",
+                            "description": "The Vulkan SC device will report the extensions from the selected Profile."
+                        },
+                        {
+                            "key": "SIMULATE_FORMATS_BIT",
+                            "label": "Formats",
+                            "description": "The Vulkan SC device will report the formats from the selected Profile."
+                        }
+                    ],
+                    "default": [ "SIMULATE_API_VERSION_BIT", "SIMULATE_FEATURES_BIT", "SIMULATE_PROPERTIES_BIT" ]
+                }
+            ]
+        }
     }
 }

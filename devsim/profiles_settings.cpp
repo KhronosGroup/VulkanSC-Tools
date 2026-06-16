@@ -195,10 +195,7 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
                                ProfileLayerSettings *layer_settings) {
     assert(layer_settings != nullptr);
 
-#ifdef VULKANSC  // We use a simplified configuration interface for Vulkan SC
-    (void)pCreateInfo;
-    (void)pAllocator;
-
+#ifdef VULKANSC  // We provide a simplified configuration interface for Vulkan SC
     const char *devsim_profile_file = std::getenv("VKSC_DEVSIM_PROFILE_FILE");
 
     if (devsim_profile_file) {
@@ -213,7 +210,8 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
         layer_settings->simulate.emulate_portability = false;
         layer_settings->log.debug_reports = DEBUG_REPORT_ERROR_BIT;
     }
-#else
+#endif  // VULKANSC
+
     const VkLayerSettingsCreateInfoEXT *create_info = vkuFindLayerSettingsCreateInfo(pCreateInfo);
 
     VkuLayerSettingSet layerSettingSet = VK_NULL_HANDLE;
@@ -519,5 +517,4 @@ void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const Vk
     LogMessage(layer_settings, DEBUG_REPORT_NOTIFICATION_BIT, "Profile Layers Settings: {\n%s}\n", settings_log.c_str());
 
     vkuDestroyLayerSettingSet(layerSettingSet, pAllocator);
-#endif  // VULKANSC
 }
