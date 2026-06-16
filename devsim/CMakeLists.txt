@@ -102,6 +102,9 @@ add_library(DevSimLayer MODULE)
 set_target_properties(DevSimLayer PROPERTIES FOLDER "Vulkan SC device simulation layer")
 set_target_properties(DevSimLayer PROPERTIES OUTPUT_NAME ${LAYER_NAME})
 
+# Force dynamic MSVC runtime
+set_property(TARGET DevSimLayer PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
 if (MSVC)
     target_compile_options(DevSimLayer PRIVATE "$<$<CONFIG:Release>:/Zi>")
     target_link_options(DevSimLayer PRIVATE /DEF:${CMAKE_CURRENT_SOURCE_DIR}/${LAYER_NAME}.def)
