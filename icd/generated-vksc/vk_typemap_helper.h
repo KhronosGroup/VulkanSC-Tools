@@ -3806,17 +3806,6 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_PROPERTIES_EXT> {
     typedef VkImageDrmFormatModifierPropertiesEXT Type;
 };
 
-// Map type VkDrmFormatModifierPropertiesList2EXT to id VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT
-template <>
-struct LvlTypeMap<VkDrmFormatModifierPropertiesList2EXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT;
-};
-
-template <>
-struct LvlSTypeMap<VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT> {
-    typedef VkDrmFormatModifierPropertiesList2EXT Type;
-};
-
 // Map type VkPhysicalDeviceImageViewImageFormatInfoEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT
 template <>
 struct LvlTypeMap<VkPhysicalDeviceImageViewImageFormatInfoEXT> {

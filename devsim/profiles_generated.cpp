@@ -1,7 +1,7 @@
 
 /*
- * Copyright (C) 2015-2024 Valve Corporation
- * Copyright (C) 2015-2024 LunarG, Inc.
+ * Copyright (C) 2015-2026 Valve Corporation
+ * Copyright (C) 2015-2026 LunarG, Inc.
  * Copyright (C) 2023-2024 RasterGrid Kft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1192,17 +1192,6 @@ static VkImageLayout StringToImageLayout(const std::string &input_value) {
 
 static uint64_t VkStringToUint64(const std::string &input_value) {
     static const std::unordered_map<std::string, uint64_t> map = {
-        // VkSubgroupFeatureFlagBits
-        {"VK_SUBGROUP_FEATURE_BASIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BASIC_BIT)},
-        {"VK_SUBGROUP_FEATURE_VOTE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_VOTE_BIT)},
-        {"VK_SUBGROUP_FEATURE_ARITHMETIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT)},
-        {"VK_SUBGROUP_FEATURE_BALLOT_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BALLOT_BIT)},
-        {"VK_SUBGROUP_FEATURE_SHUFFLE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_BIT)},
-        {"VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)},
-        {"VK_SUBGROUP_FEATURE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_CLUSTERED_BIT)},
-        {"VK_SUBGROUP_FEATURE_QUAD_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_QUAD_BIT)},
-        {"VK_SUBGROUP_FEATURE_ROTATE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_BIT)},
-        {"VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT)},
         // VkImageUsageFlagBits
         {"VK_IMAGE_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT)},
         {"VK_IMAGE_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_DST_BIT)},
@@ -1214,29 +1203,6 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)},
         {"VK_IMAGE_USAGE_HOST_TRANSFER_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_HOST_TRANSFER_BIT)},
         {"VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", static_cast<uint64_t>(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)},
-        // VkQueueFlagBits
-        {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
-        {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
-        {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
-        {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
-        // VkSampleCountFlagBits
-        {"VK_SAMPLE_COUNT_1_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_1_BIT)},
-        {"VK_SAMPLE_COUNT_2_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_2_BIT)},
-        {"VK_SAMPLE_COUNT_4_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_4_BIT)},
-        {"VK_SAMPLE_COUNT_8_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_8_BIT)},
-        {"VK_SAMPLE_COUNT_16_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_16_BIT)},
-        {"VK_SAMPLE_COUNT_32_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_32_BIT)},
-        {"VK_SAMPLE_COUNT_64_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_64_BIT)},
-        // VkShaderFloatControlsIndependence
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
-        // VkToolPurposeFlagBits
-        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
-        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
-        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
-        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
-        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
         // VkResolveModeFlagBits
         {"VK_RESOLVE_MODE_NONE", static_cast<uint64_t>(VK_RESOLVE_MODE_NONE)},
         {"VK_RESOLVE_MODE_SAMPLE_ZERO_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_SAMPLE_ZERO_BIT)},
@@ -1254,19 +1220,21 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)},
         {"VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)},
         {"VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)},
-        // VkPipelineRobustnessBufferBehavior
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
+        // VkSampleCountFlagBits
+        {"VK_SAMPLE_COUNT_1_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_1_BIT)},
+        {"VK_SAMPLE_COUNT_2_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_2_BIT)},
+        {"VK_SAMPLE_COUNT_4_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_4_BIT)},
+        {"VK_SAMPLE_COUNT_8_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_8_BIT)},
+        {"VK_SAMPLE_COUNT_16_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_16_BIT)},
+        {"VK_SAMPLE_COUNT_32_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_32_BIT)},
+        {"VK_SAMPLE_COUNT_64_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_64_BIT)},
         // VkPointClippingBehavior
         {"VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES)},
         {"VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY)},
-        // VkPipelineRobustnessImageBehavior
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
+        // VkShaderFloatControlsIndependence
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
         // VkShaderStageFlagBits
         {"VK_SHADER_STAGE_VERTEX_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_VERTEX_BIT)},
         {"VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)},
@@ -1276,6 +1244,38 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_SHADER_STAGE_COMPUTE_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_COMPUTE_BIT)},
         {"VK_SHADER_STAGE_ALL_GRAPHICS", static_cast<uint64_t>(VK_SHADER_STAGE_ALL_GRAPHICS)},
         {"VK_SHADER_STAGE_ALL", static_cast<uint64_t>(VK_SHADER_STAGE_ALL)},
+        // VkSubgroupFeatureFlagBits
+        {"VK_SUBGROUP_FEATURE_BASIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BASIC_BIT)},
+        {"VK_SUBGROUP_FEATURE_VOTE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_VOTE_BIT)},
+        {"VK_SUBGROUP_FEATURE_ARITHMETIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT)},
+        {"VK_SUBGROUP_FEATURE_BALLOT_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BALLOT_BIT)},
+        {"VK_SUBGROUP_FEATURE_SHUFFLE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_BIT)},
+        {"VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)},
+        {"VK_SUBGROUP_FEATURE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_CLUSTERED_BIT)},
+        {"VK_SUBGROUP_FEATURE_QUAD_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_QUAD_BIT)},
+        {"VK_SUBGROUP_FEATURE_ROTATE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_BIT)},
+        {"VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT)},
+        // VkToolPurposeFlagBits
+        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
+        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
+        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
+        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
+        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
+        // VkPipelineRobustnessImageBehavior
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
+        // VkPipelineRobustnessBufferBehavior
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
+        // VkQueueFlagBits
+        {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
+        {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
+        {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
+        {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
     };
     const auto it = map.find(input_value);
     if (it != map.end()) {
@@ -3972,6 +3972,14 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
             for (const auto &feature : props["optimalImageTransferToQueueFamilies"]) {
                 dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies |= feature.asUInt();
             }
+        } else if (name == "VkQueueFamilyOptimalImageTransferGranularityPropertiesKHR") {
+            const auto &optimalImageTransferGranularity = props["optimalImageTransferGranularity"];
+            dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width =
+                optimalImageTransferGranularity["width"].asUInt();
+            dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height =
+                optimalImageTransferGranularity["height"].asUInt();
+            dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth =
+                optimalImageTransferGranularity["depth"].asUInt();
         } else if (name == "VkQueueFamilyGlobalPriorityPropertiesKHR" || name == "VkQueueFamilyGlobalPriorityPropertiesEXT") {
             uint32_t i = 0;
             for (const auto &feature : props["priorities"]) {
@@ -4006,6 +4014,21 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
         }
         if ((device_qfp.ownership_transfer_properties_.optimalImageTransferToQueueFamilies & dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies) !=
              dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies) {
+            continue;
+        }
+        if (dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width > 0 &&
+            device_qfp.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width >
+                dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width) {
+            continue;
+        }
+        if (dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height > 0 &&
+            device_qfp.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height >
+                dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height) {
+            continue;
+        }
+        if (dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth > 0 &&
+            device_qfp.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth >
+                dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth) {
             continue;
         }
         if (!GlobalPriorityMatch(device_qfp.global_priority_properties_, dest->global_priority_properties_)) {
@@ -4044,6 +4067,15 @@ bool JsonLoader::GetQueueFamilyProperties(const char* device_name, const Json::V
         if (dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies > 0) {
             message += format(", VkQueueFamilyOwnershipTransferPropertiesKHR [optimalImageTransferToQueueFamilies: %" PRIu32 "]",
                               dest->ownership_transfer_properties_.optimalImageTransferToQueueFamilies);
+        }
+        if (dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width > 0 ||
+            dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height > 0 ||
+            dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth > 0) {
+            message += format(", VkQueueFamilyOptimalImageTransferGranularityPropertiesKHR [optimalImageTransferGranularity: [%" PRIu32
+                              ", %" PRIu32 ", %" PRIu32 "]]",
+                              dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width,
+                              dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height,
+                              dest->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth);
         }
         if (dest->global_priority_properties_.priorityCount > 0) {
             std::string priorities = "[";
@@ -4087,6 +4119,21 @@ bool QueueFamilyAndExtensionsMatch(const QueueFamilyProperties &device, const Qu
     }
     if ((device.ownership_transfer_properties_.optimalImageTransferToQueueFamilies & profile.ownership_transfer_properties_.optimalImageTransferToQueueFamilies) !=
          profile.ownership_transfer_properties_.optimalImageTransferToQueueFamilies) {
+        return false;
+    }
+    if (profile.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width > 0 &&
+        device.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width >
+            profile.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width) {
+        return false;
+    }
+    if (profile.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height > 0 &&
+        device.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height >
+            profile.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height) {
+        return false;
+    }
+    if (profile.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth > 0 &&
+        device.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth >
+            profile.optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth) {
         return false;
     }
     if (!GlobalPriorityMatch(device.global_priority_properties_, profile.global_priority_properties_)) {
@@ -4134,6 +4181,18 @@ void CopyUnsetQueueFamilyProperties(const QueueFamilyProperties *device, QueueFa
     if (profile->properties_2.queueFamilyProperties.minImageTransferGranularity.depth == 0) {
         profile->properties_2.queueFamilyProperties.minImageTransferGranularity.depth =
             device->properties_2.queueFamilyProperties.minImageTransferGranularity.depth;
+    }
+    if (profile->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width == 0) {
+        profile->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width =
+            device->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.width;
+    }
+    if (profile->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height == 0) {
+        profile->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height =
+            device->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.height;
+    }
+    if (profile->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth == 0) {
+        profile->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth =
+            device->optimal_image_transfer_granularity_properties_.optimalImageTransferGranularity.depth;
     }
 }
 
@@ -8164,19 +8223,29 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties(VkPhysicalDevice physical
     }
 }
 
-VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
-                                                        VkPhysicalDeviceProperties2KHR *pProperties) {
+void GetPhysicalDeviceProperties2Impl(VkPhysicalDevice physicalDevice,
+                                      VkPhysicalDeviceProperties2KHR *pProperties,
+                                      bool core) {
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
-    dt->GetPhysicalDeviceProperties2(physicalDevice, pProperties);
+    if (core) {
+        dt->GetPhysicalDeviceProperties2(physicalDevice, pProperties);
+    } else {
+        dt->GetPhysicalDeviceProperties2KHR(physicalDevice, pProperties);
+    }
     GetPhysicalDeviceProperties(physicalDevice, &pProperties->properties);
     PhysicalDeviceData *pdd = PhysicalDeviceData::Find(physicalDevice);
     FillPNextChain(pdd, pProperties->pNext);
 }
 
+VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
+                                                        VkPhysicalDeviceProperties2KHR *pProperties) {
+    GetPhysicalDeviceProperties2Impl(physicalDevice, pProperties, true);
+}
+
 VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2KHR(VkPhysicalDevice physicalDevice,
                                                            VkPhysicalDeviceProperties2KHR *pProperties) {
-    GetPhysicalDeviceProperties2(physicalDevice, pProperties);
+    GetPhysicalDeviceProperties2Impl(physicalDevice, pProperties, false);
 }
 
 VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures *pFeatures) {
@@ -8191,7 +8260,7 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDe
     }
 }
 
-VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2KHR *pFeatures) {
+void GetPhysicalDeviceFeatures2Impl(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2KHR *pFeatures, bool core) {
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
 
@@ -8199,18 +8268,30 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalD
     if (pdd) {
         ProfileLayerSettings *layer_settings = &JsonLoader::Find(pdd->instance())->layer_settings;
         if (layer_settings->simulate.unknown_feature_values == UNKNOWN_FEATURE_VALUES_DEVICE) {
-            dt->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+            if (core) {
+                dt->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+            } else {
+                dt->GetPhysicalDeviceFeatures2KHR(physicalDevice, pFeatures);
+            }
         }
         FillPNextChain(pdd, pFeatures->pNext);
     } else {
-        dt->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+        if (core) {
+            dt->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+        } else {
+            dt->GetPhysicalDeviceFeatures2KHR(physicalDevice, pFeatures);
+        }
     }
 
     GetPhysicalDeviceFeatures(physicalDevice, &pFeatures->features);
 }
 
+VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2KHR *pFeatures) {
+    GetPhysicalDeviceFeatures2Impl(physicalDevice, pFeatures, true);
+}
+
 VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2KHR *pFeatures) {
-    GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+    GetPhysicalDeviceFeatures2Impl(physicalDevice, pFeatures, false);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL EnumerateInstanceLayerProperties(uint32_t *pCount, VkLayerProperties *pProperties) {
@@ -8292,9 +8373,10 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties(VkPhysicalDevi
     *pQueueFamilyPropertyCount = copy_count;
 }
 
-VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties2KHR(VkPhysicalDevice physicalDevice,
-                                                                      uint32_t *pQueueFamilyPropertyCount,
-                                                                      VkQueueFamilyProperties2KHR *pQueueFamilyProperties2) {
+void GetPhysicalDeviceQueueFamilyProperties2Impl(VkPhysicalDevice physicalDevice,
+                                                 uint32_t *pQueueFamilyPropertyCount,
+                                                 VkQueueFamilyProperties2KHR *pQueueFamilyProperties2,
+                                                 bool core) {
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
 
@@ -8302,7 +8384,11 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties2KHR(VkPhysical
     PhysicalDeviceData *pdd = PhysicalDeviceData::Find(physicalDevice);
     const uint32_t src_count = (pdd) ? static_cast<uint32_t>(pdd->arrayof_queue_family_properties_.size()) : 0;
     if (src_count == 0) {
-        dt->GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2);
+        if (core) {
+            dt->GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2);
+        } else {
+            dt->GetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2);
+        }
         return;
     }
 
@@ -8321,10 +8407,16 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties2KHR(VkPhysical
     FillQueueFamilyPropertiesPNextChain(pdd, pQueueFamilyProperties2, copy_count);
 }
 
+VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties2KHR(VkPhysicalDevice physicalDevice,
+                                                                      uint32_t *pQueueFamilyPropertyCount,
+                                                                      VkQueueFamilyProperties2KHR *pQueueFamilyProperties2) {
+    GetPhysicalDeviceQueueFamilyProperties2Impl(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2, false);
+}
+
 VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceQueueFamilyProperties2(VkPhysicalDevice physicalDevice,
                                                                    uint32_t *pQueueFamilyPropertyCount,
                                                                    VkQueueFamilyProperties2KHR *pQueueFamilyProperties2) {
-    GetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2);
+    GetPhysicalDeviceQueueFamilyProperties2Impl(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties2, true);
 }
 
 VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format,
@@ -8380,19 +8472,28 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFormatProperties(VkPhysicalDevice ph
     LogFlush(layer_settings);
 }
 
-VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDevice, VkFormat format,
-                                                              VkFormatProperties2KHR *pFormatProperties) {
+void GetPhysicalDeviceFormatProperties2Impl(VkPhysicalDevice physicalDevice, VkFormat format,
+                                            VkFormatProperties2KHR *pFormatProperties, bool core) {
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
-    dt->GetPhysicalDeviceFormatProperties2(physicalDevice, format, pFormatProperties);
+    if (core) {
+        dt->GetPhysicalDeviceFormatProperties2(physicalDevice, format, pFormatProperties);
+    } else {
+        dt->GetPhysicalDeviceFormatProperties2KHR(physicalDevice, format, pFormatProperties);
+    }
     GetPhysicalDeviceFormatProperties(physicalDevice, format, &pFormatProperties->formatProperties);
     PhysicalDeviceData *pdd = PhysicalDeviceData::Find(physicalDevice);
     FillFormatPropertiesPNextChain(pdd, pFormatProperties->pNext, format);
 }
 
+VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDevice, VkFormat format,
+                                                              VkFormatProperties2KHR *pFormatProperties) {
+    GetPhysicalDeviceFormatProperties2Impl(physicalDevice, format, pFormatProperties, true);
+}
+
 VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFormatProperties2KHR(VkPhysicalDevice physicalDevice, VkFormat format,
                                                                  VkFormatProperties2KHR *pFormatProperties) {
-    GetPhysicalDeviceFormatProperties2(physicalDevice, format, pFormatProperties);
+    GetPhysicalDeviceFormatProperties2Impl(physicalDevice, format, pFormatProperties, false);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format,
@@ -8425,9 +8526,9 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties(VkPhysical
     return result;
 }
 
-VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties2KHR(
+VkResult GetPhysicalDeviceImageFormatProperties2Impl(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2KHR *pImageFormatInfo,
-    VkImageFormatProperties2KHR *pImageFormatProperties) {
+    VkImageFormatProperties2KHR *pImageFormatProperties, bool core) {
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
 
@@ -8483,13 +8584,22 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties2KHR(
     }
 #endif  // VULKANSC
 
-    return dt->GetPhysicalDeviceImageFormatProperties2(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    if (core) {
+        return dt->GetPhysicalDeviceImageFormatProperties2(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    }
+    return dt->GetPhysicalDeviceImageFormatProperties2KHR(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties2KHR(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2KHR *pImageFormatInfo,
+    VkImageFormatProperties2KHR *pImageFormatProperties) {
+    return GetPhysicalDeviceImageFormatProperties2Impl(physicalDevice, pImageFormatInfo, pImageFormatProperties, false);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceImageFormatProperties2(VkPhysicalDevice physicalDevice,
                                                                        const VkPhysicalDeviceImageFormatInfo2 *pImageFormatInfo,
                                                                        VkImageFormatProperties2 *pImageFormatProperties) {
-    return GetPhysicalDeviceImageFormatProperties2KHR(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    return GetPhysicalDeviceImageFormatProperties2Impl(physicalDevice, pImageFormatInfo, pImageFormatProperties, true);
 }
 
 #ifndef VULKANSC
@@ -8947,6 +9057,11 @@ void LoadQueueFamilyProperties(VkInstance instance, VkPhysicalDevice pd, Physica
                 pdd->device_queue_family_properties_[i].ownership_transfer_properties_.pNext = pNext[i];
 
                 pNext[i] = &pdd->device_queue_family_properties_[i].ownership_transfer_properties_;
+            }
+            if (PhysicalDeviceData::HasExtension(pdd, VK_KHR_MAINTENANCE_11_EXTENSION_NAME)) {
+                pdd->device_queue_family_properties_[i].optimal_image_transfer_granularity_properties_.pNext = pNext[i];
+
+                pNext[i] = &pdd->device_queue_family_properties_[i].optimal_image_transfer_granularity_properties_;
             }
             if (PhysicalDeviceData::HasExtension(pdd, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME)) {
                 pdd->device_queue_family_properties_[i].global_priority_properties_.pNext = pNext[i];

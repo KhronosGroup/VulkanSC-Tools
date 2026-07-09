@@ -23,7 +23,7 @@ option(VULKANSC "Build Vulkan SC tools" ON)
 if(VULKANSC)
     project(Vulkan-Tools VERSION 1.0.21) # vulkansc
 else()
-    project(Vulkan-Tools VERSION 1.4.344) # vulkan
+    project(Vulkan-Tools VERSION 1.4.356) # vulkan
 endif()
 
 # This variable enables downstream users to customize the target API

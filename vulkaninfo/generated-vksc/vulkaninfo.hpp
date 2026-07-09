@@ -145,6 +145,10 @@ std::string VkDriverIdString(VkDriverId value) {
             return "DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN";
         case (VK_DRIVER_ID_MESA_KOSMICKRISP):
             return "DRIVER_ID_MESA_KOSMICKRISP";
+        case (VK_DRIVER_ID_MESA_GFXSTREAM):
+            return "DRIVER_ID_MESA_GFXSTREAM";
+        case (VK_DRIVER_ID_APE_SOFT):
+            return "DRIVER_ID_APE_SOFT";
         default:
             return std::string("UNKNOWN_VkDriverId_value") + std::to_string(value);
     }
@@ -1187,8 +1191,6 @@ std::vector<const char *> VkFormatFeatureFlagBits2GetStrings(VkFormatFeatureFlag
     if (VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_CUBIC_BIT & value)
         strings.push_back("FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_CUBIC_BIT");
     if (VK_FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT & value) strings.push_back("FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT");
-    if (VK_FORMAT_FEATURE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR & value)
-        strings.push_back("FORMAT_FEATURE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR");
     return strings;
 }
 void DumpVkFormatFeatureFlags2(Printer &p, std::string name, VkFormatFeatureFlags2 value) {
@@ -1691,7 +1693,6 @@ void DumpVkDisplayModePropertiesKHR(Printer &p, std::string name, const VkDispla
 void DumpVkDisplayPlaneCapabilitiesKHR(Printer &p, std::string name, const VkDisplayPlaneCapabilitiesKHR &obj);
 void DumpVkDisplayPlanePropertiesKHR(Printer &p, std::string name, const VkDisplayPlanePropertiesKHR &obj);
 void DumpVkDisplayPropertiesKHR(Printer &p, std::string name, const VkDisplayPropertiesKHR &obj);
-void DumpVkDrmFormatModifierProperties2EXT(Printer &p, std::string name, const VkDrmFormatModifierProperties2EXT &obj);
 void DumpVkExtent2D(Printer &p, std::string name, const VkExtent2D &obj);
 void DumpVkExtent3D(Printer &p, std::string name, const VkExtent3D &obj);
 void DumpVkFormatProperties(Printer &p, std::string name, const VkFormatProperties &obj);
@@ -1936,14 +1937,6 @@ void DumpVkDisplayPropertiesKHR(Printer &p, std::string name, const VkDisplayPro
     DumpVkSurfaceTransformFlagsKHR(p, "supportedTransforms", obj.supportedTransforms);
     p.PrintKeyBool("planeReorderPossible", static_cast<bool>(obj.planeReorderPossible));
     p.PrintKeyBool("persistentContent", static_cast<bool>(obj.persistentContent));
-}
-void DumpVkDrmFormatModifierProperties2EXT(Printer &p, std::string name, const VkDrmFormatModifierProperties2EXT &obj) {
-    ObjectWrapper object{p, name};
-    p.SetMinKeyWidth(27);
-    p.PrintKeyValue("drmFormatModifier", obj.drmFormatModifier);
-    p.PrintKeyValue("drmFormatModifierPlaneCount", obj.drmFormatModifierPlaneCount);
-    p.SetOpenDetails();
-    DumpVkFormatFeatureFlags2(p, "drmFormatModifierTilingFeatures", obj.drmFormatModifierTilingFeatures);
 }
 void DumpVkExtent2D(Printer &p, std::string name, const VkExtent2D &obj) {
     ObjectWrapper object{p, name};

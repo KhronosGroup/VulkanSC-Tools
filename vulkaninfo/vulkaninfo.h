@@ -792,6 +792,9 @@ struct AppInstance {
             if (strcmp(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
             }
+            if (strcmp(VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME, ext.extensionName) == 0) {
+                inst_extensions.push_back(ext.extensionName);
+            }
         }
     }
 
@@ -1299,6 +1302,27 @@ void SetupWindowExtensions(AppInstance &inst) {
     }
 #endif
 
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+    screen_context_t screen_context;
+    int rc;
+    bool screen_windowing_available = false;
+
+    rc = screen_create_context(&screen_context, 0);
+    if (rc) {
+        std::cerr << "Failed to create a QNX Screen context ... skipping surface info\n";
+    } else {
+        screen_window_t screen_window;
+        rc = screen_create_window(&screen_window, screen_context);
+        if (rc) {
+            std::cerr << "Failed to create a QNX Screen window ... skipping surface info\n";
+        } else {
+            screen_windowing_available = true;
+            screen_destroy_window(screen_window);
+        }
+        screen_destroy_context(screen_context);
+    }
+#endif
+
 //--WIN32--
 #ifdef VK_USE_PLATFORM_WIN32_KHR
     SurfaceExtension surface_ext_win32;
@@ -1419,7 +1443,9 @@ void SetupWindowExtensions(AppInstance &inst) {
         surface_ext_qnx_screen.create_surface = AppCreateScreenSurface;
         surface_ext_qnx_screen.destroy_window = AppDestroyScreenWindow;
 
-        inst.AddSurfaceExtension(surface_ext_qnx_screen);
+        if (screen_windowing_available) {
+            inst.AddSurfaceExtension(surface_ext_qnx_screen);
+        }
     }
 #endif
 //--DISPLAY--
@@ -2094,23 +2120,31 @@ std::vector<VkPhysicalDeviceToolPropertiesEXT> GetToolingInfo(AppGpu &gpu) {
 }
 
 std::vector<VkCooperativeMatrixPropertiesKHR> GetCooperativeMatrixInfo(AppGpu &gpu) {
-    if (vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR == nullptr) return {};
+    if (vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR == nullptr ||
+        !gpu.CheckPhysicalDeviceExtensionIncluded("VK_KHR_cooperative_matrix"))
+        return {};
     return GetVector<VkCooperativeMatrixPropertiesKHR>("vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR",
                                                        vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR, gpu.phys_device);
 }
 std::vector<VkTimeDomainKHR> GetTimeDomainInfo(AppGpu &gpu) {
-    if (vkGetPhysicalDeviceCalibrateableTimeDomainsKHR == nullptr) return {};
+    if (vkGetPhysicalDeviceCalibrateableTimeDomainsKHR == nullptr ||
+        !gpu.CheckPhysicalDeviceExtensionIncluded("VK_KHR_calibrated_timestamps"))
+        return {};
     return GetVector<VkTimeDomainKHR>("vkGetPhysicalDeviceCalibrateableTimeDomainsKHR",
                                       vkGetPhysicalDeviceCalibrateableTimeDomainsKHR, gpu.phys_device);
 }
 std::vector<VkPhysicalDeviceFragmentShadingRateKHR> GetFragmentShadingRateInfo(AppGpu &gpu) {
-    if (vkGetPhysicalDeviceFragmentShadingRatesKHR == nullptr) return {};
+    if (vkGetPhysicalDeviceFragmentShadingRatesKHR == nullptr ||
+        !gpu.CheckPhysicalDeviceExtensionIncluded("VK_KHR_fragment_shading_rate"))
+        return {};
     return GetVector<VkPhysicalDeviceFragmentShadingRateKHR>("vkGetPhysicalDeviceFragmentShadingRatesKHR",
                                                              vkGetPhysicalDeviceFragmentShadingRatesKHR, gpu.phys_device);
 }
 // Returns vector where each index maps to VkSampleCountFlagBits
 std::vector<VkMultisamplePropertiesEXT> GetSampleLocationInfo(AppGpu &gpu) {
-    if (vkGetPhysicalDeviceMultisamplePropertiesEXT == nullptr) return {};
+    if (vkGetPhysicalDeviceMultisamplePropertiesEXT == nullptr ||
+        !gpu.CheckPhysicalDeviceExtensionIncluded("VK_EXT_sample_locations"))
+        return {};
     std::vector<VkMultisamplePropertiesEXT> result;
     // 7 covers VK_SAMPLE_COUNT_1_BIT to 64_BIT
     for (uint32_t i = 0; i < 7; i++) {
