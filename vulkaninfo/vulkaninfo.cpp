@@ -957,6 +957,7 @@ void DumpGpu(Printer &p, AppGpu &gpu, const ShowSettings &show) {
     if (!gpu.video_profiles.empty()) {
         GpuDumpVideoProfiles(p, gpu, show.video_props);
     }
+#endif  // VULKANSC
 
     if (!gpu.displays.empty()) {
         GpuDumpDisplays(p, gpu);
@@ -965,7 +966,6 @@ void DumpGpu(Printer &p, AppGpu &gpu, const ShowSettings &show) {
     if (!gpu.display_planes.empty()) {
         GpuDumpDisplayPlanes(p, gpu);
     }
-#endif  // VULKANSC
 
     p.AddNewline();
 }
