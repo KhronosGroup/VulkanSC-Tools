@@ -1223,7 +1223,9 @@ static void demo_prepare_buffers(struct demo *demo) {
     };
     uint32_t i;
     err = pfnCreateSwapchainKHR(demo->device, &swapchain_ci, NULL, &demo->swapchain);
-    assert(!err);
+    if (err) {
+        ERR_EXIT("vkCreateSwapchainKHR failed.\n", "vkCreateSwapchainKHR Failure");
+    }
 
     err = pfnGetSwapchainImagesKHR(demo->device, demo->swapchain, &demo->swapchainImageCount, NULL);
     assert(!err);
@@ -2434,7 +2436,7 @@ static VkResult demo_create_display_surface(struct demo *demo) {
     uint32_t plane_count;
     VkDisplayPropertiesKHR display_props;
     VkDisplayModeKHR mode;
-    VkDisplayModePropertiesKHR mode_props;
+    VkDisplayModePropertiesKHR mode_props = {0};
     VkDisplayPlanePropertiesKHR plane_props[MAX_DISPLAY_PLANE_COUNT];
     VkBool32 found_plane = VK_FALSE;
     uint32_t plane_index;
@@ -2449,11 +2451,11 @@ static VkResult demo_create_display_surface(struct demo *demo) {
     demo->display = display_props.display;
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-    // If we can, and need to, acquire the display if supported
-    if (demo->VK_NV_acquire_winrt_display_supported && demo->wsi_platform != WSI_PLATFORM_DISPLAY) {
+    // Acquire the display so the swapchain can be created on it.
+    if (demo->VK_NV_acquire_winrt_display_supported && demo->wsi_platform == WSI_PLATFORM_DISPLAY) {
         err = pfnAcquireWinrtDisplayNV(demo->gpu, demo->display);
         if (err != VK_SUCCESS) {
-            ERR_EXIT("Failed to get acqurie display", "vkAcquireWinrtDisplayNV Failure");
+            ERR_EXIT("Failed to acquire display", "vkAcquireWinrtDisplayNV Failure");
         }
     }
 #endif
@@ -2481,11 +2483,10 @@ static VkResult demo_create_display_surface(struct demo *demo) {
         mode_create_info.parameters.refreshRate = mode_props.parameters.refreshRate;
         err = vkCreateDisplayModeKHR(demo->gpu, demo->display, &mode_create_info, NULL, &mode);
         assert(!err);
-    }
-    else {
+    } else {
         mode = mode_props.displayMode;
-        demo->width = mode_props.parameters.visibleRegion.width;
-        demo->height = mode_props.parameters.visibleRegion.height;
+        demo->width = (int32_t)mode_props.parameters.visibleRegion.width;
+        demo->height = (int32_t)mode_props.parameters.visibleRegion.height;
     }
 
     // Get the list of planes
