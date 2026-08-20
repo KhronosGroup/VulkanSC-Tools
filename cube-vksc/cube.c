@@ -421,6 +421,7 @@ struct demo {
     bool use_break;
     bool suppress_popups;
     bool force_errors;
+    bool prefer_native_display_mode;
 
     VkDebugUtilsMessengerEXT dbg_messenger;
 
@@ -1224,6 +1225,12 @@ static void demo_prepare_buffers(struct demo *demo) {
     uint32_t i;
     err = pfnCreateSwapchainKHR(demo->device, &swapchain_ci, NULL, &demo->swapchain);
     if (err) {
+        if (demo->wsi_platform == WSI_PLATFORM_DISPLAY) {
+            ERR_EXIT("vkCreateSwapchainKHR failed.\n\n"
+                     "Some implementations only support swapchain creation at the display's\n"
+                     "native panel resolution.  Try running with --native-resolution.\n",
+                     "vkCreateSwapchainKHR Failure");
+        }
         ERR_EXIT("vkCreateSwapchainKHR failed.\n", "vkCreateSwapchainKHR Failure");
     }
 
@@ -2470,10 +2477,48 @@ static VkResult demo_create_display_surface(struct demo *demo) {
         exit(1);
     }
 
-    mode_count = 1;
-    err = vkGetDisplayModePropertiesKHR(demo->gpu, demo->display, &mode_count, &mode_props);
-    assert(!err || (err == VK_INCOMPLETE));
+    // By default use the first enumerated mode.  Pass --native-resolution to
+    // select the mode matching the display's native panel resolution instead,
+    // preferring the highest refresh rate among native-resolution modes (some
+    // implementations only support swapchain creation at the display's
+    // highest native rate).
+    uint32_t total_mode_count = mode_count;
+
+#define MAX_DISPLAY_MODE_COUNT 256
+    {
+        VkDisplayModePropertiesKHR all_modes[MAX_DISPLAY_MODE_COUNT];
+        uint32_t mode_cnt = total_mode_count < MAX_DISPLAY_MODE_COUNT ? total_mode_count : MAX_DISPLAY_MODE_COUNT;
+        err = vkGetDisplayModePropertiesKHR(demo->gpu, demo->display, &mode_cnt, all_modes);
+        assert(!err || (err == VK_INCOMPLETE));
+
+        if (demo->prefer_native_display_mode) {
+            // --native-resolution: find the native-panel-resolution mode with
+            // the highest refresh rate.
+            VkExtent2D native_res = display_props.physicalResolution;
+            bool found = false;
+            for (uint32_t mi = 0; mi < mode_cnt; mi++) {
+                VkExtent2D r = all_modes[mi].parameters.visibleRegion;
+                if (r.width != native_res.width || r.height != native_res.height) continue;
+                if (!found || all_modes[mi].parameters.refreshRate > mode_props.parameters.refreshRate) {
+                    mode_props = all_modes[mi];
+                    found = true;
+                }
+            }
+            if (!found) {
+                fprintf(stderr, "Warning: --native-resolution: no mode matching native resolution "
+                        "%ux%u found, falling back to mode[0].\n",
+                        native_res.width, native_res.height);
+                mode_props = all_modes[0];
+            }
+        } else {
+            // Default: use mode[0].
+            mode_props = all_modes[0];
+        }
+    }
+#undef MAX_DISPLAY_MODE_COUNT
+
     if (demo->width != -1 && demo->height != -1) {
+        // User specified a resolution — try to find or create that mode.
         VkDisplayModeCreateInfoKHR mode_create_info;
         mode_create_info.sType = VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR;
         mode_create_info.pNext = NULL;
@@ -3360,6 +3405,10 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
             demo->suppress_popups = true;
             continue;
         }
+        if (strcmp(argv[i], "--native-resolution") == 0) {
+            demo->prefer_native_display_mode = true;
+            continue;
+        }
         if (strcmp(argv[i], "--incremental_present") == 0) {
             demo->VK_KHR_incremental_present_enabled = true;
             continue;
@@ -3419,6 +3468,7 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
             "\t[--width <width>] [--height <height>]\n"
             "\t[--force_errors]\n"
             "\t[--wsi <%s>]\n"
+            "\t[--native-resolution]\n"
             "\t<present_mode_enum>\n"
             "\t\tVK_PRESENT_MODE_IMMEDIATE_KHR = %d\n"
             "\t\tVK_PRESENT_MODE_MAILBOX_KHR = %d\n"
