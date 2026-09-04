@@ -953,7 +953,7 @@ static void demo_draw(struct demo *demo) {
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers = &demo->swapchain_image_resources[demo->current_buffer].cmd;
     submit_info.signalSemaphoreCount = semaphore_count;
-    submit_info.pSignalSemaphores = &demo->draw_complete_semaphores[demo->image_index];
+    submit_info.pSignalSemaphores = &demo->draw_complete_semaphores[demo->current_buffer];
     err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, demo->fences[demo->frame_index]);
     assert(!err);
 
@@ -971,11 +971,11 @@ static void demo_draw(struct demo *demo) {
         VkFence nullFence = VK_NULL_HANDLE;
         pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         submit_info.waitSemaphoreCount = 1;
-        submit_info.pWaitSemaphores = &demo->draw_complete_semaphores[demo->image_index];
+        submit_info.pWaitSemaphores = &demo->draw_complete_semaphores[demo->current_buffer];
         submit_info.commandBufferCount = 1;
         submit_info.pCommandBuffers = &demo->swapchain_image_resources[demo->current_buffer].graphics_to_present_cmd;
         submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores = &demo->image_ownership_semaphores[demo->image_index];
+        submit_info.pSignalSemaphores = &demo->image_ownership_semaphores[demo->current_buffer];
         err = vkQueueSubmit(demo->present_queue, 1, &submit_info, nullFence);
         assert(!err);
     }
@@ -986,8 +986,8 @@ static void demo_draw(struct demo *demo) {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = NULL,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = (demo->separate_present_queue) ? &demo->image_ownership_semaphores[demo->image_index]
-                                                          : &demo->draw_complete_semaphores[demo->image_index],
+        .pWaitSemaphores = (demo->separate_present_queue) ? &demo->image_ownership_semaphores[demo->current_buffer]
+                                                          : &demo->draw_complete_semaphores[demo->current_buffer],
         .swapchainCount = 1,
         .pSwapchains = &demo->swapchain,
         .pImageIndices = &demo->current_buffer,
