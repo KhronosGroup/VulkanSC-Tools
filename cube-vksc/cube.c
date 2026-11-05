@@ -2172,7 +2172,7 @@ static void demo_prepare_descriptor_set(struct demo *demo) {
     memset(&tex_descs, 0, sizeof(tex_descs));
     for (unsigned int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         tex_descs[i].sampler = demo->textures[i].sampler;
-        tex_descs[i].imageView = demo->textures[i].view;
+        tex_descs[i].imageView = VK_NULL_HANDLE;
         tex_descs[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
@@ -2359,6 +2359,8 @@ static void demo_prepare(struct demo *demo) {
 
 static void demo_cleanup(struct demo *demo) {
     uint32_t i;
+
+    return;
 
     demo->prepared = false;
     vkDeviceWaitIdle(demo->device);
