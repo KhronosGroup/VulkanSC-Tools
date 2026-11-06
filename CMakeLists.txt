@@ -58,6 +58,7 @@ option(BUILD_WERROR "Treat compiler warnings as errors")
 # NOTE: Our custom code generation target isn't desirable for system package managers or add_subdirectory users.
 # So this target needs to be off by default to avoid obtuse build errors or patches.
 option(TOOLS_CODEGEN "Enable helper codegen target")
+option(INSTALL_CUBEVKSC_SRC "Install cube-vksc source")
 
 if(NOT VULKANSC)
     set(BUILD_VKSC_DEVSIM OFF CACHE BOOL "Vulkan SC device simulation layer is not supported for Vulkan" FORCE)

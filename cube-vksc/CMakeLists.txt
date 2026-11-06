@@ -16,6 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ~~~
+cmake_minimum_required(VERSION 3.22.1)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    project(cube-vksc)
+endif()
 
 option(BUILD_WSI_DISPLAY_SUPPORT "Build DISPLAY WSI support" ON)
 option(REBUILD_PIPELINE_CACHE "Rebuild pipeline cache" OFF)
@@ -144,7 +149,7 @@ target_compile_definitions(vkcube PRIVATE ${ENABLED_CUBE_PLATFORMS})
 target_include_directories(vkcube PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}") # xyz_loader.h, linmath.h, etc.
 set_target_properties(vkcube PROPERTIES OUTPUT_NAME vksccube)
 
-if(NOT REBUILD_PIPELINE_CACHE)
+if(VulkanHeaders_FOUND)
     # We have to manually search for VulkanSC library, due to currently lacking a `Vulkan::Vulkan` equivalent target in Vulkan SC.
     if(WIN32)
       set(_VulkanSC_library_name vulkansc-1)
@@ -158,7 +163,14 @@ if(NOT REBUILD_PIPELINE_CACHE)
 
     target_link_libraries(vkcube PRIVATE Vulkan::Headers "${VulkanSC_LIBRARY}")
 else()
+    if(NOT VulkanSC_FOUND)
+        find_package(VulkanSC CONFIG REQUIRED)
+    endif()
     target_link_libraries(vkcube PRIVATE VulkanSC::VulkanSC)
 endif()
 
 install(TARGETS vkcube)
+
+if(INSTALL_CUBEVKSC_SRC)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION src)
+endif()
