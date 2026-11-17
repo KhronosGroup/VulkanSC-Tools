@@ -28,6 +28,7 @@
  *
  */
 
+#include <ctime>
 #include <string>
 #ifdef _WIN32
 #include <crtdbg.h>
@@ -547,6 +548,39 @@ void GpuDumpMemoryProps(Printer &p, AppGpu &gpu) {
                     if (!regular && transient && !sparse) p.PrintString("(transient only)");
                 }
             }
+
+            if (gpu.inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
+                IndentWrapper indent_ext_mem(p);
+                ObjectWrapper ext_mem(p, "external memory");
+                {
+                    ArrayWrapper ext_mem_import(p, "import");
+                    bool has_any_support_types = false;
+                    for (auto &external_memory : gpu.external_memory_import_support_types) {
+                        if (external_memory.Compatible(memtype_bit)) {
+                            p.PrintString(VkExternalMemoryHandleTypeFlagBitsGetStrings(external_memory.type)[0]);
+                            has_any_support_types = true;
+                        }
+                    }
+                    if (!has_any_support_types) {
+                        p.PrintString("None");
+                    }
+                }
+                {
+                    ArrayWrapper ext_mem_export(p, "export");
+                    bool has_any_support_types = false;
+                    for (auto &external_memory : gpu.external_memory_export_support_types) {
+                        if (external_memory.Compatible(memtype_bit)) {
+                            p.PrintString(VkExternalMemoryHandleTypeFlagBitsGetStrings(external_memory.type)[0]);
+                            has_any_support_types = true;
+                        }
+                    }
+                    if (!has_any_support_types) {
+                        p.PrintString("None");
+                    }
+                }
+            }
+
+            p.AddNewline();
         }
     }
     p.AddNewline();
@@ -1132,7 +1166,7 @@ void DumpGpuProfileCapabilities(Printer &p, AppGpu &gpu, bool show_promoted_stru
 #endif  // VULKANSC
 }
 void PrintProfileBaseInfo(Printer &p, const std::string &device_name, uint32_t apiVersion, const std::string &device_label,
-                          const std::vector<std::string> &capabilities) {
+                          const std::vector<std::string> &capabilities, bool no_date) {
     ObjectWrapper vk_info(p, device_name);
     p.PrintKeyValue("version", 1);
     p.PrintKeyString("api-version", APIVersion(apiVersion).str());
@@ -1145,11 +1179,13 @@ void PrintProfileBaseInfo(Printer &p, const std::string &device_name, uint32_t a
         ArrayWrapper contributors(p, "history");
         ObjectWrapper element(p, "");
         p.PrintKeyValue("revision", 1);
-        std::time_t t = std::time(0);  // get time now
-        std::tm *now = std::localtime(&t);
-        std::string date =
-            std::to_string(now->tm_year + 1900) + '-' + std::to_string(now->tm_mon + 1) + '-' + std::to_string(now->tm_mday);
-        p.PrintKeyString("date", date);
+        if (!no_date) {
+            std::time_t t = std::time(0);  // get time now
+            std::tm *now = std::localtime(&t);
+            std::string date =
+                std::to_string(now->tm_year + 1900) + '-' + std::to_string(now->tm_mon + 1) + '-' + std::to_string(now->tm_mday);
+            p.PrintKeyString("date", date);
+        }
         p.PrintKeyString("author", std::string("Automated export from ") + APP_SHORT_NAME);
         p.PrintKeyString("comment", "");
     }
@@ -1158,7 +1194,7 @@ void PrintProfileBaseInfo(Printer &p, const std::string &device_name, uint32_t a
 }
 
 // Prints profiles section of profiles schema
-void DumpGpuProfileInfo(Printer &p, AppGpu &gpu) {
+void DumpGpuProfileInfo(Printer &p, AppGpu &gpu, bool no_date) {
     ObjectWrapper profiles(p, "profiles");
 
     std::string device_label = std::string(gpu.props.deviceName) + " driver " + gpu.GetDriverVersionString();
@@ -1168,13 +1204,13 @@ void DumpGpuProfileInfo(Printer &p, AppGpu &gpu) {
     for (auto &c : device_name) {
         if (c == ' ' || c == '.') c = '_';
     }
-    PrintProfileBaseInfo(p, device_name, gpu.props.apiVersion, device_label, {"device"});
+    PrintProfileBaseInfo(p, device_name, gpu.props.apiVersion, device_label, {"device"}, no_date);
 #if defined(VK_ENABLE_BETA_EXTENSIONS)
     if (gpu.CheckPhysicalDeviceExtensionIncluded(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) &&
         (gpu.inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) ||
          gpu.inst.api_version >= VK_API_VERSION_1_1)) {
         PrintProfileBaseInfo(p, device_name + "_portability_subset", gpu.props.apiVersion, device_label + " subset",
-                             {"device", "macos-specific"});
+                             {"device", "macos-specific"}, no_date);
     }
 #endif  // defined(VK_ENABLE_BETA_EXTENSIONS)
 }
@@ -1274,6 +1310,8 @@ enum class OutputCategory { text, html, profile_json, vkconfig_output, summary }
 const char *help_message_body =
     "OPTIONS:\n"
     "[-h, --help]         Print this help.\n"
+    "Note: --summary, --text, --html, --json, and --vkconfig_output select the output\n"
+    "      format and are mutually exclusive; specify at most one.\n"
     "[--summary]          Show a summary of the instance and GPU's on a system.\n"
     "[-o <filename>, --output <filename>]\n"
     "                     Print output to a new file whose name is specified by filename.\n"
@@ -1298,6 +1336,7 @@ const char *help_message_body =
     "                     interest. This number can be determined by running\n"
     "                     " APP_SHORT_NAME
     " without any options specified.\n"
+    "[--no-date]          Omit the date from JSON output.\n"
     "[--show-all]         Show everything (includes all the below options)\n"
     "[--show-tool-props]  Show the active VkPhysicalDeviceToolPropertiesEXT that " APP_SHORT_NAME
     " finds.\n"
@@ -1336,6 +1375,7 @@ struct ParsedResults {
     bool has_selected_gpu = false;  // differentiate between selecting the 0th gpu and using the default 0th value
     ShowSettings show;
     bool print_to_file = false;
+    bool no_date = false;
     std::string filename;  // set if explicitly given, or if vkconfig_output has a <path> argument
     std::string default_filename;
 };
@@ -1343,12 +1383,18 @@ struct ParsedResults {
 util::vulkaninfo_optional<ParsedResults> parse_arguments(int argc, char **argv, std::string executable_name) {
     ParsedResults results{};
     results.default_filename = APP_SHORT_NAME ".txt";
+    // Output formats are mutually exclusive, so record every format requested and reject more than one distinct format.
+    std::set<OutputCategory> requested_categories;
+    auto set_output_category = [&](OutputCategory category) {
+        results.output_category = category;
+        requested_categories.insert(category);
+    };
     for (int i = 1; i < argc; ++i) {
         // A internal-use-only format for communication with the Vulkan Configurator tool
         // Usage "--vkconfig_output <path>"
         // -o can be used to specify the filename instead
         if (0 == strcmp("--vkconfig_output", argv[i])) {
-            results.output_category = OutputCategory::vkconfig_output;
+            set_output_category(OutputCategory::vkconfig_output);
             results.print_to_file = true;
             results.default_filename = APP_SHORT_NAME ".json";
             if (argc > (i + 1) && argv[i + 1][0] != '-') {
@@ -1360,6 +1406,7 @@ util::vulkaninfo_optional<ParsedResults> parse_arguments(int argc, char **argv, 
                 ++i;
             }
         } else if (strncmp("--json", argv[i], 6) == 0 || strncmp(argv[i], "-j", 2) == 0) {
+            set_output_category(OutputCategory::profile_json);
             if (strlen(argv[i]) > 7 && strncmp("--json=", argv[i], 7) == 0) {
                 results.selected_gpu = static_cast<uint32_t>(strtol(argv[i] + 7, nullptr, 10));
                 results.has_selected_gpu = true;
@@ -1368,18 +1415,19 @@ util::vulkaninfo_optional<ParsedResults> parse_arguments(int argc, char **argv, 
                 results.selected_gpu = static_cast<uint32_t>(strtol(argv[i] + 3, nullptr, 10));
                 results.has_selected_gpu = true;
             }
-            results.output_category = OutputCategory::profile_json;
             results.default_filename = APP_SHORT_NAME ".json";
             results.print_to_file = true;
         } else if (strcmp(argv[i], "--summary") == 0) {
-            results.output_category = OutputCategory::summary;
+            set_output_category(OutputCategory::summary);
         } else if (strcmp(argv[i], "--text") == 0) {
-            results.output_category = OutputCategory::text;
+            set_output_category(OutputCategory::text);
             results.default_filename = APP_SHORT_NAME ".txt";
         } else if (strcmp(argv[i], "--html") == 0) {
-            results.output_category = OutputCategory::html;
+            set_output_category(OutputCategory::html);
             results.print_to_file = true;
             results.default_filename = APP_SHORT_NAME ".html";
+        } else if (strcmp(argv[i], "--no-date") == 0) {
+            results.no_date = true;
         } else if (strcmp(argv[i], "--show-all") == 0) {
             results.show.all = true;
             results.show.tool_props = true;
@@ -1411,6 +1459,11 @@ util::vulkaninfo_optional<ParsedResults> parse_arguments(int argc, char **argv, 
             print_usage(executable_name);
             return {};
         }
+    }
+    if (requested_categories.size() > 1) {
+        std::cerr << "Error: --summary, --text, --html, --json, and --vkconfig_output cannot be combined. "
+                     "Only one output format may be specified.\n";
+        return {};
     }
     return results;
 }
@@ -1468,7 +1521,7 @@ void RunPrinter(Printer &p, ParsedResults parse_data, AppInstance &instance, std
         }
     } else if (parse_data.output_category == OutputCategory::profile_json) {
         DumpGpuProfileCapabilities(p, *(gpus.at(parse_data.selected_gpu).get()), parse_data.show.promoted_structs);
-        DumpGpuProfileInfo(p, *(gpus.at(parse_data.selected_gpu).get()));
+        DumpGpuProfileInfo(p, *(gpus.at(parse_data.selected_gpu).get()), parse_data.no_date);
     } else {
         // text, html, vkconfig_output
         p.SetHeader();

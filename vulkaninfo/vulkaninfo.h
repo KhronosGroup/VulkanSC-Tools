@@ -371,12 +371,14 @@ struct AppVideoProfile {
     using CreateCapabilitiesChainCb = std::function<std::unique_ptr<video_capabilities_chain>(void **)>;
     struct CreateFormatPropertiesChainCb {
         std::string format_name;
-        VkImageUsageFlags image_usage_flags;
+        VkImageUsageFlags2KHR image_usage_flags;
         std::function<bool(const VkVideoCapabilitiesKHR &capabilities)> check_required_caps;
         std::function<std::unique_ptr<video_format_properties_chain>(void **)> callback;
     };
     using CreateFormatPropertiesChainCbList = std::vector<CreateFormatPropertiesChainCb>;
     using InitProfileCb = std::function<void(AppVideoProfile &)>;
+
+    bool IsImageUsageFlags2Supported(AppGpu &gpu) const;
 
     AppVideoProfile(AppGpu &gpu, VkPhysicalDevice phys_device, const std::string &in_name,
                     const VkVideoProfileInfoKHR &in_profile_info, CreateProfileInfoChainCb create_profile_info_chain,
@@ -414,9 +416,24 @@ struct AppVideoProfile {
                 continue;
             }
 
+            VkImageUsageFlags2CreateInfoKHR image_usage_flags2_info = {VK_STRUCTURE_TYPE_IMAGE_USAGE_FLAGS_2_CREATE_INFO_KHR,
+                                                                       &profile_list};
             VkPhysicalDeviceVideoFormatInfoKHR video_format_info = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR,
-                                                                    &profile_list,
-                                                                    create_format_properties_chain_info.image_usage_flags};
+                                                                    &profile_list};
+
+            if (create_format_properties_chain_info.image_usage_flags <= VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM) {
+                // Regular 32-bit VkImageUsageFlags is sufficient
+                video_format_info.imageUsage =
+                    static_cast<VkImageUsageFlags>(create_format_properties_chain_info.image_usage_flags);
+            } else {
+                if (!IsImageUsageFlags2Supported(gpu)) {
+                    // This format uses one of the 64-bit flag bits therefore requires VkImageUsageFlags2KHR
+                    continue;
+                }
+                // Include VkImageUsageFlags2CreateInfoKHR in the input chain
+                image_usage_flags2_info.usage = create_format_properties_chain_info.image_usage_flags;
+                video_format_info.pNext = &image_usage_flags2_info;
+            }
 
             uint32_t video_format_property_count = 0;
             result =
@@ -701,6 +718,9 @@ struct AppInstance {
             if (strcmp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
             }
+            if (strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, ext.extensionName) == 0) {
+                inst_extensions.push_back(ext.extensionName);
+            }
             if (strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
             }
@@ -708,6 +728,9 @@ struct AppInstance {
                 inst_extensions.push_back(ext.extensionName);
             }
             if (strcmp(VK_KHR_SURFACE_EXTENSION_NAME, ext.extensionName) == 0) {
+                inst_extensions.push_back(ext.extensionName);
+            }
+            if (strcmp(VK_KHR_SURFACE_MAINTENANCE_1_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
             }
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -779,6 +802,12 @@ struct AppInstance {
             if (strcmp(VK_KHR_DISPLAY_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
             }
+            if (strcmp(VK_EXT_DIRECT_MODE_DISPLAY_EXTENSION_NAME, ext.extensionName) == 0) {
+                inst_extensions.push_back(ext.extensionName);
+            }
+            if (strcmp(VK_EXT_DISPLAY_SURFACE_COUNTER_EXTENSION_NAME, ext.extensionName) == 0) {
+                inst_extensions.push_back(ext.extensionName);
+            }
 #endif
             if (strcmp(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
@@ -793,6 +822,9 @@ struct AppInstance {
                 inst_extensions.push_back(ext.extensionName);
             }
             if (strcmp(VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME, ext.extensionName) == 0) {
+                inst_extensions.push_back(ext.extensionName);
+            }
+            if (strcmp(VK_NV_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, ext.extensionName) == 0) {
                 inst_extensions.push_back(ext.extensionName);
             }
         }
@@ -1675,6 +1707,13 @@ util::vulkaninfo_optional<ImageTypeSupport> FillImageTypeSupport(AppInstance &in
     return {};
 }
 
+struct ExternalMemorySupport {
+    VkExternalMemoryHandleTypeFlagBits type;
+    uint32_t memoryTypeBits;
+
+    bool Compatible(uint32_t memtype_bit) { return memoryTypeBits & memtype_bit; }
+};
+
 struct FormatRange {
     // the Vulkan standard version that supports this format range, or 0 if non-standard
     APIVersion minimum_instance_version;
@@ -1747,6 +1786,9 @@ struct AppGpu {
     VkPhysicalDeviceMemoryProperties2KHR memory_props2{};
 
     std::vector<ImageTypeInfos> memory_image_support_types;
+
+    std::vector<ExternalMemorySupport> external_memory_import_support_types;
+    std::vector<ExternalMemorySupport> external_memory_export_support_types;
 
     VkPhysicalDeviceFeatures features{};
     VkPhysicalDeviceFeatures2KHR features2{};
@@ -1892,13 +1934,16 @@ struct AppGpu {
         }
 
         std::vector<const char *> extensions_to_enable;
-#ifdef VK_ENABLE_BETA_EXTENSIONS
         for (const auto &extension : device_extensions) {
+            if (std::string(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME) == extension.extensionName) {
+                extensions_to_enable.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
+            }
+#ifdef VK_ENABLE_BETA_EXTENSIONS
             if (std::string(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) == extension.extensionName) {
                 extensions_to_enable.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
             }
-        }
 #endif
+        }
 
         const float queue_priority = 1.0f;
         // pick the first queue index and hope for the best
@@ -2016,6 +2061,62 @@ struct AppGpu {
         }
         // TODO buffer - memory type compatibility
 
+        // External Memory Support
+        if (inst.CheckExtensionEnabled(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) &&
+            CheckPhysicalDeviceExtensionIncluded(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME)) {
+            structure = (struct VkBaseOutStructure *)props2.pNext;
+
+            while (structure) {
+                if (structure->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT) {
+
+                    // VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT
+                    {
+                        ExternalMemorySupport external_memory_support;
+                        external_memory_support.type = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+
+                        // Get alignment value from physical device properties
+                        const VkPhysicalDeviceExternalMemoryHostPropertiesEXT *props =
+                            reinterpret_cast<VkPhysicalDeviceExternalMemoryHostPropertiesEXT *>(structure);
+
+                        // Skip if the alignment is invalid.
+                        const VkDeviceSize host_alignment = props->minImportedHostPointerAlignment;
+                        if (host_alignment == 0 || (host_alignment & (host_alignment - 1)) != 0) {
+                            break;
+                        }
+
+                        // Allocate plain host pointer
+                        size_t size = static_cast<size_t>(host_alignment);
+                        std::align_val_t alignment = static_cast<std::align_val_t>(host_alignment);
+                        void *memory = ::operator new[](size, alignment);
+
+                        // Get memory properties of the host pointer
+                        VkMemoryHostPointerPropertiesEXT memory_host_pointer_properties{};
+                        memory_host_pointer_properties.sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT;
+                        VkResult host_ptr_err = vkGetMemoryHostPointerPropertiesEXT(dev, external_memory_support.type, memory,
+                                                                                    &memory_host_pointer_properties);
+
+                        // Free host pointer
+                        ::operator delete[](memory, alignment);
+
+                        if (host_ptr_err) THROW_VK_ERR("vkGetMemoryHostPointerPropertiesEXT", host_ptr_err);
+
+                        external_memory_support.memoryTypeBits = memory_host_pointer_properties.memoryTypeBits;
+
+                        external_memory_import_support_types.push_back(external_memory_support);
+                    }
+
+                    // VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT
+                    {
+                        // unimplementable
+                    }
+
+                    break;
+                }
+
+                structure = structure->pNext;
+            }
+        }
+
         // Video //
 #ifndef VULKANSC
         video_profiles = enumerate_supported_video_profiles(*this);
@@ -2112,6 +2213,11 @@ struct AppGpu {
         return NULL;
     }
 };
+
+bool AppVideoProfile::IsImageUsageFlags2Supported(AppGpu &gpu) const {
+    // VkImageUsageFlags2KHR requires VK_KHR_extended_flags
+    return gpu.CheckPhysicalDeviceExtensionIncluded(VK_KHR_EXTENDED_FLAGS_EXTENSION_NAME);
+}
 
 std::vector<VkPhysicalDeviceToolPropertiesEXT> GetToolingInfo(AppGpu &gpu) {
     if (vkGetPhysicalDeviceToolPropertiesEXT == nullptr) return {};

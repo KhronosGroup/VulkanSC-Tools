@@ -23,7 +23,7 @@ option(VULKANSC "Build Vulkan SC tools" ON)
 if(VULKANSC)
     project(Vulkan-Tools VERSION 1.0.22) # vulkansc
 else()
-    project(Vulkan-Tools VERSION 1.4.356) # vulkan
+    project(Vulkan-Tools VERSION 1.4.368) # vulkan
 endif()
 
 # This variable enables downstream users to customize the target API
@@ -81,6 +81,11 @@ endif()
 
 if(VULKANSC)
     find_package(VulkanUtilityLibraries REQUIRED CONFIG QUIET)
+endif()
+
+# Workaround AppleClang using the wrong headers when there are headers in /usr/local/include
+if (CMAKE_C_COMPILER_ID STREQUAL AppleClang AND TARGET Vulkan::Headers AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.25)
+    set_target_properties(Vulkan::Headers PROPERTIES SYSTEM OFF)
 endif()
 
 include(GNUInstallDirs)

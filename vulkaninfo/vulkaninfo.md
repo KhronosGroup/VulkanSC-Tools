@@ -61,6 +61,8 @@ USAGE:
 
 OPTIONS:
 [-h, --help]        Print this help.
+Note: --summary, --text, --html, and --json select the output format and are
+      mutually exclusive; specify at most one.
 [--summary]         Show a summary of the instance and GPU's on a system.
 [-o <filename>, --output <filename>]
                     Print output to a new file whose name is specified by filename.
@@ -79,6 +81,7 @@ OPTIONS:
                     specifying the gpu-number associated with the gpu of
                     interest. This number can be determined by running
                     vulkaninfo without any options specified.
+[--no-date]         Omit the date from JSON output.
 [--show-all]        Show everything (includes all the below options)
 [--show-formats]    Display the format properties of each physical device.
                     Note: This only affects text output.

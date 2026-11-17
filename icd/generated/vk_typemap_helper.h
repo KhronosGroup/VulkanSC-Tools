@@ -6188,6 +6188,18 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_RESOLVE_IMAGE_MODE_INFO_KHR> {
     typedef VkResolveImageModeInfoKHR Type;
 };
 
+// Map type VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_KHR
+template <>
+struct LvlTypeMap<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_KHR;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_KHR> {
+    typedef VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR Type;
+};
+
 // Map type VkPhysicalDeviceMaintenance11FeaturesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_11_FEATURES_KHR
 template <>
 struct LvlTypeMap<VkPhysicalDeviceMaintenance11FeaturesKHR> {
@@ -6286,6 +6298,28 @@ struct LvlTypeMap<VkSharedPresentSurfaceCapabilities2KHR> {
 template <>
 struct LvlSTypeMap<VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_2_KHR> {
     typedef VkSharedPresentSurfaceCapabilities2KHR Type;
+};
+
+// Map type VkPhysicalDeviceMaintenance12FeaturesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_FEATURES_KHR
+template <>
+struct LvlTypeMap<VkPhysicalDeviceMaintenance12FeaturesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_FEATURES_KHR;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_FEATURES_KHR> {
+    typedef VkPhysicalDeviceMaintenance12FeaturesKHR Type;
+};
+
+// Map type VkPhysicalDeviceMaintenance12PropertiesKHR to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_PROPERTIES_KHR
+template <>
+struct LvlTypeMap<VkPhysicalDeviceMaintenance12PropertiesKHR> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_PROPERTIES_KHR;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_PROPERTIES_KHR> {
+    typedef VkPhysicalDeviceMaintenance12PropertiesKHR Type;
 };
 
 // Map type VkDebugReportCallbackCreateInfoEXT to id VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT
@@ -11998,18 +12032,6 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPER
     typedef VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM Type;
 };
 
-// Map type VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT to id
-// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT
-template <>
-struct LvlTypeMap<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT> {
-    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT;
-};
-
-template <>
-struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT> {
-    typedef VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT Type;
-};
-
 // Map type VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT to id
 // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT
 template <>
@@ -13847,6 +13869,40 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_OCCUPANCY_PRIORITY_
     typedef VkPhysicalDeviceComputeOccupancyPriorityFeaturesNV Type;
 };
 
+// Map type VkCooperativeMatrixProperties2EXT to id VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_2_EXT
+template <>
+struct LvlTypeMap<VkCooperativeMatrixProperties2EXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_2_EXT;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_2_EXT> {
+    typedef VkCooperativeMatrixProperties2EXT Type;
+};
+
+// Map type VkPhysicalDeviceCooperativeMatrixInfo2EXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_INFO_2_EXT
+template <>
+struct LvlTypeMap<VkPhysicalDeviceCooperativeMatrixInfo2EXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_INFO_2_EXT;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_INFO_2_EXT> {
+    typedef VkPhysicalDeviceCooperativeMatrixInfo2EXT Type;
+};
+
+// Map type VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_MAINTENANCE_1_FEATURES_EXT
+template <>
+struct LvlTypeMap<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_MAINTENANCE_1_FEATURES_EXT;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_MAINTENANCE_1_FEATURES_EXT> {
+    typedef VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT Type;
+};
+
 // Map type VkPhysicalDeviceShaderSubgroupPartitionedFeaturesEXT to id
 // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_PARTITIONED_FEATURES_EXT
 template <>
@@ -13872,6 +13928,18 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_UBM_SURFACE_CREATE_INFO_SEC> {
 };
 
 #endif  // VK_USE_PLATFORM_UBM_SEC
+// Map type VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_LAYOUTS_FEATURES_ARM
+template <>
+struct LvlTypeMap<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_LAYOUTS_FEATURES_ARM;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_LAYOUTS_FEATURES_ARM> {
+    typedef VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM Type;
+};
+
 // Map type VkPhysicalDeviceShaderOCPMicroscalingTypesFeaturesEXT to id
 // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OCP_MICROSCALING_TYPES_FEATURES_EXT
 template <>
@@ -13966,6 +14034,40 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_RESTART_INDEX_FEA
     typedef VkPhysicalDevicePrimitiveRestartIndexFeaturesEXT Type;
 };
 
+// Map type VkPhysicalDeviceVertexAddressBindingUnrestrictedFeaturesEXT to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ADDRESS_BINDING_UNRESTRICTED_FEATURES_EXT
+template <>
+struct LvlTypeMap<VkPhysicalDeviceVertexAddressBindingUnrestrictedFeaturesEXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ADDRESS_BINDING_UNRESTRICTED_FEATURES_EXT;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ADDRESS_BINDING_UNRESTRICTED_FEATURES_EXT> {
+    typedef VkPhysicalDeviceVertexAddressBindingUnrestrictedFeaturesEXT Type;
+};
+
+// Map type VkPhysicalDeviceImageTilingControlFeaturesEXT to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_TILING_CONTROL_FEATURES_EXT
+template <>
+struct LvlTypeMap<VkPhysicalDeviceImageTilingControlFeaturesEXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_TILING_CONTROL_FEATURES_EXT;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_TILING_CONTROL_FEATURES_EXT> {
+    typedef VkPhysicalDeviceImageTilingControlFeaturesEXT Type;
+};
+
+// Map type VkImageTilingControlCreateInfoEXT to id VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT
+template <>
+struct LvlTypeMap<VkImageTilingControlCreateInfoEXT> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT> {
+    typedef VkImageTilingControlCreateInfoEXT Type;
+};
+
 // Map type VkPhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV to id
 // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_DECODE_VECTOR_FEATURES_NV
 template <>
@@ -13976,6 +14078,101 @@ struct LvlTypeMap<VkPhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV> {
 template <>
 struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_DECODE_VECTOR_FEATURES_NV> {
     typedef VkPhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV Type;
+};
+
+// Map type VkPhysicalDevicePrivateDataBaseHandleFeaturesNV to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_BASE_HANDLE_FEATURES_NV
+template <>
+struct LvlTypeMap<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_BASE_HANDLE_FEATURES_NV;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_BASE_HANDLE_FEATURES_NV> {
+    typedef VkPhysicalDevicePrivateDataBaseHandleFeaturesNV Type;
+};
+
+// Map type VkPhysicalDeviceInfoPropertiesINTEL to id VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INFO_PROPERTIES_INTEL
+template <>
+struct LvlTypeMap<VkPhysicalDeviceInfoPropertiesINTEL> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INFO_PROPERTIES_INTEL;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INFO_PROPERTIES_INTEL> {
+    typedef VkPhysicalDeviceInfoPropertiesINTEL Type;
+};
+
+// Map type VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_FEATURES_VALVE
+template <>
+struct LvlTypeMap<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE> {
+    static const VkStructureType kSType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_FEATURES_VALVE;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_FEATURES_VALVE> {
+    typedef VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE Type;
+};
+
+// Map type VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_PROPERTIES_VALVE
+template <>
+struct LvlTypeMap<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE> {
+    static const VkStructureType kSType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_PROPERTIES_VALVE;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_PROPERTIES_VALVE> {
+    typedef VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE Type;
+};
+
+// Map type VkBufferDeviceAddressAlignmentAllocateInfoVALVE to id
+// VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_ALIGNMENT_ALLOCATE_INFO_VALVE
+template <>
+struct LvlTypeMap<VkBufferDeviceAddressAlignmentAllocateInfoVALVE> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_ALIGNMENT_ALLOCATE_INFO_VALVE;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_ALIGNMENT_ALLOCATE_INFO_VALVE> {
+    typedef VkBufferDeviceAddressAlignmentAllocateInfoVALVE Type;
+};
+
+// Map type VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE to id
+// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_SMPTE_ST_209450_FEATURES_GOOGLE
+template <>
+struct LvlTypeMap<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_SMPTE_ST_209450_FEATURES_GOOGLE;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_SMPTE_ST_209450_FEATURES_GOOGLE> {
+    typedef VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE Type;
+};
+
+// Map type VkHdrSmpteSt209450GOOGLE to id VK_STRUCTURE_TYPE_HDR_SMPTE_ST_209450_GOOGLE
+template <>
+struct LvlTypeMap<VkHdrSmpteSt209450GOOGLE> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_HDR_SMPTE_ST_209450_GOOGLE;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_HDR_SMPTE_ST_209450_GOOGLE> {
+    typedef VkHdrSmpteSt209450GOOGLE Type;
+};
+
+// Map type VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE to id VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_HDR_SMPTE_ST_209450_GOOGLE
+template <>
+struct LvlTypeMap<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE> {
+    static const VkStructureType kSType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_HDR_SMPTE_ST_209450_GOOGLE;
+};
+
+template <>
+struct LvlSTypeMap<VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_HDR_SMPTE_ST_209450_GOOGLE> {
+    typedef VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE Type;
 };
 
 // Map type VkAccelerationStructureGeometryTrianglesDataKHR to id
@@ -14228,21 +14425,21 @@ struct LvlSTypeMap<VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_EXT>
 // Header "base class" for pNext chain traversal
 struct LvlGenericHeader {
     VkStructureType sType;
-    const LvlGenericHeader *pNext;
+    const LvlGenericHeader* pNext;
 };
 struct LvlGenericModHeader {
     VkStructureType sType;
-    LvlGenericModHeader *pNext;
+    LvlGenericModHeader* pNext;
 };
 
 // Find an entry of the given type in the pNext chain
 template <typename T>
-const T *lvl_find_in_chain(const void *next) {
-    const LvlGenericHeader *current = reinterpret_cast<const LvlGenericHeader *>(next);
-    const T *found = nullptr;
+const T* lvl_find_in_chain(const void* next) {
+    const LvlGenericHeader* current = reinterpret_cast<const LvlGenericHeader*>(next);
+    const T* found = nullptr;
     while (current) {
         if (LvlTypeMap<T>::kSType == current->sType) {
-            found = reinterpret_cast<const T *>(current);
+            found = reinterpret_cast<const T*>(current);
             current = nullptr;
         } else {
             current = current->pNext;
@@ -14252,12 +14449,12 @@ const T *lvl_find_in_chain(const void *next) {
 }
 // Find an entry of the given type in the pNext chain
 template <typename T>
-T *lvl_find_mod_in_chain(void *next) {
-    LvlGenericModHeader *current = reinterpret_cast<LvlGenericModHeader *>(next);
-    T *found = nullptr;
+T* lvl_find_mod_in_chain(void* next) {
+    LvlGenericModHeader* current = reinterpret_cast<LvlGenericModHeader*>(next);
+    T* found = nullptr;
     while (current) {
         if (LvlTypeMap<T>::kSType == current->sType) {
-            found = reinterpret_cast<T *>(current);
+            found = reinterpret_cast<T*>(current);
             current = nullptr;
         } else {
             current = current->pNext;
@@ -14268,7 +14465,7 @@ T *lvl_find_mod_in_chain(void *next) {
 
 // Init the header of an sType struct with pNext
 template <typename T>
-T lvl_init_struct(void *p_next) {
+T lvl_init_struct(void* p_next) {
     T out = {};
     out.sType = LvlTypeMap<T>::kSType;
     out.pNext = p_next;
