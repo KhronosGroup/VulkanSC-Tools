@@ -1192,6 +1192,9 @@ static VkImageLayout StringToImageLayout(const std::string &input_value) {
 
 static uint64_t VkStringToUint64(const std::string &input_value) {
     static const std::unordered_map<std::string, uint64_t> map = {
+        // VkPointClippingBehavior
+        {"VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES)},
+        {"VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY)},
         // VkImageUsageFlagBits
         {"VK_IMAGE_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT)},
         {"VK_IMAGE_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_TRANSFER_DST_BIT)},
@@ -1203,23 +1206,27 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)},
         {"VK_IMAGE_USAGE_HOST_TRANSFER_BIT", static_cast<uint64_t>(VK_IMAGE_USAGE_HOST_TRANSFER_BIT)},
         {"VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", static_cast<uint64_t>(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR)},
+        // VkPipelineRobustnessImageBehavior
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
         // VkResolveModeFlagBits
         {"VK_RESOLVE_MODE_NONE", static_cast<uint64_t>(VK_RESOLVE_MODE_NONE)},
         {"VK_RESOLVE_MODE_SAMPLE_ZERO_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_SAMPLE_ZERO_BIT)},
         {"VK_RESOLVE_MODE_AVERAGE_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_AVERAGE_BIT)},
         {"VK_RESOLVE_MODE_MIN_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MIN_BIT)},
         {"VK_RESOLVE_MODE_MAX_BIT", static_cast<uint64_t>(VK_RESOLVE_MODE_MAX_BIT)},
-        // VkBufferUsageFlagBits
-        {"VK_BUFFER_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT)},
-        {"VK_BUFFER_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_DST_BIT)},
-        {"VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_STORAGE_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_INDEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDEX_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)},
-        {"VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)},
+        // VkShaderFloatControlsIndependence
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
+        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
+        // VkToolPurposeFlagBits
+        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
+        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
+        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
+        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
+        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
         // VkSampleCountFlagBits
         {"VK_SAMPLE_COUNT_1_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_1_BIT)},
         {"VK_SAMPLE_COUNT_2_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_2_BIT)},
@@ -1228,22 +1235,11 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_SAMPLE_COUNT_16_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_16_BIT)},
         {"VK_SAMPLE_COUNT_32_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_32_BIT)},
         {"VK_SAMPLE_COUNT_64_BIT", static_cast<uint64_t>(VK_SAMPLE_COUNT_64_BIT)},
-        // VkPointClippingBehavior
-        {"VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES)},
-        {"VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY", static_cast<uint64_t>(VK_POINT_CLIPPING_BEHAVIOR_USER_CLIP_PLANES_ONLY)},
-        // VkShaderFloatControlsIndependence
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY)},
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL)},
-        {"VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE", static_cast<uint64_t>(VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE)},
-        // VkShaderStageFlagBits
-        {"VK_SHADER_STAGE_VERTEX_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_VERTEX_BIT)},
-        {"VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)},
-        {"VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)},
-        {"VK_SHADER_STAGE_GEOMETRY_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_GEOMETRY_BIT)},
-        {"VK_SHADER_STAGE_FRAGMENT_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_FRAGMENT_BIT)},
-        {"VK_SHADER_STAGE_COMPUTE_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_COMPUTE_BIT)},
-        {"VK_SHADER_STAGE_ALL_GRAPHICS", static_cast<uint64_t>(VK_SHADER_STAGE_ALL_GRAPHICS)},
-        {"VK_SHADER_STAGE_ALL", static_cast<uint64_t>(VK_SHADER_STAGE_ALL)},
+        // VkPipelineRobustnessBufferBehavior
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
+        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
         // VkSubgroupFeatureFlagBits
         {"VK_SUBGROUP_FEATURE_BASIC_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_BASIC_BIT)},
         {"VK_SUBGROUP_FEATURE_VOTE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_VOTE_BIT)},
@@ -1255,27 +1251,31 @@ static uint64_t VkStringToUint64(const std::string &input_value) {
         {"VK_SUBGROUP_FEATURE_QUAD_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_QUAD_BIT)},
         {"VK_SUBGROUP_FEATURE_ROTATE_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_BIT)},
         {"VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT", static_cast<uint64_t>(VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT)},
-        // VkToolPurposeFlagBits
-        {"VK_TOOL_PURPOSE_VALIDATION_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_VALIDATION_BIT)},
-        {"VK_TOOL_PURPOSE_PROFILING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_PROFILING_BIT)},
-        {"VK_TOOL_PURPOSE_TRACING_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_TRACING_BIT)},
-        {"VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT)},
-        {"VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT", static_cast<uint64_t>(VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT)},
-        // VkPipelineRobustnessImageBehavior
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_2)},
-        // VkPipelineRobustnessBufferBehavior
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS)},
-        {"VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2", static_cast<uint64_t>(VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_ROBUST_BUFFER_ACCESS_2)},
+        // VkBufferUsageFlagBits
+        {"VK_BUFFER_USAGE_TRANSFER_SRC_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT)},
+        {"VK_BUFFER_USAGE_TRANSFER_DST_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_TRANSFER_DST_BIT)},
+        {"VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_STORAGE_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_INDEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDEX_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT)},
+        {"VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", static_cast<uint64_t>(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)},
         // VkQueueFlagBits
         {"VK_QUEUE_GRAPHICS_BIT", static_cast<uint64_t>(VK_QUEUE_GRAPHICS_BIT)},
         {"VK_QUEUE_COMPUTE_BIT", static_cast<uint64_t>(VK_QUEUE_COMPUTE_BIT)},
         {"VK_QUEUE_TRANSFER_BIT", static_cast<uint64_t>(VK_QUEUE_TRANSFER_BIT)},
         {"VK_QUEUE_PROTECTED_BIT", static_cast<uint64_t>(VK_QUEUE_PROTECTED_BIT)},
+        // VkShaderStageFlagBits
+        {"VK_SHADER_STAGE_VERTEX_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_VERTEX_BIT)},
+        {"VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)},
+        {"VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)},
+        {"VK_SHADER_STAGE_GEOMETRY_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_GEOMETRY_BIT)},
+        {"VK_SHADER_STAGE_FRAGMENT_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_FRAGMENT_BIT)},
+        {"VK_SHADER_STAGE_COMPUTE_BIT", static_cast<uint64_t>(VK_SHADER_STAGE_COMPUTE_BIT)},
+        {"VK_SHADER_STAGE_ALL_GRAPHICS", static_cast<uint64_t>(VK_SHADER_STAGE_ALL_GRAPHICS)},
+        {"VK_SHADER_STAGE_ALL", static_cast<uint64_t>(VK_SHADER_STAGE_ALL)},
     };
     const auto it = map.find(input_value);
     if (it != map.end()) {
@@ -1639,18 +1639,23 @@ const uint32_t kLayerPropertiesCount = (sizeof(kLayerProperties) / sizeof(kLayer
 
 // Instance extensions that this layer provides:
 const VkExtensionProperties kInstanceExtensionProperties[] = {
+    VkExtensionProperties{VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_DEBUG_UTILS_SPEC_VERSION},
     VkExtensionProperties{VK_EXT_LAYER_SETTINGS_EXTENSION_NAME, VK_EXT_LAYER_SETTINGS_SPEC_VERSION}};
 const uint32_t kInstanceExtensionPropertiesCount = static_cast<uint32_t>(std::size(kInstanceExtensionProperties));
 
 // Device extensions that this layer provides:
 #ifdef VULKANSC
-const std::array<VkExtensionProperties, 0> kDeviceExtensionProperties = {};
+const VkExtensionProperties* kDeviceExtensionProperties = nullptr;
+const uint32_t kDeviceExtensionPropertiesCount = 0;
 #else
-const std::array<VkExtensionProperties, 2> kDeviceExtensionProperties = {
-    {{VK_EXT_TOOLING_INFO_EXTENSION_NAME, VK_EXT_TOOLING_INFO_SPEC_VERSION},
-     {VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME, VK_KHR_PORTABILITY_SUBSET_SPEC_VERSION}}};
-#endif
-const uint32_t kDeviceExtensionPropertiesCount = static_cast<uint32_t>(kDeviceExtensionProperties.size());
+const VkExtensionProperties kDeviceExtensionProperties[] = {
+    {VK_EXT_TOOLING_INFO_EXTENSION_NAME, VK_EXT_TOOLING_INFO_SPEC_VERSION},
+#ifdef VK_KHR_portability_subset
+    {VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME, VK_KHR_PORTABILITY_SUBSET_SPEC_VERSION},
+#endif  // VK_KHR_portability_subset
+};
+const uint32_t kDeviceExtensionPropertiesCount = static_cast<uint32_t>(std::size(kDeviceExtensionProperties));
+#endif  // VULKANSC
 
 // Global variables //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2436,12 +2441,16 @@ class JsonLoader {
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX *dest);
 #endif // VK_USE_PLATFORM_SCREEN_QNX
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceFeatures *dest);
+#ifdef VK_KHR_portability_subset
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetFeaturesKHR *dest);
+#endif  // VK_KHR_portability_subset
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProperties *dest);
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceLimits *dest);
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceSparseProperties *dest);
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceToolProperties *dest);
+#ifdef VK_KHR_portability_subset
     bool GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetPropertiesKHR *dest);
+#endif  // VK_KHR_portability_subset
 
     static bool WarnIfNotEqualFloat(ProfileLayerSettings *layer_settings, bool enable_warnings, const char* device_name, const char *cap_name, const float new_value, const float old_value, const bool not_modifiable) {
         if (std::abs(new_value - old_value) > 0.0001f) {
@@ -4793,13 +4802,28 @@ VkResult JsonLoader::LoadProfilesDatabase() {
     for (std::size_t i = 0, n = layer_settings.simulate.profile_dirs.size(); i < n; ++i) {
         const std::string& path = layer_settings.simulate.profile_dirs[i];
 
-        if (fs::is_regular_file(path)) {
+        // The std::error_code overloads don't throw when the path doesn't exist or can't be accessed
+        std::error_code error;
+        if (fs::is_regular_file(path, error)) {
             this->LoadFile(path);
             continue;
         }
 
-        for (const auto& entry : fs::directory_iterator(path)) {
-            if (fs::is_directory(entry.path())) {
+        fs::directory_iterator it(path, error);
+        if (error) {
+            LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "Fail to open profiles directory \"%s\"\n", path.c_str());
+            continue;
+        }
+
+        for (const fs::directory_iterator end; it != end; it.increment(error)) {
+            if (error) {
+                LogMessage(&layer_settings, DEBUG_REPORT_ERROR_BIT, "Fail to read profiles directory \"%s\"\n", path.c_str());
+                break;
+            }
+
+            const fs::directory_entry& entry = *it;
+            std::error_code entry_error;
+            if (entry.is_directory(entry_error)) {
                 continue;
             }
 
@@ -6806,46 +6830,30 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
 }
 
 
+#ifdef VK_KHR_portability_subset
 bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetFeaturesKHR *dest) {
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePortabilitySubsetFeaturesKHR)\n");
     bool valid = true;
     for (const auto &member : parent.getMemberNames()) {
-        if (layer_settings.simulate.emulate_portability) {
-            dest->constantAlphaColorBlendFactors = layer_settings.portability.constantAlphaColorBlendFactors;
-            dest->events = layer_settings.portability.events;
-            dest->imageViewFormatReinterpretation = layer_settings.portability.imageViewFormatReinterpretation;
-            dest->imageViewFormatSwizzle = layer_settings.portability.imageViewFormatSwizzle;
-            dest->imageView2DOn3DImage = layer_settings.portability.imageView2DOn3DImage;
-            dest->multisampleArrayImage = layer_settings.portability.multisampleArrayImage;
-            dest->mutableComparisonSamplers = layer_settings.portability.mutableComparisonSamplers;
-            dest->pointPolygons = layer_settings.portability.pointPolygons;
-            dest->samplerMipLodBias = layer_settings.portability.samplerMipLodBias;
-            dest->separateStencilMaskRef = layer_settings.portability.separateStencilMaskRef;
-            dest->shaderSampleRateInterpolationFunctions = layer_settings.portability.shaderSampleRateInterpolationFunctions;
-            dest->tessellationIsolines = layer_settings.portability.tessellationIsolines;
-            dest->tessellationPointMode = layer_settings.portability.tessellationPointMode;
-            dest->triangleFans = layer_settings.portability.triangleFans;
-            dest->vertexAttributeAccessBeyondStride = layer_settings.portability.vertexAttributeAccessBeyondStride;
-        } else {
-            GET_VALUE_WARN(member, constantAlphaColorBlendFactors, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, events, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, imageViewFormatReinterpretation, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, imageViewFormatSwizzle, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, imageView2DOn3DImage, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, multisampleArrayImage, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, mutableComparisonSamplers, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, pointPolygons, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, samplerMipLodBias, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, separateStencilMaskRef, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, shaderSampleRateInterpolationFunctions, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, tessellationIsolines, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, tessellationPointMode, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, triangleFans, false, requested_profile, WarnIfNotEqualBool);
-            GET_VALUE_WARN(member, vertexAttributeAccessBeyondStride, false, requested_profile, WarnIfNotEqualBool);
-        }
+        GET_VALUE_WARN(member, constantAlphaColorBlendFactors, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, events, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, imageViewFormatReinterpretation, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, imageViewFormatSwizzle, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, imageView2DOn3DImage, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, multisampleArrayImage, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, mutableComparisonSamplers, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, pointPolygons, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, samplerMipLodBias, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, separateStencilMaskRef, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, shaderSampleRateInterpolationFunctions, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, tessellationIsolines, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, tessellationPointMode, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, triangleFans, false, requested_profile, WarnIfNotEqualBool);
+        GET_VALUE_WARN(member, vertexAttributeAccessBeyondStride, false, requested_profile, WarnIfNotEqualBool);
     }
     return valid;
 }
+#endif  // VK_KHR_portability_subset
 
 bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDeviceProperties *dest) {
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDeviceProperties)\n");
@@ -7013,6 +7021,7 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
 }
 
 
+#ifdef VK_KHR_portability_subset
 bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, const Json::Value &parent, VkPhysicalDevicePortabilitySubsetPropertiesKHR *dest) {
     LogMessage(&layer_settings, DEBUG_REPORT_DEBUG_BIT, "\tJsonLoader::GetStruct(VkPhysicalDevicePortabilitySubsetPropertiesKHR)\n");
     bool valid = true;
@@ -7021,6 +7030,7 @@ bool JsonLoader::GetStruct(const char* device_name, bool requested_profile, cons
     }
     return valid;
 }
+#endif  // VK_KHR_portability_subset
 
 #undef GET_VALUE
 #undef GET_ARRAY
@@ -7051,6 +7061,10 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(const VkInstanceCreateInfo *pCreat
     JsonLoader &json_loader = JsonLoader::Create();
 
     ProfileLayerSettings *layer_settings = &json_loader.layer_settings;
+
+    // As with the validation layer, the messengers of VkInstanceCreateInfo::pNext report the messages of vkCreateInstance
+    StoreInstanceDebugUtilsMessengers(layer_settings, pCreateInfo);
+    InstanceDebugUtilsMessengersScope instance_debug_utils_messengers(layer_settings);
 
     InitProfilesLayerSettings(pCreateInfo, pAllocator, layer_settings);
 
@@ -7209,9 +7223,12 @@ VKAPI_ATTR void VKAPI_CALL DestroyInstance(VkInstance instance, const VkAllocati
 
         ProfileLayerSettings* layer_settings = &JsonLoader::Find(instance)->layer_settings;
 
-        LogMessage(layer_settings, DEBUG_REPORT_DEBUG_BIT, "DestroyInstance\n");
-
         {
+            // As with the validation layer, the messengers of VkInstanceCreateInfo::pNext report the messages of vkDestroyInstance
+            InstanceDebugUtilsMessengersScope instance_debug_utils_messengers(layer_settings);
+
+            LogMessage(layer_settings, DEBUG_REPORT_DEBUG_BIT, "DestroyInstance\n");
+
             const auto dt = instance_dispatch_table(instance);
 
             std::vector<VkPhysicalDevice> physical_devices;
@@ -7230,6 +7247,34 @@ VKAPI_ATTR void VKAPI_CALL DestroyInstance(VkInstance instance, const VkAllocati
     }
 }
 
+VKAPI_ATTR VkResult VKAPI_CALL CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+                                                            const VkAllocationCallbacks *pAllocator,
+                                                            VkDebugUtilsMessengerEXT *pMessenger) {
+    std::lock_guard<std::recursive_mutex> lock(global_lock);
+    const auto dt = instance_dispatch_table(instance);
+    if (!dt->CreateDebugUtilsMessengerEXT) {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+
+    // As with the validation layer, the messenger is created down the chain and the layer messages are also reported to it
+    VkResult result = dt->CreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger);
+    if (result == VK_SUCCESS) {
+        AddDebugUtilsMessenger(&JsonLoader::Find(instance)->layer_settings, pCreateInfo, *pMessenger, false);
+    }
+    return result;
+}
+
+VKAPI_ATTR void VKAPI_CALL DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT messenger,
+                                                         const VkAllocationCallbacks *pAllocator) {
+    std::lock_guard<std::recursive_mutex> lock(global_lock);
+    const auto dt = instance_dispatch_table(instance);
+
+    RemoveDebugUtilsMessenger(&JsonLoader::Find(instance)->layer_settings, messenger);
+    if (dt->DestroyDebugUtilsMessengerEXT) {
+        dt->DestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator);
+    }
+}
+
 void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
     while (place) {
         VkBaseOutStructure *structure = (VkBaseOutStructure *)place;
@@ -7239,20 +7284,18 @@ void FillPNextChain(PhysicalDeviceData *physicalDeviceData, void *place) {
 
         switch (structure->sType) {
 #ifndef VULKANSC
-            // VK_KHR_portability_subset is a special case since it can also be emulated by the Profiles layer.
+#ifdef VK_KHR_portability_subset
+            // VK_KHR_portability_subset is a special case handled separately from the other extensions.
             case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR:
-                if (PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) ||
-                    layer_settings->simulate.emulate_portability) {
+                if (PhysicalDeviceData::HasSimulatedExtension(physicalDeviceData, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
                     VkPhysicalDevicePortabilitySubsetPropertiesKHR *psp = (VkPhysicalDevicePortabilitySubsetPropertiesKHR *)place;
                     void *pNext = psp->pNext;
                     *psp = physicalDeviceData->physical_device_portability_subset_properties_;
-                    if (layer_settings->portability.vertexAttributeAccessBeyondStride) {
-                        psp->minVertexInputBindingStrideAlignment = layer_settings->portability.minVertexInputBindingStrideAlignment;
-                    }
                     psp->pNext = pNext;
                 }
                 break;
-#endif
+#endif  // VK_KHR_portability_subset
+#endif // VULKANSC
             case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES:
                 {
                     VkPhysicalDevicePushDescriptorProperties *data = (VkPhysicalDevicePushDescriptorProperties *)place;
@@ -8314,13 +8357,11 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumerateDeviceExtensionProperties(VkPhysicalDevi
     std::lock_guard<std::recursive_mutex> lock(global_lock);
     const auto dt = instance_dispatch_table(physicalDevice);
 
-    uint32_t pCount_copy = *pCount;
-
     PhysicalDeviceData *pdd = PhysicalDeviceData::Find(physicalDevice);
     ProfileLayerSettings* layer_settings = &JsonLoader::Find(pdd->instance())->layer_settings;
     if (pLayerName) {
         if (strcmp(pLayerName, kLayerName) == 0)
-            result = EnumerateProperties(kDeviceExtensionPropertiesCount, kDeviceExtensionProperties.data(), pCount, pProperties);
+            result = EnumerateProperties(kDeviceExtensionPropertiesCount, kDeviceExtensionProperties, pCount, pProperties);
         else
             result = dt->EnumerateDeviceExtensionProperties(physicalDevice, pLayerName, pCount, pProperties);
     } else if (pdd == nullptr || (!(layer_settings->simulate.capabilities & SIMULATE_EXTENSIONS_BIT) &&
@@ -8328,19 +8369,6 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumerateDeviceExtensionProperties(VkPhysicalDevi
         result = dt->EnumerateDeviceExtensionProperties(physicalDevice, pLayerName, pCount, pProperties);
     } else {
         result = EnumerateExtensions(pdd->simulation_extensions_, pCount, pProperties);
-    }
-
-    if (result == VK_SUCCESS && !pLayerName && layer_settings->simulate.emulate_portability &&
-        !PhysicalDeviceData::HasSimulatedOrRealExtension(physicalDevice, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
-        if (pProperties) {
-            if (pCount_copy >= *pCount + 1) {
-                strncpy(pProperties[*pCount].extensionName, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME, VK_MAX_EXTENSION_NAME_SIZE);
-                pProperties[*pCount].specVersion = VK_KHR_PORTABILITY_SUBSET_SPEC_VERSION;
-                *pCount += 1;
-            }
-        } else {
-            *pCount += 1;
-        }
     }
 
     return result;
@@ -9248,32 +9276,13 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumeratePhysicalDevices(VkInstance instance, uin
                 VkPhysicalDeviceMemoryProperties2KHR memory_chain = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2_KHR};
 
 #ifndef VULKANSC
+#ifdef VK_KHR_portability_subset
                 if (PhysicalDeviceData::HasExtension(&pdd, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
                     property_chain.pNext = &(pdd.physical_device_portability_subset_properties_);
                     feature_chain.pNext = &(pdd.physical_device_portability_subset_features_);
-                } else if (layer_settings->simulate.emulate_portability) {
-                    pdd.physical_device_portability_subset_properties_ = {
-                        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR, nullptr, layer_settings->portability.minVertexInputBindingStrideAlignment};
-                    pdd.physical_device_portability_subset_features_ = {
-                        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR,
-                        nullptr,
-                        layer_settings->portability.constantAlphaColorBlendFactors,
-                        layer_settings->portability.events,
-                        layer_settings->portability.imageViewFormatReinterpretation,
-                        layer_settings->portability.imageViewFormatSwizzle,
-                        layer_settings->portability.imageView2DOn3DImage,
-                        layer_settings->portability.multisampleArrayImage,
-                        layer_settings->portability.mutableComparisonSamplers,
-                        layer_settings->portability.pointPolygons,
-                        layer_settings->portability.samplerMipLodBias,
-                        layer_settings->portability.separateStencilMaskRef,
-                        layer_settings->portability.shaderSampleRateInterpolationFunctions,
-                        layer_settings->portability.tessellationIsolines,
-                        layer_settings->portability.tessellationPointMode,
-                        layer_settings->portability.triangleFans,
-                        layer_settings->portability.vertexAttributeAccessBeyondStride};
                 }
-#endif
+#endif  // VK_KHR_portability_subset
+#endif  // VULKANSC
 
                 if (PhysicalDeviceData::HasExtension(&pdd, VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME)) {
                     pdd.physical_device_texture_compression_astchdrfeatures_.pNext = feature_chain.pNext;
@@ -10003,6 +10012,8 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetInstanceProcAddr(VkInstance instance
     GET_PROC_ADDR(EnumerateDeviceExtensionProperties);
     GET_PROC_ADDR(EnumeratePhysicalDevices);
     GET_PROC_ADDR(DestroyInstance);
+    GET_PROC_ADDR(CreateDebugUtilsMessengerEXT);
+    GET_PROC_ADDR(DestroyDebugUtilsMessengerEXT);
     GET_PROC_ADDR(GetPhysicalDeviceProperties);
     GET_PROC_ADDR(GetPhysicalDeviceProperties2);
     GET_PROC_ADDR(GetPhysicalDeviceProperties2KHR);

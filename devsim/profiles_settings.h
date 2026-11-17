@@ -22,6 +22,7 @@
 
 #include <vulkan/layer/vk_layer_settings.hpp>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include <string>
 
@@ -167,6 +168,17 @@ static std::string GetUnknownFeatureValuesString(UnknownFeatureValues value) {
     return "UNKNOWN_FEATURE_VALUES_UNCHANGED";
 }
 
+// A VK_EXT_debug_utils messenger the layer messages are reported to
+struct DebugUtilsMessenger {
+    VkDebugUtilsMessengerEXT handle{VK_NULL_HANDLE};
+    VkDebugUtilsMessageSeverityFlagsEXT message_severity{0};
+    VkDebugUtilsMessageTypeFlagsEXT message_type{0};
+    PFN_vkDebugUtilsMessengerCallbackEXT callback{nullptr};
+    void *user_data{nullptr};
+    // Messenger of VkInstanceCreateInfo::pNext, only active during vkCreateInstance and vkDestroyInstance
+    bool instance{false};
+};
+
 struct ProfileLayerSettings {
     ~ProfileLayerSettings() {
         if (log.profiles_log_file != nullptr) {
@@ -181,32 +193,13 @@ struct ProfileLayerSettings {
         std::vector<std::string> profile_dirs;
         std::string profile_name{"${VP_DEFAULT}"};
         bool profile_validation{false};
+        bool profile_cache{false};
         SimulateCapabilityFlags capabilities{SIMULATE_API_VERSION_BIT | SIMULATE_FEATURES_BIT | SIMULATE_PROPERTIES_BIT};
         DefaultFeatureValues default_feature_values{DEFAULT_FEATURE_VALUES_DEVICE};
         UnknownFeatureValues unknown_feature_values{UNKNOWN_FEATURE_VALUES_UNCHANGED};
         std::vector<std::string> exclude_device_extensions;
         std::vector<std::string> exclude_formats;
-        bool emulate_portability{true};
     } simulate;
-
-    struct Portability {
-        bool constantAlphaColorBlendFactors{false};
-        bool events{false};
-        bool imageViewFormatReinterpretation{false};
-        bool imageViewFormatSwizzle{false};
-        bool imageView2DOn3DImage{false};
-        bool multisampleArrayImage{false};
-        bool mutableComparisonSamplers{false};
-        bool pointPolygons{false};
-        bool samplerMipLodBias{false};
-        bool separateStencilMaskRef{false};
-        bool shaderSampleRateInterpolationFunctions{false};
-        bool tessellationIsolines{false};
-        bool tessellationPointMode{false};
-        bool triangleFans{false};
-        bool vertexAttributeAccessBeyondStride{false};
-        uint32_t minVertexInputBindingStrideAlignment{4};
-    } portability;
 
     struct Log {
         DebugActionFlags debug_actions{DEBUG_ACTION_STDOUT_BIT};
@@ -215,8 +208,39 @@ struct ProfileLayerSettings {
         DebugReportFlags debug_reports{DEBUG_REPORT_WARNING_BIT | DEBUG_REPORT_ERROR_BIT};
         bool debug_fail_on_error{false};
         FILE *profiles_log_file{nullptr};
+
+        // As with the validation layer VK_DBG_LAYER_ACTION_DEFAULT, the default debug actions are only used when there is no
+        // debug utils messenger, while explicitly set debug actions are also used when there are debug utils messengers
+        bool debug_actions_default{true};
+
+        std::mutex debug_utils_mutex;
+        std::vector<DebugUtilsMessenger> debug_utils_messengers;
+        // The VkDebugUtilsMessengerCreateInfoEXT of VkInstanceCreateInfo::pNext, activated again for vkDestroyInstance
+        std::vector<VkDebugUtilsMessengerCreateInfoEXT> instance_debug_utils_messengers;
     } log;
 };
+
+void AddDebugUtilsMessenger(ProfileLayerSettings *layer_settings, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+                            VkDebugUtilsMessengerEXT messenger, bool instance);
+
+void RemoveDebugUtilsMessenger(ProfileLayerSettings *layer_settings, VkDebugUtilsMessengerEXT messenger);
+
+void StoreInstanceDebugUtilsMessengers(ProfileLayerSettings *layer_settings, const VkInstanceCreateInfo *pCreateInfo);
+
+// Activates the debug utils messengers of VkInstanceCreateInfo::pNext for the scope of vkCreateInstance or vkDestroyInstance
+class InstanceDebugUtilsMessengersScope {
+   public:
+    explicit InstanceDebugUtilsMessengersScope(ProfileLayerSettings *layer_settings);
+    ~InstanceDebugUtilsMessengersScope();
+
+    InstanceDebugUtilsMessengersScope(const InstanceDebugUtilsMessengersScope &) = delete;
+    InstanceDebugUtilsMessengersScope &operator=(const InstanceDebugUtilsMessengersScope &) = delete;
+
+   private:
+    ProfileLayerSettings *layer_settings_;
+};
+
+bool IsLogEnabled(ProfileLayerSettings *layer_settings, DebugReportBits report);
 
 void InitProfilesLayerSettings(const VkInstanceCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator,
                                ProfileLayerSettings *layer_settings);
